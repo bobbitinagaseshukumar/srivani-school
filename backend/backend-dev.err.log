@@ -1,0 +1,2 @@
+Server failed to start: port 5000 is already in use.
+Stop the existing backend process or set PORT to another free port.
