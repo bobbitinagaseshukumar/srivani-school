@@ -2,24 +2,24 @@ import React, { useContext, useState } from 'react';
 import { AppContext } from './context/AppContext';
 
 // Import Public Pages
-import Home from './views/Public/Home';
-import About from './views/Public/About';
-import Faculty from './views/Public/Faculty';
-import Academics from './views/Public/Academics';
-import Facilities from './views/Public/Facilities';
-import Gallery from './views/Public/Gallery';
-import Admissions from './views/Public/Admissions';
-import Contact from './views/Public/Contact';
+import Home from './pages/Public/Home';
+import About from './pages/Public/About';
+import Faculty from './pages/Public/Faculty';
+import Academics from './pages/Public/Academics';
+import Facilities from './pages/Public/Facilities';
+import Gallery from './pages/Public/Gallery';
+import Admissions from './pages/Public/Admissions';
+import Contact from './pages/Public/Contact';
 
 // Import Auth Page
-import Login from './views/Auth/Login';
+import Login from './pages/Auth/Login';
 
 // Import Portal Pages
-import SuperAdminPortal from './views/SuperAdmin/SuperAdminPortal';
-import AdminPortal from './views/Admin/AdminPortal';
-import TeacherPortal from './views/Teacher/TeacherPortal';
-import StudentPortal from './views/Student/StudentPortal';
-import ParentPortal from './views/Parent/ParentPortal';
+import SuperAdminPortal from './pages/SuperAdmin/SuperAdminPortal';
+import AdminPortal from './pages/Admin/AdminPortal';
+import TeacherPortal from './pages/Teacher/TeacherPortal';
+import StudentPortal from './pages/Student/StudentPortal';
+import ParentPortal from './pages/Parent/ParentPortal';
 
 // Icons
 import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users } from 'lucide-react';
@@ -96,11 +96,11 @@ export default function App() {
             <img 
               src="/logo.jpg" 
               alt="Sri Vani Vidyanikethan Logo" 
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-md border border-slate-200/50 dark:border-slate-800/80 bg-white"
+              className="w-9 h-9 rounded-xl object-cover shadow-md border border-slate-200/50 dark:border-slate-800/80 bg-white"
             />
             <div>
-              <h1 className="text-[10px] sm:text-xs md:text-sm font-extrabold font-montserrat tracking-tight leading-tight m-0 text-slate-950 dark:text-white">SRI VANI VIDYANIKETHAN</h1>
-              <p className="text-[7px] sm:text-[8px] md:text-[9px] text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase m-0 leading-none">EM SCHOOL</p>
+              <h1 className="text-sm font-extrabold font-montserrat tracking-tight leading-tight m-0 text-slate-950 dark:text-white">SRI VANI VIDYANIKETHAN</h1>
+              <p className="text-[9px] text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase m-0 leading-none">EM SCHOOL</p>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export default function App() {
           </nav>
 
           {/* Utilities Panel */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -186,16 +186,16 @@ export default function App() {
             {currentUser.role === 'Guest' ? (
               <button
                 onClick={() => setCurrentTab('login')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs p-2 sm:px-4 sm:py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
               >
-                <Lock size={12} /> <span className="hidden sm:inline">Portal Login</span>
+                <Lock size={12} /> Portal Login
               </button>
             ) : (
               <button
                 onClick={() => setCurrentTab('portal')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs p-2 sm:px-4 sm:py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
               >
-                <LayoutDashboard size={12} /> <span className="hidden sm:inline">Portal Dashboard</span>
+                <LayoutDashboard size={12} /> Portal Dashboard
               </button>
             )}
 
@@ -230,24 +230,6 @@ export default function App() {
                 {link.label}
               </button>
             ))}
-            
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
-              {currentUser.role === 'Guest' ? (
-                <button
-                  onClick={() => { setCurrentTab('login'); setMobileMenuOpen(false); }}
-                  className="w-full text-left px-4 py-2.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 font-bold flex items-center gap-1.5"
-                >
-                  <Lock size={12} /> Portal Login
-                </button>
-              ) : (
-                <button
-                  onClick={() => { setCurrentTab('portal'); setMobileMenuOpen(false); }}
-                  className="w-full text-left px-4 py-2.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 font-bold flex items-center gap-1.5"
-                >
-                  <LayoutDashboard size={12} /> Portal Dashboard
-                </button>
-              )}
-            </div>
           </div>
         )}
       </header>
