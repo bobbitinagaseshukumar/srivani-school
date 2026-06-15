@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Custom premium classes */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glassmorphism {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Premium Gradients */
+.gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Custom 3D scroll animation and card flip classes */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-2000 {
+  perspective: 2000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+.rotate-y-0 {
+  transform: rotateY(0deg);
+}
+.reveal-even-hidden {
+  opacity: 0;
+  transform: perspective(1000px) translateY(45px) scale(0.96) rotateX(-12deg);
+}
+.reveal-even-visible {
+  opacity: 1;
+  transform: perspective(1000px) translateY(0px) scale(1) rotateX(0deg);
+}
+.reveal-odd-hidden {
+  opacity: 0;
+  transform: perspective(1000px) translateY(45px) scale(0.96) rotateX(-12deg);
+}
+.reveal-odd-visible {
+  opacity: 1;
+  transform: perspective(1000px) translateY(0px) scale(1) rotateX(0deg);
+}
+
+@media (max-width: 767px) {
+  .reveal-even-hidden {
+    opacity: 0;
+    transform: perspective(1000px) translateX(-45px) scale(0.96) rotateY(-12deg);
+  }
+  .reveal-even-visible {
+    opacity: 1;
+    transform: perspective(1000px) translateX(0px) scale(1) rotateY(0deg);
+  }
+  .reveal-odd-hidden {
+    opacity: 0;
+    transform: perspective(1000px) translateX(45px) scale(0.96) rotateY(12deg);
+  }
+  .reveal-odd-visible {
+    opacity: 1;
+    transform: perspective(1000px) translateX(0px) scale(1) rotateY(0deg);
+  }
+}
+
+/* Custom 3D Hover tilt utilities to resolve transform overrides */
+.hover\:rotate-y-6:hover {
+  transform: translateY(-8px) scale(1.05) rotateY(6deg) !important;
+}
+.hover\:rotate-y-0:hover {
+  transform: translateY(-8px) scale(1.05) rotateY(0deg) !important;
+}
+.hover\:rotate-y--6:hover {
+  transform: translateY(-8px) scale(1.05) rotateY(-6deg) !important;
+}
+.hover\:rotate-y-3:hover {
+  transform: translateY(-6px) scale(1.02) rotateY(3deg) !important;
+}
+.hover\:rotate-x-3:hover {
+  transform: translateY(-6px) scale(1.02) rotateX(3deg) !important;
+}
+.hover\:rotate-y-3.hover\:rotate-x-3:hover {
+  transform: translateY(-6px) scale(1.02) rotateX(3deg) rotateY(3deg) !important;
+}
+
+/* Hero background animated mesh */
+@keyframes mesh-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.bg-animated-mesh {
+  background: linear-gradient(-45deg, #0f172a, #1e1b4b, #0c1a3a, #1e293b);
+  background-size: 400% 400%;
+  animation: mesh-shift 14s ease infinite;
+}
