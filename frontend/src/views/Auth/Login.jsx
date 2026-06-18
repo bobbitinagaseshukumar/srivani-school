@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { ShieldCheck, UserCheck, Key, RefreshCcw, Eye, EyeOff, Sparkles, ArrowRight, BookOpen, Users, ShieldAlert, ArrowLeft } from 'lucide-react';
 
@@ -10,10 +10,15 @@ export default function Login({ onLoginSuccess }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
   
   // OTP Verification flow mock
   const [otpFlow, setOtpFlow] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Helper credentials updated to Sri Vani email domains
   const credentialsHelper = {
@@ -74,16 +79,24 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
+    <div 
+      className="min-h-[85vh] flex items-center justify-center p-6 text-slate-800 dark:text-slate-100 relative overflow-x-hidden"
+      style={{ perspective: '2000px' }}
+    >
       
       {/* 3D Floating background elements */}
       <div className="absolute top-12 left-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-float-slow -z-10"></div>
       <div className="absolute bottom-12 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float-fast -z-10"></div>
 
       {/* 3D Flip Card Deck */}
-      <div className={`w-full max-w-6xl preserve-3d transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        stage === 'enter-credentials' ? 'rotate-y-180' : ''
-      }`}>
+      <div 
+        className="w-full max-w-6xl preserve-3d transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{
+          transformStyle: 'preserve-3d',
+          opacity: isMounted ? 1 : 0,
+          transform: `translateY(${isMounted ? '0px' : '40px'}) rotateX(${isMounted ? '0deg' : '-8deg'}) ${stage === 'enter-credentials' ? 'rotateY(180deg)' : 'rotateY(0deg)'}`
+        }}
+      >
         
         {/* Front Face: Role Selection */}
         <div className={`backface-hidden w-full transition-all duration-1000 ${

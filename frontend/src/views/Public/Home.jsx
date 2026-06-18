@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
-import { Award, BookOpen, GraduationCap, Users, ShieldAlert, ChevronRight, MessageSquare, ArrowUpRight, Compass, Sparkles } from 'lucide-react';
+import React, { useState, useContext } from 'react';
+import { AppContext } from '../../context/AppContext';
+import { Award, BookOpen, GraduationCap, Users, ShieldAlert, ChevronRight, MessageSquare, ArrowUpRight, Compass, Sparkles, Megaphone, Bell, Info } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
 
 export default function Home({ onNavigate }) {
+  const { circulars, tickerItems, schoolInfo, testimonials, admissionBanner } = useContext(AppContext);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const activeTestimonials = (testimonials || []).filter(t => t.active);
+  const banner = admissionBanner || { active: true, year: '2026–2027', headline: 'ADMISSIONS OPEN FOR', subtitle: 'Register Online Today.', buttonLabel: 'Apply Now' };
 
   const stats = [
-    { label: 'Enrolled Students', count: '5,000+', icon: Users, color: 'from-blue-500 to-indigo-600' },
-    { label: 'Expert Educators', count: '300+', icon: GraduationCap, color: 'from-emerald-500 to-teal-600' },
-    { label: 'National Awards', count: '50+', icon: Award, color: 'from-amber-500 to-orange-600' },
-    { label: 'Years of Excellence', count: '20+', icon: BookOpen, color: 'from-fuchsia-500 to-pink-600' }
+    { label: 'Enrolled Students', count: '500+', icon: Users, color: 'from-blue-500 to-indigo-600' },
+    { label: 'Expert Educators', count: '50+', icon: GraduationCap, color: 'from-emerald-500 to-teal-600' },
+    { label: 'Indian Talent Test Medal', count: 'Gold', icon: Award, color: 'from-amber-500 to-orange-600' },
+    { label: 'School Branch', count: 'Only One', icon: BookOpen, color: 'from-fuchsia-500 to-pink-600' }
   ];
 
   const facilities = [
@@ -19,76 +23,72 @@ export default function Home({ onNavigate }) {
     { title: 'Olympic-Grade Sports Arena', desc: 'Includes an indoor heated pool, running tracks, basketball courts, and professional training staff.', img: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=600&auto=format&fit=crop&q=80' }
   ];
 
-  const testimonials = [
-    { text: "Gravity School is more than just an academic institute; it's a launchpad for dreams. The custom AI feedback and individual attention helped me secure admissions at MIT.", author: "Alice Johnson", role: "Alumni (Class of 2024)" },
-    { text: "As a parent, the portal gives me unparalleled peace of mind. I can track my child's daily progress, attendance, and message teachers instantly. Highly recommended!", author: "Robert Johnson", role: "Parent" },
-    { text: "Teaching here is a joy. The modern smart classrooms and integrated digital homework systems save time, allowing us to focus entirely on interactive learning.", author: "Dr. David Banner", role: "Physics Faculty" }
-  ];
-
   return (
     <div className="min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-300">
-      {/* Admission Open Banner */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-center py-2.5 px-4 text-sm font-semibold flex items-center justify-center gap-2 animate-pulse">
-        <Sparkles size={16} />
-        <span>ADMISSIONS OPEN FOR ACADEMIC YEAR 2026 - 2027! Register Online Today.</span>
-        <button 
-          onClick={() => onNavigate('admissions')} 
-          className="ml-3 bg-white text-indigo-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-100 transition-all shadow-md"
-        >
-          Apply Now
-        </button>
-      </div>
+      {/* Admission Open Banner — controlled by Super Admin */}
+      {banner.active && (
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2">
+          <Sparkles size={14} className="shrink-0" />
+          <span className="truncate">{banner.headline} {banner.year}! {banner.subtitle}</span>
+          <button
+            onClick={() => onNavigate('admissions')}
+            className="ml-2 shrink-0 bg-white text-indigo-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-100 transition-all shadow-md"
+          >
+            {banner.buttonLabel}
+          </button>
+        </div>
+      )}
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-slate-900 text-white py-24 lg:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.2),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(139,92,246,0.15),transparent_50%)]"></div>
-        {/* Floating elements styling */}
-        <div className="absolute top-12 left-12 w-24 h-24 bg-blue-500/10 rounded-full blur-xl animate-float-slow"></div>
-        <div className="absolute bottom-16 right-16 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl animate-float-fast"></div>
+      <section className="relative overflow-hidden bg-animated-mesh text-white py-20 sm:py-28 lg:py-36">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_35%,rgba(59,130,246,0.25),transparent_55%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,rgba(139,92,246,0.18),transparent_55%)]"></div>
+        {/* Floating 3D orbs */}
+        <div className="absolute top-10 left-8 sm:left-16 w-20 h-20 sm:w-28 sm:h-28 bg-blue-500/12 rounded-full blur-2xl animate-float-slow pointer-events-none"></div>
+        <div className="absolute bottom-10 right-8 sm:right-20 w-28 h-28 sm:w-40 sm:h-40 bg-purple-500/12 rounded-full blur-3xl animate-float-orbit pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-indigo-400/10 rounded-full blur-xl animate-float-alt pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-12 items-center relative z-10">
-          <div className="lg:col-span-7 space-y-6 text-left">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 grid lg:grid-cols-12 gap-10 items-center relative z-10">
+          <div className="lg:col-span-7 space-y-5 text-left">
             <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 text-blue-400 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
-              <Compass size={14} /> Global Standard of Education
+              <Compass size={13} /> Global Standard of Education
             </div>
-            <h1 className="text-4xl sm:text-6xl font-extrabold font-montserrat tracking-tight leading-tight">
-              Building <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Future Leaders</span> & Innovators
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-montserrat tracking-tight leading-tight">
+              Building <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Future Leaders</span> &amp; Innovators
             </h1>
-            <p className="text-lg text-slate-300 max-w-xl font-light">
-              Welcome to SRI VANI VIDYANIKETHAN EM SCHOOL, where academic rigour meets interactive learning. We nurture children from Playclass to Class 10 to grow, create, and excel.
+            <p className="text-base sm:text-lg text-slate-300 max-w-xl font-light leading-relaxed">
+              Welcome to SRI VANI VIDYANIKETHAN EM SCHOOL — where academic rigour meets interactive learning. We nurture children from Playclass to Class 10.
             </p>
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-col xs:flex-row flex-wrap gap-3 pt-1">
               <button 
                 onClick={() => onNavigate('admissions')} 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold transition-all transform hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center gap-2"
+                className="animate-pulse-glow bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-semibold transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 w-full xs:w-auto"
               >
-                Apply Admission <ArrowUpRight size={18} />
+                Apply Admission <ArrowUpRight size={17} />
               </button>
               <button 
                 onClick={() => onNavigate('about')} 
-                className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-8 py-3.5 rounded-xl font-semibold transition-all hover:bg-slate-800/80"
+                className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-7 py-3.5 rounded-xl font-semibold transition-all w-full xs:w-auto text-center"
               >
                 Explore School
               </button>
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative">
-            <div className="relative z-10 overflow-hidden rounded-2xl border border-slate-700/50 shadow-2xl bg-slate-800/50 p-2">
+          <div className="lg:col-span-5 relative mt-4 lg:mt-0">
+            <div className="card-3d relative z-10 overflow-hidden rounded-2xl border border-slate-700/50 shadow-2xl bg-slate-800/50 p-2">
               <img 
                 src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80" 
-                alt="Gravity School Campus" 
-                className="w-full h-80 object-cover rounded-xl"
+                alt="Sri Vani Vidyanikethan Campus" 
+                className="w-full h-56 sm:h-72 lg:h-80 object-cover rounded-xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-end p-6">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-end p-5">
                 <div>
-                  <h3 className="font-bold text-lg">Modern Academic Block</h3>
+                  <h3 className="font-bold text-base sm:text-lg">Modern Academic Block</h3>
                   <p className="text-xs text-slate-300">Equipped with 3D models and digital learning systems.</p>
                 </div>
               </div>
             </div>
-            {/* Background glowing frame */}
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur-lg opacity-30 -z-10 animate-float-slow"></div>
           </div>
         </div>
@@ -96,19 +96,19 @@ export default function Home({ onNavigate }) {
 
       {/* Statistics Section */}
       <ScrollReveal>
-        <section className="py-16 bg-slate-50 dark:bg-slate-900/40 relative z-20">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="py-14 sm:py-16 bg-slate-50 dark:bg-slate-900/40 relative z-20">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 stagger-children">
               {stats.map((stat, idx) => (
                 <div 
                   key={idx} 
-                  className="glassmorphism p-6 rounded-2xl shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left group"
+                  className="glassmorphism p-4 sm:p-6 rounded-2xl shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left group animate-bounce-in card-3d"
                 >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
-                    <stat.icon size={24} />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center text-white mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
+                    <stat.icon size={20} />
                   </div>
-                  <h3 className="text-3xl font-extrabold font-montserrat">{stat.count}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{stat.label}</p>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold font-montserrat">{stat.count}</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -118,29 +118,29 @@ export default function Home({ onNavigate }) {
 
       {/* Principal message card */}
       <ScrollReveal>
-        <section className="py-20 max-w-7xl mx-auto px-6">
-          <div className="glassmorphism rounded-3xl p-8 lg:p-12 shadow-2xl relative overflow-hidden grid lg:grid-cols-12 gap-8 items-center border border-white/40 dark:border-slate-800/40">
+        <section className="py-12 sm:py-20 max-w-7xl mx-auto px-5 sm:px-6">
+          <div className="glassmorphism rounded-3xl p-6 sm:p-8 lg:p-12 shadow-2xl relative overflow-hidden grid lg:grid-cols-12 gap-6 sm:gap-8 items-center border border-white/40 dark:border-slate-800/40">
             <div className="lg:col-span-4 flex flex-col items-center">
               <div className="relative group">
                 <img 
-                  src="/principal.jpg" 
-                  alt="Principal K Dasaratha Rami Reddy" 
-                  className="w-52 h-52 object-cover rounded-full border-4 border-blue-500/30 shadow-lg group-hover:scale-105 transition-transform"
+                  src={schoolInfo?.principalPhoto || "/principal.jpg"} 
+                  alt={`Principal ${schoolInfo?.principalName}`} 
+                  className="w-40 h-40 sm:w-52 sm:h-52 object-cover rounded-full border-4 border-blue-500/30 shadow-lg group-hover:scale-105 transition-transform"
                 />
                 <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-md opacity-25 -z-10 group-hover:opacity-40 transition-opacity"></div>
               </div>
-              <h4 className="font-extrabold text-lg mt-4 text-slate-900 dark:text-white">K Dasaratha Rami Reddy</h4>
-              <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider">Principal, Sri Vani Vidyanikethan</p>
+              <h4 className="font-extrabold text-base sm:text-lg mt-4 text-slate-900 dark:text-white text-center">{schoolInfo?.principalName || 'K Dasaratha Rami Reddy'}</h4>
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider text-center">{schoolInfo?.principalDesignation || 'Principal, Sri Vani Vidyanikethan'}</p>
             </div>
 
             <div className="lg:col-span-8 text-left space-y-4">
-              <h2 className="text-2xl sm:text-3xl font-bold font-montserrat text-indigo-950 dark:text-white">Welcome from the Principal</h2>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-montserrat text-indigo-950 dark:text-white">Welcome from the Principal</h2>
               <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded"></div>
-              <p className="text-slate-600 dark:text-slate-300 font-light leading-relaxed">
-                At Sri Vani Vidyanikethan, we foster an environment of creativity, integrity, and analytical reasoning. We do not believe in rote memorization. Instead, we implement research-led curricula, integrated with the latest virtual tools. Our goal is to prepare students to face global challenges, with values grounded in kindness and civic responsibility.
+              <p className="text-slate-600 dark:text-slate-350 font-light leading-relaxed text-sm sm:text-base">
+                {schoolInfo?.principalMessage}
               </p>
-              <p className="text-slate-600 dark:text-slate-300 font-light leading-relaxed italic">
-                "We inspire young minds to push the limits of their creativity, shaping tomorrow's leaders, engineers, scientists, and humanitarians."
+              <p className="text-slate-600 dark:text-slate-300 font-light leading-relaxed italic text-sm sm:text-base">
+                &quot;{schoolInfo?.principalQuote}&quot;
               </p>
               <button 
                 onClick={() => onNavigate('about')} 
@@ -155,20 +155,20 @@ export default function Home({ onNavigate }) {
 
       {/* Facilities Showcase */}
       <ScrollReveal>
-        <section className="py-20 bg-slate-900 text-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
-              <h2 className="text-3xl sm:text-4xl font-extrabold font-montserrat bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">World Class Campus Infrastructure</h2>
-              <p className="text-slate-400 font-light">Explore the premium facilities that provide our students with a nurturing atmosphere to learn and grow.</p>
+        <section className="py-14 sm:py-20 bg-slate-900 text-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-5 sm:px-6">
+            <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-2">
+              <h2 className="text-2xl sm:text-4xl font-extrabold font-montserrat bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">World Class Campus Infrastructure</h2>
+              <p className="text-slate-400 font-light text-sm">Explore the premium facilities that provide our students with a nurturing atmosphere to learn and grow.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6" style={{ perspective: '1000px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" style={{ perspective: '1000px' }}>
               {facilities.map((fac, idx) => (
                 <div 
                   key={idx} 
-                  className="bg-slate-800 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:rotate-y-3 hover:rotate-x-3 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group"
+                  className="card-3d bg-slate-800 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:rotate-y-3 hover:rotate-x-3 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group"
                 >
-                  <div className="overflow-hidden h-48 relative">
+                  <div className="overflow-hidden h-44 sm:h-48 relative">
                     <img 
                       src={fac.img} 
                       alt={fac.title} 
@@ -176,14 +176,14 @@ export default function Home({ onNavigate }) {
                     />
                     <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-transparent transition-colors"></div>
                   </div>
-                  <div className="p-5 text-left flex-1 flex flex-col justify-between">
+                  <div className="p-4 sm:p-5 text-left flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="font-bold text-lg text-slate-100 group-hover:text-blue-400 transition-colors">{fac.title}</h3>
-                      <p className="text-xs text-slate-400 font-light mt-2 leading-relaxed">{fac.desc}</p>
+                      <h3 className="font-bold text-base sm:text-lg text-slate-100 group-hover:text-blue-400 transition-colors">{fac.title}</h3>
+                      <p className="text-xs text-slate-400 font-light mt-1.5 leading-relaxed">{fac.desc}</p>
                     </div>
                     <button 
                       onClick={() => onNavigate('facilities')} 
-                      className="text-xs font-semibold text-blue-400 group-hover:text-blue-300 mt-4 flex items-center gap-1 hover:underline"
+                      className="text-xs font-semibold text-blue-400 group-hover:text-blue-300 mt-3 flex items-center gap-1 hover:underline"
                     >
                       View Details <ChevronRight size={14} />
                     </button>
@@ -195,34 +195,132 @@ export default function Home({ onNavigate }) {
         </section>
       </ScrollReveal>
 
-      {/* Testimonials */}
+
+
+      {/* Testimonials — managed by Super Admin */}
       <ScrollReveal>
-        <section className="py-20 max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold font-montserrat">Words from Our Community</h2>
+        <section className="py-16 sm:py-20 max-w-5xl mx-auto px-5 sm:px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-montserrat">Words from Our Community</h2>
             <div className="w-12 h-1 bg-blue-600 mx-auto mt-2 rounded"></div>
           </div>
 
-          <div className="relative" style={{ perspective: '1000px' }}>
-            <div className="glassmorphism rounded-2xl p-8 lg:p-12 shadow-xl border border-white/50 text-center relative z-10 hover:rotate-x-3 hover:scale-[1.01] transition-all duration-300">
-              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto text-blue-600 mb-6">
-                <MessageSquare size={24} />
+          {activeTestimonials.length === 0 ? (
+            <div className="glassmorphism rounded-2xl p-8 text-center text-slate-400 text-sm">
+              No testimonials added yet.
+            </div>
+          ) : (
+            <div className="relative" style={{ perspective: '1000px' }}>
+              <div className="glassmorphism rounded-2xl p-6 sm:p-10 shadow-xl border border-white/50 text-center relative z-10 hover:rotate-x-3 hover:scale-[1.01] transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto text-blue-600 mb-5">
+                  <MessageSquare size={22} />
+                </div>
+                <p className="text-base sm:text-lg md:text-xl font-light text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                  &ldquo;{activeTestimonials[currentTestimonial % activeTestimonials.length].text}&rdquo;
+                </p>
+                <h4 className="font-bold text-slate-900 dark:text-white mt-6">{activeTestimonials[currentTestimonial % activeTestimonials.length].author}</h4>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{activeTestimonials[currentTestimonial % activeTestimonials.length].role}</p>
               </div>
-              <p className="text-lg md:text-xl font-light text-slate-700 dark:text-slate-300 italic leading-relaxed">
-                "{testimonials[currentTestimonial].text}"
-              </p>
-              <h4 className="font-bold text-slate-900 dark:text-white mt-6">{testimonials[currentTestimonial].author}</h4>
-              <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{testimonials[currentTestimonial].role}</p>
+              <div className="flex justify-center gap-2 mt-5">
+                {activeTestimonials.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentTestimonial(idx)}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonial % activeTestimonials.length === idx ? 'bg-blue-600 w-6' : 'bg-slate-300 dark:bg-slate-700 w-2.5'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      </ScrollReveal>
+
+      {/* School Circulars & Live News Ticker Section */}
+      <ScrollReveal>
+        <section className="py-20 max-w-7xl mx-auto px-6 grid md:grid-cols-12 gap-8 items-stretch">
+          <style>{`
+            @keyframes vertical-scroll {
+              0% { transform: translateY(0); }
+              100% { transform: translateY(-50%); }
+            }
+            .scroll-ticker-active {
+              animation: vertical-scroll 24s linear infinite;
+            }
+            .scroll-ticker-active:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+
+          {/* Left Column: Official School Circulars */}
+          <div className="md:col-span-7 flex flex-col justify-between text-left space-y-6">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2">
+                <Megaphone size={12} /> Notice Board Broadcasts
+              </div>
+              <h2 className="text-3xl font-extrabold font-montserrat">Official School Circulars</h2>
+              <p className="text-slate-400 text-xs mt-1">Official announcements published by administration and faculty desk.</p>
             </div>
 
-            <div className="flex justify-center gap-2 mt-6">
-              {testimonials.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentTestimonial(idx)}
-                  className={`w-3.5 h-3.5 rounded-full transition-all ${currentTestimonial === idx ? 'bg-blue-600 px-3' : 'bg-slate-300 dark:bg-slate-700'}`}
-                ></button>
+            <div className="space-y-4 flex-1">
+              {circulars && circulars.slice(0, 3).map((c) => (
+                <div key={c.id} className="p-5 bg-white dark:bg-slate-800/40 rounded-2xl shadow border border-slate-200/50 dark:border-slate-800 flex gap-4 items-start hover:shadow-md transition-shadow">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                    <Bell size={18} />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">{c.title}</span>
+                      <span className="bg-slate-100 dark:bg-slate-900 text-slate-500 text-[8px] font-extrabold px-2 py-0.5 rounded uppercase">{c.targetGroup}</span>
+                    </div>
+                    <p className="text-slate-450 dark:text-slate-350 leading-relaxed font-light">{c.content}</p>
+                    <div className="text-[9px] text-slate-400 font-mono flex items-center gap-2 pt-1">
+                      <span>By: {c.postedBy}</span>
+                      <span>•</span>
+                      <span>Published: {c.date}</span>
+                    </div>
+                  </div>
+                </div>
               ))}
+              {(!circulars || circulars.length === 0) && (
+                <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border text-slate-400 text-xs italic">
+                  No active circulars listed at this moment.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Live Scrolling News Ticker ("What's New") */}
+          <div className="md:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl border border-slate-800/80 flex flex-col overflow-hidden relative min-h-[350px] text-left">
+            <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-10"></div>
+            <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-indigo-950 to-transparent pointer-events-none z-10"></div>
+
+            <div className="mb-4 z-20">
+              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">Live Ticker Feed</span>
+              <h3 className="text-lg font-bold font-montserrat mt-1">What's New in the School</h3>
+              <p className="text-[10px] text-slate-400">Hover to pause • Real-time bulletins scrollboard</p>
+            </div>
+
+            <div className="flex-1 overflow-hidden relative">
+              <div className="scroll-ticker-active space-y-4 pt-4">
+                {/* We double the ticker list to construct a seamless infinite loop */}
+                {tickerItems && tickerItems.length > 0 ? (
+                  /* Double the list for seamless infinite scroll — only when there are 3+ items so duplication isn't jarring */
+                  (tickerItems.length >= 3 ? [...tickerItems, ...tickerItems] : tickerItems).map((news, idx) => (
+                    <div key={`${news.id || idx}-${idx}`} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-1 hover:bg-white/10 transition-colors">
+                      <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-wider text-slate-400">
+                        <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">{news.type}</span>
+                        <span>{news.time}</span>
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-100">{news.title}</h4>
+                      <p className="text-[10px] text-slate-350 font-light leading-relaxed">{news.desc}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-slate-400 text-xs italic">
+                    No active bulletins configured.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>

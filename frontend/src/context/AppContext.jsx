@@ -3,29 +3,37 @@ import React, { createContext, useState, useEffect } from 'react';
 export const AppContext = createContext();
 
 const initialSchools = [
-  { id: 'school-1', name: 'SRI VANI VIDYANIKETHAN EM SCHOOL (Main Campus)', code: 'SVV-MAIN', address: '3-89, Pedda Kottala St, Pedda Kottala, Kottala, Andhra Pradesh 518502', studentsCount: 950, teachersCount: 55, status: 'Active' },
-  { id: 'school-2', name: 'SRI VANI VIDYANIKETHAN EM SCHOOL (City Branch)', code: 'SVV-CITY', address: 'Main Bazar, Vijayawada, AP, India', studentsCount: 680, teachersCount: 40, status: 'Active' }
+  { id: 'school-1', name: 'SRI VANI VIDYANIKETHAN EM SCHOOL (Main Campus)', code: 'SVV-MAIN', address: '3-89, Pedda Kottala St, Pedda Kottala, Kottala, Andhra Pradesh 518502', studentsCount: 500, teachersCount: 50, status: 'Active' }
+];
+
+const initialAdmins = [
+  { id: 'ADM01', name: 'Admin (Head Office)', email: 'admin@srivani.edu', password: 'admin123', status: 'Active' }
 ];
 
 const initialTeachers = [
-  { id: 'T101', name: 'Dr. David Banner', qualification: 'Ph.D. in Physics', experience: '12 Years', subject: 'PHYSICS', department: 'Science', email: 'dbanner@srivani.edu', phone: '+91 98765-43210', designation: 'Head of Department', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', salary: 6500, joiningDate: '2018-08-15', schoolId: 'school-1' },
-  { id: 'T102', name: 'Prof. Clara Oswald', qualification: 'M.A. in English Literature', experience: '8 Years', subject: 'ENGLISH', department: 'Humanities', email: 'coswald@srivani.edu', phone: '+91 98765-43211', designation: 'Senior Teacher', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', salary: 5200, joiningDate: '2020-09-01', schoolId: 'school-1' },
-  { id: 'T103', name: 'Mr. Frank Castle', qualification: 'M.Sc. in Mathematics', experience: '15 Years', subject: 'MATHEMATICS', department: 'Mathematics', email: 'fcastle@srivani.edu', phone: '+91 98765-43212', designation: 'Senior Instructor', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', salary: 6800, joiningDate: '2015-01-10', schoolId: 'school-1' },
-  { id: 'T104', name: 'Ms. Grace Hopper', qualification: 'Ph.D. in Computer Science', experience: '10 Years', subject: 'GENERALKNOWLEDGE', department: 'Information Technology', email: 'ghopper@srivani.edu', phone: '+91 98765-43213', designation: 'IT Director', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', salary: 7100, joiningDate: '2017-06-20', schoolId: 'school-1' }
+  { id: 'T101', name: 'Dr. David Banner', qualification: 'Ph.D. in Physics', experience: '12 Years', subject: 'PHYSICS', department: 'Science', email: 'dbanner@srivani.edu', phone: '+91 98765-43210', designation: 'Head of Department', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', salary: 6500, joiningDate: '2018-08-15', schoolId: 'school-1', password: 'teacher123' },
+  { id: 'T102', name: 'Prof. Clara Oswald', qualification: 'M.A. in English Literature', experience: '8 Years', subject: 'ENGLISH', department: 'Humanities', email: 'coswald@srivani.edu', phone: '+91 98765-43211', designation: 'Senior Teacher', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', salary: 5200, joiningDate: '2020-09-01', schoolId: 'school-1', password: 'teacher123' },
+  { id: 'T103', name: 'Mr. Frank Castle', qualification: 'M.Sc. in Mathematics', experience: '15 Years', subject: 'MATHEMATICS', department: 'Mathematics', email: 'fcastle@srivani.edu', phone: '+91 98765-43212', designation: 'Senior Instructor', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', salary: 6800, joiningDate: '2015-01-10', schoolId: 'school-1', password: 'teacher123' },
+  { id: 'T104', name: 'Ms. Grace Hopper', qualification: 'Ph.D. in Computer Science', experience: '10 Years', subject: 'GENERALKNOWLEDGE', department: 'Information Technology', email: 'ghopper@srivani.edu', phone: '+91 98765-43213', designation: 'IT Director', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', salary: 7100, joiningDate: '2017-06-20', schoolId: 'school-1', password: 'teacher123' }
 ];
 
 const initialStudents = [
-  { id: 'S1001', registerNo: 'REG20261001', rollNo: '101', name: 'Alice Johnson', dob: '2010-04-12', gender: 'Female', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43220', email: 'alice.j@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1001', parentName: 'Robert Johnson', parentPhone: '+91 98765-43230', emergencyContact: '+91 98765-99999', photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', attendancePct: 94.5, activeStatus: 'Active', schoolId: 'school-1' },
-  { id: 'S1002', registerNo: 'REG20261002', rollNo: '102', name: 'Bob Smith', dob: '2010-09-21', gender: 'Male', bloodGroup: 'A+', aadhaarNo: '9876-5432-1098', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43221', email: 'bob.s@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1002', parentName: 'Sarah Smith', parentPhone: '+91 98765-43231', emergencyContact: '+91 98765-88888', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', attendancePct: 88.0, activeStatus: 'Active', schoolId: 'school-1' },
-  { id: 'S1003', registerNo: 'REG20261003', rollNo: '103', name: 'Charlie Brown', dob: '2010-11-05', gender: 'Male', bloodGroup: 'B-', aadhaarNo: '4567-8901-2345', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43222', email: 'charlie.b@srivani.edu', class: 'Class 10', section: 'B', parentId: 'P1003', parentName: 'Lucy Brown', parentPhone: '+91 98765-43232', emergencyContact: '+91 98765-77777', photo: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150&auto=format&fit=crop&q=80', attendancePct: 92.2, activeStatus: 'Active', schoolId: 'school-1' },
-  { id: 'S1004', registerNo: 'REG20261004', rollNo: '104', name: 'Diana Prince', dob: '2009-05-18', gender: 'Female', bloodGroup: 'AB+', aadhaarNo: '5678-9012-3456', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43223', email: 'diana.p@srivani.edu', class: 'Class 9', section: 'A', parentId: 'P1004', parentName: 'Steve Prince', parentPhone: '+91 98765-43233', emergencyContact: '+91 98765-66666', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', attendancePct: 98.1, activeStatus: 'Active', schoolId: 'school-1' }
+  { id: 'S1001', registerNo: 'REG20261001', rollNo: '101', name: 'Alice Johnson', dob: '2010-04-12', gender: 'Female', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43220', email: 'alice.j@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1001', parentName: 'Robert Johnson', parentPhone: '+91 98765-43230', emergencyContact: '+91 98765-99999', photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', attendancePct: 94.5, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
+  { id: 'S1002', registerNo: 'REG20261002', rollNo: '102', name: 'Bob Smith', dob: '2010-09-21', gender: 'Male', bloodGroup: 'A+', aadhaarNo: '9876-5432-1098', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43221', email: 'bob.s@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1002', parentName: 'Sarah Smith', parentPhone: '+91 98765-43231', emergencyContact: '+91 98765-88888', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', attendancePct: 88.0, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
+  { id: 'S1003', registerNo: 'REG20261003', rollNo: '103', name: 'Charlie Brown', dob: '2010-11-05', gender: 'Male', bloodGroup: 'B-', aadhaarNo: '4567-8901-2345', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43222', email: 'charlie.b@srivani.edu', class: 'Class 10', section: 'B', parentId: 'P1003', parentName: 'Lucy Brown', parentPhone: '+91 98765-43232', emergencyContact: '+91 98765-77777', photo: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150&auto=format&fit=crop&q=80', attendancePct: 92.2, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
+  { id: 'S1004', registerNo: 'REG20261004', rollNo: '104', name: 'Diana Prince', dob: '2009-05-18', gender: 'Female', bloodGroup: 'AB+', aadhaarNo: '5678-9012-3456', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43223', email: 'diana.p@srivani.edu', class: 'Class 9', section: 'A', parentId: 'P1004', parentName: 'Steve Prince', parentPhone: '+91 98765-43233', emergencyContact: '+91 98765-66666', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', attendancePct: 98.1, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' }
 ];
 
 const initialParents = [
-  { id: 'P1001', name: 'Robert Johnson', email: 'rjohnson@gmail.com', phone: '+1 555-0301', childrenIds: ['S1001'], schoolId: 'school-1' },
-  { id: 'P1002', name: 'Sarah Smith', email: 'ssmith@gmail.com', phone: '+1 555-0302', childrenIds: ['S1002'], schoolId: 'school-1' },
-  { id: 'P1003', name: 'Lucy Brown', email: 'lbrown@gmail.com', phone: '+1 555-0303', childrenIds: ['S1003'], schoolId: 'school-1' },
-  { id: 'P1004', name: 'Steve Prince', email: 'sprince@gmail.com', phone: '+1 555-0304', childrenIds: ['S1004'], schoolId: 'school-1' }
+  { id: 'P1001', name: 'Robert Johnson', email: 'rjohnson@gmail.com', phone: '+1 555-0301', childrenIds: ['S1001'], schoolId: 'school-1', password: 'parent123' },
+  { id: 'P1002', name: 'Sarah Smith', email: 'ssmith@gmail.com', phone: '+1 555-0302', childrenIds: ['S1002'], schoolId: 'school-1', password: 'parent123' },
+  { id: 'P1003', name: 'Lucy Brown', email: 'lbrown@gmail.com', phone: '+1 555-0303', childrenIds: ['S1003'], schoolId: 'school-1', password: 'parent123' },
+  { id: 'P1004', name: 'Steve Prince', email: 'sprince@gmail.com', phone: '+1 555-0304', childrenIds: ['S1004'], schoolId: 'school-1', password: 'parent123' }
+];
+
+const initialExams = [
+  { id: 'ex1', name: 'Physics Unit Test 1', examType: 'Unit Test', class: 'Class 10', subject: 'PHYSICS', date: '2026-06-18' },
+  { id: 'ex2', name: 'Mathematics Monthly Test', examType: 'Monthly Test', class: 'Class 10', subject: 'MATHEMATICS', date: '2026-06-20' }
 ];
 
 const initialAttendance = [
@@ -102,10 +110,183 @@ const initialSupportTickets = [
   { id: 'tkt1', name: 'Robert Johnson', role: 'Parent', subject: 'Portal Login Issue on Mobile', description: 'The parent login dashboard is slow to load graphics when using Chrome on iOS.', status: 'Open', response: '', date: '2026-06-12' }
 ];
 
+const initialTestimonials = [
+  { id: 'tmn1', text: 'Sri Vani Vidyanikethan has given my child an incredible foundation. The teachers are caring, the environment is excellent, and the results speak for themselves!', author: 'Lakshmi Devi', role: 'Parent, Class 5 Student', active: true },
+  { id: 'tmn2', text: 'I studied here from Class 1 to 10. The school shaped my confidence, discipline, and love for learning. I am forever grateful!', author: 'Ravi Kumar', role: 'Alumni, Class of 2022', active: true },
+  { id: 'tmn3', text: 'As a teacher here for 8 years, I can confidently say this school puts students first in every decision. A truly wonderful institution.', author: 'Smt. Anitha Reddy', role: 'Senior Faculty, Mathematics', active: true }
+];
+
+const initialEnquiries = [];
+
+const initialGalleryItems = [
+  { id: 'g1', title: 'Annual Day 2025 Performance', category: 'Annual Day', type: 'image', url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80', date: '2025-12-15', description: 'Students performed a grand cultural show on Annual Day.' },
+  { id: 'g2', title: 'Track & Field Athletics Meet', category: 'Sports', type: 'image', url: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&auto=format&fit=crop&q=80', date: '2026-01-20', description: 'Inter-school athletics competition held at our sports ground.' },
+  { id: 'g3', title: 'Mahatma Gandhi Jayanthi', category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80', date: '2025-10-02', description: 'Students paid tribute to the Father of the Nation.' },
+  { id: 'g4', title: "Children's Day Celebration", category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&auto=format&fit=crop&q=80', date: '2025-11-14', description: "Fun-filled activities and competitions for Children's Day." },
+  { id: 'g5', title: 'Science Exhibition Projects', category: 'Science Exhibition', type: 'image', url: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&auto=format&fit=crop&q=80', date: '2026-02-10', description: 'Students showcased innovative science projects.' },
+  { id: 'g6', title: 'Basketball Final Championship', category: 'Sports', type: 'image', url: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80', date: '2026-03-05', description: 'Exciting basketball final between top teams.' },
+  { id: 'g7', title: 'Republic Day Flag Hoisting', category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800&auto=format&fit=crop&q=80', date: '2026-01-26', description: 'Flag hoisting ceremony with March Past on Republic Day.' },
+  { id: 'g8', title: 'Cultural Dance Performance', category: 'Cultural Programs', type: 'image', url: 'https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?w=800&auto=format&fit=crop&q=80', date: '2025-12-20', description: 'Classical and folk dance performances by our talented students.' }
+];
+
+const initialSubjects = [
+  { id: 'sub1', code: 'TELUGU',          name: 'Telugu',           department: 'Languages' },
+  { id: 'sub2', code: 'HINDI',           name: 'Hindi',            department: 'Languages' },
+  { id: 'sub3', code: 'ENGLISH',         name: 'English',          department: 'Languages' },
+  { id: 'sub4', code: 'MATHEMATICS',     name: 'Mathematics',      department: 'Mathematics' },
+  { id: 'sub5', code: 'GENERALSCIENCE',  name: 'General Science',  department: 'Science' },
+  { id: 'sub6', code: 'PHYSICS',         name: 'Physics',          department: 'Science' },
+  { id: 'sub7', code: 'CHEMISTRY',       name: 'Chemistry',        department: 'Science' },
+  { id: 'sub8', code: 'BIOLOGY',         name: 'Biology',          department: 'Science' },
+  { id: 'sub9', code: 'SOCIALSTUDIES',   name: 'Social Studies',   department: 'Social Studies' },
+  { id: 'sub10', code: 'GENERALKNOWLEDGE', name: 'General Knowledge', department: 'General' },
+  { id: 'sub11', code: 'COMPUTER',       name: 'Computer Science', department: 'Technology' },
+  { id: 'sub12', code: 'DRAWING',        name: 'Drawing & Art',    department: 'Arts' },
+  { id: 'sub13', code: 'YOGA',           name: 'Yoga & P.E.',      department: 'Physical Education' },
+  { id: 'sub14', code: 'SANSKRIT',       name: 'Sanskrit',         department: 'Languages' },
+  { id: 'sub15', code: 'EVS',            name: 'EVS',              department: 'Science' },
+];
+
+const initialAdmissionBanner = {
+  active: true,
+  year: '2026–2027',
+  headline: 'ADMISSIONS OPEN FOR',
+  subtitle: 'Register Online Today.',
+  buttonLabel: 'Apply Now',
+};
+
+const initialAdmissions = [];
+
+const initialFacilities = [
+  { id: 'fac1', title: 'Smart Classrooms', description: 'Air-conditioned classrooms with interactive smart boards, projectors, and high-speed Wi-Fi for digital learning.', icon: '🖥️' },
+  { id: 'fac2', title: 'Science Laboratories', description: 'Fully equipped Physics, Chemistry, and Biology labs with modern instruments for hands-on experiments.', icon: '🔬' },
+  { id: 'fac3', title: 'Computer Lab', description: 'State-of-the-art computer lab with 40+ systems, coding curriculum, and internet access for research projects.', icon: '💻' },
+  { id: 'fac4', title: 'Library & Reading Room', description: 'A vast collection of 10,000+ books, journals, and digital resources with a quiet reading area.', icon: '📚' },
+  { id: 'fac5', title: 'Sports Complex', description: 'Olympic-grade facilities including basketball court, cricket ground, volleyball court, and indoor games room.', icon: '🏅' },
+  { id: 'fac6', title: 'Transportation', description: 'Safe and GPS-tracked school buses covering all major routes in Nandyal and surrounding villages.', icon: '🚌' },
+  { id: 'fac7', title: 'Auditorium', description: 'A 500-seat auditorium with professional sound system and lighting for events and assemblies.', icon: '🎭' },
+  { id: 'fac8', title: 'Medical Room', description: 'On-campus first-aid and medical room with trained nurse for student health emergencies.', icon: '🏥' }
+];
+
+const initialHomepageInfra = [
+  { id: 'infra1', title: 'Smart Digital Classrooms', description: 'Interactive smart boards, projectors, and air-conditioned rooms for immersive learning experiences.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra2', title: 'Advanced Science Labs', description: 'Fully equipped Physics, Chemistry, and Biology laboratories with modern instruments and safety gear.', image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra3', title: 'Olympic-Grade Sports Complex', description: 'Basketball courts, cricket ground, athletics track, and indoor games facility for holistic student development.', image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra4', title: 'Central Library & Resource Center', description: 'Over 10,000 books, digital research stations, and a serene reading hall open to all students.', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80' }
+];
+
+const initialHomepageStats = [
+  { id: 'stat1', value: '500+', label: 'Students Enrolled', icon: '🎓' },
+  { id: 'stat2', value: '50+', label: 'Expert Educators', icon: '👨‍🏫' },
+  { id: 'stat3', value: '1', label: 'School Branch', icon: '🏫' },
+  { id: 'stat4', value: '15+', label: 'Years of Excellence', icon: '🏆' }
+];
+
+const initialGradingProcess = {
+  title: 'Resulting & Grading Process',
+  description: 'At Sri Vani Vidyanikethan, we follow a comprehensive evaluation system that combines Continuous and Comprehensive Evaluation (CCE) with traditional examination patterns. Students are assessed through Unit Tests, Half-Yearly, and Annual Examinations along with project work, assignments, and lab practicals.'
+};
+
+const initialGradingScheme = [
+  { grade: 'A+', range: '90–100', description: 'Outstanding', color: '#10b981' },
+  { grade: 'A', range: '80–89', description: 'Excellent', color: '#22c55e' },
+  { grade: 'B+', range: '70–79', description: 'Very Good', color: '#3b82f6' },
+  { grade: 'B', range: '60–69', description: 'Good', color: '#6366f1' },
+  { grade: 'C+', range: '50–59', description: 'Above Average', color: '#f59e0b' },
+  { grade: 'C', range: '40–49', description: 'Average', color: '#f97316' },
+  { grade: 'D', range: '35–39', description: 'Below Average', color: '#ef4444' },
+  { grade: 'F', range: 'Below 35', description: 'Fail', color: '#dc2626' }
+];
+
+const initialDepartments = ['Languages', 'Mathematics', 'Science', 'Social Studies', 'General', 'Technology', 'Arts', 'Physical Education'];
+
+const initialGalleryCategories = ['Annual Day', 'Sports', 'Special Events', 'Cultural Programs', 'Science Exhibition'];
+
+const initialComplaints = [];
+
+const initialWhatsappLogs = [];
+
+const initialAcademicCalendar = [
+  { id: 'cal1', date: 'Jun 12, 2026', title: 'School Reopening — Academic Year 2026-27', type: 'Academic' },
+  { id: 'cal2', date: 'Jun 29, 2026', title: 'Unit Test I', type: 'Examination' },
+  { id: 'cal3', date: 'Aug 15, 2026', title: 'Independence Day Celebration', type: 'Holiday' },
+  { id: 'cal4', date: 'Sep 05, 2026', title: "Teachers' Day", type: 'Holiday' },
+  { id: 'cal5', date: 'Oct 02, 2026', title: 'Gandhi Jayanthi (School Closed)', type: 'Holiday' },
+  { id: 'cal6', date: 'Oct 12-18, 2026', title: 'Half-Yearly Examinations', type: 'Examination' },
+  { id: 'cal7', date: 'Nov 01, 2026', title: 'Andhra Pradesh Formation Day', type: 'Holiday' },
+  { id: 'cal8', date: 'Nov 14, 2026', "title": "Children's Day Celebrations", type: 'Academic' },
+  { id: 'cal9', date: 'Dec 25, 2026', title: 'Christmas & Winter Break Begins', type: 'Holiday' },
+  { id: 'cal10', date: 'Jan 01, 2027', title: 'New Year / School Reopens', type: 'Academic' },
+  { id: 'cal11', date: 'Jan 26, 2027', title: 'Republic Day Celebration', type: 'Holiday' },
+  { id: 'cal12', date: 'Feb 15-27, 2027', title: 'Annual Examinations', type: 'Examination' },
+  { id: 'cal13', date: 'Mar 20, 2027', title: 'Annual Day & Prize Distribution', type: 'Academic' },
+  { id: 'cal14', date: 'Apr 05, 2027', title: 'Results Declaration & Summer Vacation Begins', type: 'Academic' }
+];
+
+const initialAcademicPrograms = [
+  {
+    id: 'prog1',
+    grade: 'Pre-Primary — Playclass',
+    focus: 'Early Childhood Foundation',
+    desc: 'Activity-based learning with songs, rhymes, and sensory play to develop motor skills, language, and curiosity in young children aged 2.5–3.5 years.',
+    subjects: ['Rhymes & Stories', 'Colours & Shapes', 'Number Fun', 'Drawing & Craft', 'Physical Play', 'EVS Basics']
+  },
+  {
+    id: 'prog2',
+    grade: 'Pre-Primary — LKG',
+    focus: 'Language & Number Readiness',
+    desc: 'Introduction to alphabets, numbers, and simple words through games and structured play for children aged 3.5–4.5 years.',
+    subjects: ['English Alphabets', 'Telugu Script Intro', 'Numbers 1-100', 'Drawing & Craft', 'General Awareness', 'Physical Education']
+  },
+  {
+    id: 'prog3',
+    grade: 'Pre-Primary — UKG',
+    focus: 'School Readiness Programme',
+    desc: 'Bridges pre-school to primary with reading readiness, writing practice, and basic arithmetic for children aged 4.5–5.5 years.',
+    subjects: ['English Reading', 'Telugu', 'Mathematics', 'EVS', 'Art & Craft', 'Physical Education']
+  },
+  {
+    id: 'prog4',
+    grade: 'Primary — Classes 1 to 5',
+    focus: 'Foundational Academic Learning',
+    desc: 'Core subjects are taught with a focus on literacy, numeracy, and scientific curiosity. Integrated with value education and activity-based learning.',
+    subjects: ['English', 'Telugu', 'Hindi', 'Mathematics', 'Science', 'Social Studies', 'Art & Craft', 'Physical Education']
+  },
+  {
+    id: 'prog5',
+    grade: 'Upper Primary — Classes 6 to 8',
+    focus: 'Exploratory & Analytical Learning',
+    desc: 'Students explore deeper concepts in sciences, mathematics, and languages. Introduction to computer programming and critical thinking.',
+    subjects: ['English Literature', 'Telugu', 'Hindi', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Science']
+  },
+  {
+    id: 'prog6',
+    grade: 'Secondary — Classes 9 & 10',
+    focus: 'Board Examination Preparation',
+    desc: 'Rigorous preparation for SSC Board Examinations with lab practicals, model papers, and subject-specialist coaching.',
+    subjects: ['English', 'Telugu', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Applications']
+  }
+];
+
+const DATA_VERSION = '4';
+
 const readStoredValue = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
 
   try {
+    // If the data version has changed, clear all school_ keys to reset stale data
+    const storedVersion = window.localStorage.getItem('school_data_version');
+    if (storedVersion !== DATA_VERSION) {
+      const keysToRemove = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.startsWith('school_')) keysToRemove.push(k);
+      }
+      keysToRemove.forEach(k => window.localStorage.removeItem(k));
+      window.localStorage.setItem('school_data_version', DATA_VERSION);
+      return fallback;
+    }
+
     const saved = window.localStorage.getItem(key);
     return saved ? JSON.parse(saved) : fallback;
   } catch {
@@ -170,12 +351,117 @@ export const AppProvider = ({ children }) => {
     return readStoredValue('school_transport_routes', initialTransportRoutes);
   });
 
+  const [timetables, setTimetables] = useState(() => {
+    return readStoredValue('school_timetables', [
+      { class: 'Class 10', day: 'Monday', slots: ['PHYSICS (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'ENGLISH (01:00 PM)'] },
+      { class: 'Class 10', day: 'Tuesday', slots: ['GENERALKNOWLEDGE (09:30 AM)', 'PHYSICS (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
+      { class: 'Class 10', day: 'Wednesday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
+      { class: 'Class 10', day: 'Thursday', slots: ['PHYSICS (09:30 AM)', 'GENERALKNOWLEDGE (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
+      { class: 'Class 10', day: 'Friday', slots: ['ENGLISH (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'GENERALKNOWLEDGE (01:00 PM)'] },
+      { class: 'Class 9', day: 'Monday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
+      { class: 'Class 9', day: 'Tuesday', slots: ['PHYSICS (09:30 AM)', 'GENERALKNOWLEDGE (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
+      { class: 'Class 9', day: 'Wednesday', slots: ['GENERALKNOWLEDGE (09:30 AM)', 'PHYSICS (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
+      { class: 'Class 9', day: 'Thursday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
+      { class: 'Class 9', day: 'Friday', slots: ['ENGLISH (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'GENERALKNOWLEDGE (01:00 PM)'] }
+    ]);
+  });
+
+  const [fees, setFees] = useState(() => {
+    return readStoredValue('school_fees', [
+      { class: 'Class 10', year: '2026', tuitionFee: 1800, labFee: 300, busFee: 250, booksFee: 180 },
+      { class: 'Class 9', year: '2026', tuitionFee: 1600, labFee: 250, busFee: 240, booksFee: 170 },
+      { class: 'Class 8', year: '2026', tuitionFee: 1500, labFee: 200, busFee: 230, booksFee: 160 },
+      { class: 'Class 7', year: '2026', tuitionFee: 1400, labFee: 150, busFee: 220, booksFee: 150 },
+      { class: 'Class 6', year: '2026', tuitionFee: 1300, labFee: 100, busFee: 210, booksFee: 140 }
+    ]);
+  });
+
+  const [tickerItems, setTickerItems] = useState(() => {
+    return readStoredValue('school_ticker_items', [
+      { id: 't1', title: "Standard Matrix Timetable Scheduler", desc: "Super Admins can now configure dynamic period hours up to 8 slots per class.", time: "Just Now", type: "Academic" },
+      { id: 't2', title: "Dynamic State Synchronization", desc: "Edits to student profiles, class listings, and fee variables propagate instantly across all portals.", time: "5 mins ago", type: "System" },
+      { id: 't3', title: "Olympic-Grade Sports Facilities active", desc: "Class allocations for indoor pool & training tracks are officially scheduled.", time: "1 hour ago", type: "Campus" },
+      { id: 't4', title: "Circular: Aurora 2026 Cultural registrations", desc: "Singing, drama, debate and painting signups are open in the music room.", time: "Today", type: "Circular" },
+      { id: 't5', title: "Interactive STEM Laboratory fully operational", desc: "3D printers and VR engineering blocks assigned for high school students.", time: "Yesterday", type: "Facilities" },
+      { id: 't6', title: "Principal's Welcome Address updated", desc: "Dasaratha Rami Reddy welcomes parents and details new interactive guidelines.", time: "Yesterday", type: "Principal" }
+    ]);
+  });
+
+  const [schoolInfo, setSchoolInfo] = useState(() => {
+    return readStoredValue('school_info', {
+      name: 'SRI VANI VIDYANIKETHAN',
+      tagline: 'EM SCHOOL',
+      logo: '/logo.jpg',
+      principalName: 'K Dasaratha Rami Reddy',
+      principalDesignation: 'Principal, Sri Vani Vidyanikethan',
+      principalPhoto: '/principal.jpg',
+      principalMessage: 'At Sri Vani Vidyanikethan, we foster an environment of creativity, integrity, and analytical reasoning. We do not believe in rote memorization. Instead, we implement research-led curricula, integrated with the latest virtual tools. Our goal is to prepare students to face global challenges, with values grounded in kindness and civic responsibility.',
+      principalQuote: 'We inspire young minds to push the limits of their creativity, shaping tomorrow\'s leaders, engineers, scientists, and humanitarians.',
+      history: 'Founded in 2006, Gravity International began as an experimental science school. Over two decades, we expanded to include comprehensive secondary education, global exchange programs, and state-of-the-art AI-driven performance models.',
+      vision: 'To be a leading global ecosystem of learning that cultivates scientific inquiries, creative expression, moral integrity, and social leadership among students.',
+      mission: 'To deliver academic instruction using modern techniques, stimulate independent problem solving, provide rich co-curricular opportunities, and build empathetic, responsible world citizens.'
+    });
+  });
+
+  const [managementCommittee, setManagementCommittee] = useState(() => {
+    return readStoredValue('school_management_committee', [
+      { id: 'm1', name: 'K Dasaratha Rami Reddy', role: 'Principal & Director', qual: 'M.Ed / M.Sc, Educational Leadership', photo: '/principal.jpg' },
+      { id: 'm2', name: 'Robert Vance', role: 'Chairman, Management Committee', qual: 'MBA (Harvard Business School)', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+      { id: 'm3', name: 'Dr. Evelyn Carter', role: 'Vice Principal', qual: 'Ph.D. in Child Psychology', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }
+    ]);
+  });
+
+  const [admins, setAdmins] = useState(() => {
+    return readStoredValue('school_admins', initialAdmins);
+  });
+
+  const [exams, setExams] = useState(() => {
+    return readStoredValue('school_exams', initialExams);
+  });
+
+  const [classes, setClasses] = useState(() => {
+    return readStoredValue('school_classes', ['Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6', 'Class 5', 'Class 4', 'Class 3', 'Class 2', 'Class 1', 'UKG', 'LKG', 'Playclass']);
+  });
+
+  const [sections, setSections] = useState(() => {
+    return readStoredValue('school_sections', ['A', 'B']);
+  });
+
+
   const [auditLogs, setAuditLogs] = useState(() => {
     return readStoredValue('school_audit_logs', initialAuditLogs);
   });
 
   const [supportTickets, setSupportTickets] = useState(() => {
     return readStoredValue('school_support_tickets', initialSupportTickets);
+  });
+
+  const [galleryItems, setGalleryItems] = useState(() => {
+    return readStoredValue('school_gallery_items', initialGalleryItems);
+  });
+
+  const [academicCalendar, setAcademicCalendar] = useState(() => {
+    return readStoredValue('school_academic_calendar', initialAcademicCalendar);
+  });
+
+  const [academicPrograms, setAcademicPrograms] = useState(() => {
+    return readStoredValue('school_academic_programs', initialAcademicPrograms);
+  });
+
+  const [testimonials, setTestimonials] = useState(() => {
+    return readStoredValue('school_testimonials', initialTestimonials);
+  });
+
+  const [enquiries, setEnquiries] = useState(() => {
+    return readStoredValue('school_enquiries', initialEnquiries);
+  });
+
+  const [subjects, setSubjects] = useState(() => {
+    return readStoredValue('school_subjects', initialSubjects);
+  });
+
+  const [admissionBanner, setAdmissionBanner] = useState(() => {
+    return readStoredValue('school_admission_banner', initialAdmissionBanner);
   });
 
   const [notifications, setNotifications] = useState([
@@ -197,6 +483,30 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('school_schools', JSON.stringify(schools));
   }, [schools]);
+
+  useEffect(() => {
+    localStorage.setItem('school_admins', JSON.stringify(admins));
+  }, [admins]);
+
+  useEffect(() => {
+    localStorage.setItem('school_exams', JSON.stringify(exams));
+  }, [exams]);
+
+  useEffect(() => {
+    localStorage.setItem('school_classes', JSON.stringify(classes));
+  }, [classes]);
+
+  useEffect(() => {
+    localStorage.setItem('school_sections', JSON.stringify(sections));
+  }, [sections]);
+
+  useEffect(() => {
+    localStorage.setItem('school_subjects', JSON.stringify(subjects));
+  }, [subjects]);
+
+  useEffect(() => {
+    localStorage.setItem('school_admission_banner', JSON.stringify(admissionBanner));
+  }, [admissionBanner]);
 
   useEffect(() => {
     localStorage.setItem('school_teachers', JSON.stringify(teachers));
@@ -247,12 +557,56 @@ export const AppProvider = ({ children }) => {
   }, [transportRoutes]);
 
   useEffect(() => {
+    localStorage.setItem('school_timetables', JSON.stringify(timetables));
+  }, [timetables]);
+
+  useEffect(() => {
+    localStorage.setItem('school_fees', JSON.stringify(fees));
+  }, [fees]);
+
+  useEffect(() => {
+    localStorage.setItem('school_ticker_items', JSON.stringify(tickerItems));
+  }, [tickerItems]);
+
+  useEffect(() => {
+    localStorage.setItem('school_info', JSON.stringify(schoolInfo));
+  }, [schoolInfo]);
+
+  useEffect(() => {
+    localStorage.setItem('school_management_committee', JSON.stringify(managementCommittee));
+  }, [managementCommittee]);
+
+  useEffect(() => {
     localStorage.setItem('school_audit_logs', JSON.stringify(auditLogs));
   }, [auditLogs]);
 
   useEffect(() => {
     localStorage.setItem('school_support_tickets', JSON.stringify(supportTickets));
   }, [supportTickets]);
+
+  useEffect(() => {
+    localStorage.setItem('school_gallery_items', JSON.stringify(galleryItems));
+  }, [galleryItems]);
+
+  useEffect(() => {
+    localStorage.setItem('school_academic_calendar', JSON.stringify(academicCalendar));
+  }, [academicCalendar]);
+
+  useEffect(() => {
+    localStorage.setItem('school_academic_programs', JSON.stringify(academicPrograms));
+  }, [academicPrograms]);
+
+  useEffect(() => {
+    localStorage.setItem('school_testimonials', JSON.stringify(testimonials));
+  }, [testimonials]);
+
+  useEffect(() => {
+    localStorage.setItem('school_enquiries', JSON.stringify(enquiries));
+  }, [enquiries]);
+
+  useEffect(() => {
+    localStorage.setItem('school_subjects', JSON.stringify(subjects));
+  }, [subjects]);
 
   useEffect(() => {
     localStorage.setItem('school_theme', theme);
@@ -285,7 +639,6 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const loginUser = (emailOrId, password, role) => {
-    // Basic verification simulation
     let name = '';
     let success = false;
     let userId = '';
@@ -297,28 +650,33 @@ export const AppProvider = ({ children }) => {
         success = true;
       }
     } else if (role === 'Admin') {
-      if (emailOrId === 'admin@srivani.edu' && password === 'admin123') {
-        name = 'Admin (Head Office)';
-        userId = 'ADM01';
+      const match = admins.find(a => a.email === emailOrId && a.status === 'Active');
+      const expectedPassword = (match && match.password) || 'admin123';
+      if (match && password === expectedPassword) {
+        name = match.name;
+        userId = match.id;
         success = true;
       }
     } else if (role === 'Teacher') {
-      const match = teachers.find(t => t.id === emailOrId);
-      if (match && password === 'teacher123') {
+      const match = teachers.find(t => t.id === emailOrId || t.email === emailOrId);
+      const expectedPassword = (match && match.password) || 'teacher123';
+      if (match && password === expectedPassword) {
         name = match.name;
         userId = match.id;
         success = true;
       }
     } else if (role === 'Student') {
-      const match = students.find(s => s.id === emailOrId || s.registerNo === emailOrId);
-      if (match && password === 'student123') {
+      const match = students.find(s => s.id === emailOrId || s.registerNo === emailOrId || s.email === emailOrId);
+      const expectedPassword = (match && match.password) || 'student123';
+      if (match && password === expectedPassword) {
         name = match.name;
         userId = match.id;
         success = true;
       }
     } else if (role === 'Parent') {
-      const match = parents.find(p => p.id === emailOrId);
-      if (match && password === 'parent123') {
+      const match = parents.find(p => p.id === emailOrId || p.email === emailOrId);
+      const expectedPassword = (match && match.password) || 'parent123';
+      if (match && password === expectedPassword) {
         name = match.name;
         userId = match.id;
         success = true;
@@ -368,10 +726,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const addStudent = (studentData) => {
+    const isDuplicate = students.some(s => s.registerNo.trim().toUpperCase() === studentData.registerNo.trim().toUpperCase());
+    if (isDuplicate) {
+      return { success: false, message: `Register Number "${studentData.registerNo}" already exists in database.` };
+    }
     const newStudent = {
       ...studentData,
       id: `S${1001 + students.length}`,
-      registerNo: `REG2026${1001 + students.length}`,
       attendancePct: 100.0,
       activeStatus: 'Active',
       schoolId: 'school-1'
@@ -379,6 +740,7 @@ export const AppProvider = ({ children }) => {
     setStudents(prev => [...prev, newStudent]);
     addAuditLog(currentUser.name, currentUser.role, `Created Student ${newStudent.name} (${newStudent.registerNo})`);
     addNotification('New Registration', `Student profile created for ${newStudent.name}`, 'Student');
+    return { success: true };
   };
 
   const editStudent = (id, updatedData) => {
@@ -391,15 +753,41 @@ export const AppProvider = ({ children }) => {
     addAuditLog(currentUser.name, currentUser.role, `Deleted Student ID ${id}`);
   };
 
+  const addParent = (parentData) => {
+    const newParent = {
+      ...parentData,
+      id: `P${1001 + parents.length}`,
+      schoolId: 'school-1'
+    };
+    setParents(prev => [...prev, newParent]);
+    addAuditLog(currentUser.name, currentUser.role, `Created Parent ${newParent.name} (Linked to: ${newParent.childrenIds.join(', ')})`);
+    addNotification('New Registration', `Parent profile created for ${newParent.name}`, 'Parent');
+    return { success: true };
+  };
+
+  const editParent = (id, updatedData) => {
+    setParents(prev => prev.map(p => p.id === id ? { ...p, ...updatedData } : p));
+    addAuditLog(currentUser.name, currentUser.role, `Updated Parent ID ${id}`);
+  };
+
+  const deleteParent = (id) => {
+    setParents(prev => prev.filter(p => p.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Removed Parent ID ${id}`);
+  };
+
   const addTeacher = (teacherData) => {
+    const isDuplicate = teachers.some(t => t.id.trim().toUpperCase() === teacherData.id.trim().toUpperCase());
+    if (isDuplicate) {
+      return { success: false, message: `Employee ID "${teacherData.id}" already exists in database.` };
+    }
     const newTeacher = {
       ...teacherData,
-      id: `T${101 + teachers.length}`,
       joiningDate: new Date().toISOString().split('T')[0],
       schoolId: 'school-1'
     };
     setTeachers(prev => [...prev, newTeacher]);
     addAuditLog(currentUser.name, currentUser.role, `Added Teacher ${newTeacher.name} (ID: ${newTeacher.id})`);
+    return { success: true };
   };
 
   const editTeacher = (id, updatedData) => {
@@ -408,8 +796,53 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteTeacher = (id) => {
+    const teacherToDelete = teachers.find(t => t.id === id);
     setTeachers(prev => prev.filter(t => t.id !== id));
+    if (teacherToDelete) {
+      // Bidirectional sync: Also remove matching member from management committee
+      setManagementCommittee(prev => prev.filter(m => m.name.toLowerCase() !== teacherToDelete.name.toLowerCase()));
+    }
     addAuditLog(currentUser.name, currentUser.role, `Removed Teacher ID ${id}`);
+  };
+
+  const addAdmin = (adminData) => {
+    const isDuplicate = admins.some(a => a.email.trim().toLowerCase() === adminData.email.trim().toLowerCase());
+    if (isDuplicate) {
+      return { success: false, message: `Admin Email "${adminData.email}" already exists.` };
+    }
+    const newAdmin = {
+      ...adminData,
+      id: `ADM${String(admins.length + 1).padStart(2, '0')}`,
+      status: 'Active'
+    };
+    setAdmins(prev => [...prev, newAdmin]);
+    addAuditLog(currentUser.name, currentUser.role, `Created Admin ${newAdmin.name} (${newAdmin.email})`);
+    return { success: true };
+  };
+
+  const editAdmin = (id, updatedData) => {
+    setAdmins(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+    addAuditLog(currentUser.name, currentUser.role, `Updated Admin ID ${id}`);
+  };
+
+  const deleteAdmin = (id) => {
+    setAdmins(prev => prev.filter(a => a.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Admin ID ${id}`);
+  };
+
+  const createExam = (examData) => {
+    const newExam = {
+      id: `ex_${Date.now()}`,
+      ...examData
+    };
+    setExams(prev => [...prev, newExam]);
+    addAuditLog(currentUser.name, currentUser.role, `Created Exam: ${newExam.name}`);
+    addNotification('Exam Created', `New Exam Scheduled: ${newExam.name} for ${newExam.class}`, 'Exam');
+  };
+
+  const deleteExam = (id) => {
+    setExams(prev => prev.filter(e => e.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Exam ID ${id}`);
   };
 
   const markAttendance = (attendanceList) => {
@@ -499,6 +932,17 @@ export const AppProvider = ({ children }) => {
     addNotification('Assignment Graded', `Your homework submission for ${hwId} has been graded: ${grade}`, 'Homework');
   };
 
+  const createNotes = (notesData) => {
+    const newNote = {
+      id: `n_${Date.now()}`,
+      downloads: 0,
+      ...notesData
+    };
+    setNotes(prev => [...prev, newNote]);
+    addAuditLog(currentUser.name, currentUser.role, `Uploaded Study Notes: ${newNote.title}`);
+    addNotification('Study Material Uploaded', `New Notes: ${newNote.title} for ${newNote.class}`, 'Notes');
+  };
+
   const createCircular = (circData) => {
     const newCirc = {
       id: `c_${Date.now()}`,
@@ -555,6 +999,78 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
+  const saveTimetable = (className, dayName, slotsArray) => {
+    setTimetables(prev => {
+      const filtered = prev.filter(t => !(t.class === className && t.day === dayName));
+      return [...filtered, { class: className, day: dayName, slots: slotsArray }];
+    });
+    addAuditLog(currentUser.name, currentUser.role, `Updated Timetable for ${className} on ${dayName}`);
+  };
+
+  const saveClassFee = (className, yearName, tuitionFeeVal, labFeeVal, busFeeVal, booksFeeVal) => {
+    setFees(prev => {
+      const filtered = prev.filter(f => !(f.class === className && f.year === yearName));
+      return [...filtered, { 
+        class: className, 
+        year: yearName, 
+        tuitionFee: parseFloat(tuitionFeeVal) || 0, 
+        labFee: parseFloat(labFeeVal) || 0,
+        busFee: parseFloat(busFeeVal) || 0,
+        booksFee: parseFloat(booksFeeVal) || 0
+      }];
+    });
+    addAuditLog(currentUser.name, currentUser.role, `Updated Fees structure for ${className} (${yearName})`);
+  };
+
+  const addTickerItem = (item) => {
+    const newItem = {
+      id: `t_${Date.now()}`,
+      time: 'Just now',
+      ...item
+    };
+    setTickerItems(prev => [newItem, ...prev]);
+    addAuditLog(currentUser.name, currentUser.role, `Added homepage ticker item: ${newItem.title}`);
+  };
+
+  const editTickerItem = (id, updated) => {
+    setTickerItems(prev => prev.map(item => item.id === id ? { ...item, ...updated } : item));
+    addAuditLog(currentUser.name, currentUser.role, `Edited homepage ticker item ID: ${id}`);
+  };
+
+  const deleteTickerItem = (id) => {
+    setTickerItems(prev => prev.filter(item => item.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted homepage ticker item ID: ${id}`);
+  };
+
+  const updateSchoolInfo = (updatedInfo) => {
+    setSchoolInfo(prev => ({ ...prev, ...updatedInfo }));
+    addAuditLog(currentUser.name, currentUser.role, 'Updated general school public configuration information');
+  };
+
+  const addCommitteeMember = (member) => {
+    const newMember = {
+      id: `cm_${Date.now()}`,
+      ...member
+    };
+    setManagementCommittee(prev => [...prev, newMember]);
+    addAuditLog(currentUser.name, currentUser.role, `Added management committee member: ${newMember.name}`);
+  };
+
+  const editCommitteeMember = (id, updated) => {
+    setManagementCommittee(prev => prev.map(m => m.id === id ? { ...m, ...updated } : m));
+    addAuditLog(currentUser.name, currentUser.role, `Edited management committee member ID: ${id}`);
+  };
+
+  const deleteCommitteeMember = (id) => {
+    const memberToDelete = managementCommittee.find(m => m.id === id);
+    setManagementCommittee(prev => prev.filter(m => m.id !== id));
+    if (memberToDelete) {
+      // Bidirectional sync: Also remove matching teacher from teachers directory
+      setTeachers(prev => prev.filter(t => t.name.toLowerCase() !== memberToDelete.name.toLowerCase()));
+    }
+    addAuditLog(currentUser.name, currentUser.role, `Deleted management committee member ID: ${id}`);
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -564,12 +1080,32 @@ export const AppProvider = ({ children }) => {
       teachers,
       students,
       parents,
+      admins,
+      exams,
+      classes,
+      setClasses,
+      sections,
+      setSections,
       attendance,
       marks,
       homework,
       notes,
       circulars,
       liveClasses,
+      timetables,
+      saveTimetable,
+      fees,
+      saveClassFee,
+      tickerItems,
+      addTickerItem,
+      editTickerItem,
+      deleteTickerItem,
+      schoolInfo,
+      updateSchoolInfo,
+      managementCommittee,
+      addCommitteeMember,
+      editCommitteeMember,
+      deleteCommitteeMember,
       libraryBooks,
       hostels,
       transportRoutes,
@@ -585,19 +1121,56 @@ export const AppProvider = ({ children }) => {
       addTeacher,
       editTeacher,
       deleteTeacher,
+      addParent,
+      editParent,
+      deleteParent,
+      addAdmin,
+      editAdmin,
+      deleteAdmin,
+      createExam,
+      deleteExam,
       markAttendance,
       uploadMarks,
       createHomework,
       submitHomework,
       evaluateHomework,
+      createNotes,
       createCircular,
       createLiveClass,
       createSupportTicket,
       replySupportTicket,
       toggleSchoolStatus,
       addAuditLog,
-      addNotification
+      addNotification,
+      galleryItems,
+      addGalleryItem: (item) => setGalleryItems(prev => [{ ...item, id: 'g' + Date.now() }, ...prev]),
+      editGalleryItem: (id, updates) => setGalleryItems(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g)),
+      deleteGalleryItem: (id) => setGalleryItems(prev => prev.filter(g => g.id !== id)),
+      academicCalendar,
+      addCalendarEvent: (ev) => setAcademicCalendar(prev => [...prev, { ...ev, id: 'cal' + Date.now() }]),
+      editCalendarEvent: (id, updates) => setAcademicCalendar(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e)),
+      deleteCalendarEvent: (id) => setAcademicCalendar(prev => prev.filter(e => e.id !== id)),
+      academicPrograms,
+      addAcademicProgram: (p) => setAcademicPrograms(prev => [...prev, { ...p, id: 'prog' + Date.now() }]),
+      editAcademicProgram: (id, updates) => setAcademicPrograms(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p)),
+      deleteAcademicProgram: (id) => setAcademicPrograms(prev => prev.filter(p => p.id !== id)),
+      testimonials,
+      addTestimonial: (t) => setTestimonials(prev => [...prev, { ...t, id: 'tmn' + Date.now(), active: true }]),
+      editTestimonial: (id, updates) => setTestimonials(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t)),
+      deleteTestimonial: (id) => setTestimonials(prev => prev.filter(t => t.id !== id)),
+      toggleTestimonial: (id) => setTestimonials(prev => prev.map(t => t.id === id ? { ...t, active: !t.active } : t)),
+      enquiries,
+      submitEnquiry: (enq) => setEnquiries(prev => [{ ...enq, id: 'enq' + Date.now(), date: new Date().toLocaleDateString('en-IN'), status: 'New' }, ...prev]),
+      markEnquiryContacted: (id) => setEnquiries(prev => prev.map(e => e.id === id ? { ...e, status: 'Contacted' } : e)),
+      deleteEnquiry: (id) => setEnquiries(prev => prev.filter(e => e.id !== id)),
+      subjects,
+      addSubject: (s) => setSubjects(prev => [...prev, { ...s, id: 'sub' + Date.now() }]),
+      editSubject: (id, updates) => setSubjects(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s)),
+      deleteSubject: (id) => setSubjects(prev => prev.filter(s => s.id !== id)),
+      admissionBanner,
+      updateAdmissionBanner: (updates) => setAdmissionBanner(prev => ({ ...prev, ...updates }))
     }}>
+
       {children}
     </AppContext.Provider>
   );

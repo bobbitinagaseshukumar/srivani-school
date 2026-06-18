@@ -1,17 +1,49 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { LayoutDashboard, Award, Clipboard, ShieldCheck, Mail, DollarSign, Navigation, MessageSquare, Calendar, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function ParentPortal() {
   const { 
-    currentUser, students, homework, marks, circulars, 
+    currentUser, parents, students, homework, marks, circulars, 
     transportRoutes, supportTickets, createSupportTicket, 
-    logoutUser 
+    fees, logoutUser, subjects 
   } = useContext(AppContext);
 
+  // Find the logged-in parent's profile matching currentUser.id and retrieve their linked children.
+  const parentProfile = parents ? parents.find(p => p.id === currentUser.id) : null;
+  const parentChildrenIds = parentProfile ? parentProfile.childrenIds : [];
+  const parentName = parentProfile ? parentProfile.name : currentUser.name;
+
+  const getSubjectName = (code) => {
+    if (!code) return '';
+    const cleanCode = code.toUpperCase().trim();
+    if (cleanCode === 'FREE PERIOD') return 'Free Period';
+    const found = subjects ? subjects.find(s => s.code.toUpperCase() === cleanCode) : null;
+    return found ? found.name : code;
+  };
+
   const [activeTab, setActiveTab] = useState('Dashboard');
-  const [selectedChildId, setSelectedChildId] = useState('S1001'); // Alice Johnson ID
+  const [selectedChildId, setSelectedChildId] = useState(
+    parentChildrenIds && parentChildrenIds.length > 0 ? parentChildrenIds[0] : 'S1001'
+  );
   
+  // Keep state synchronized with parent's linked children in case it resolves late or changes
+  useEffect(() => {
+    if (parentChildrenIds && parentChildrenIds.length > 0) {
+      setSelectedChildId(parentChildrenIds[0]);
+    }
+  }, [currentUser.id, parents]);
+  
+  const childObj = students.find(s => s.id === selectedChildId);
+
+  // Calculate dynamic fees based on class from AppContext
+  const childFee = fees ? fees.find(f => f.class === (childObj ? childObj.class : 'Class 10')) : null;
+  const tuitionAmount = childFee ? childFee.tuitionFee : 1800;
+  const labAmount = childFee ? childFee.labFee : 300;
+  const busAmount = childFee && childFee.busFee !== undefined ? childFee.busFee : 250;
+  const booksAmount = childFee && childFee.booksFee !== undefined ? childFee.booksFee : 180;
+  const totalFeeAmount = tuitionAmount + labAmount + busAmount + booksAmount; 
+
   // Chat state
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([
@@ -22,8 +54,6 @@ export default function ParentPortal() {
   const [feeStatus, setFeeStatus] = useState('Unpaid');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
-
-  const childObj = students.find(s => s.id === selectedChildId);
 
   if (!childObj) {
     return <div className="p-8 text-center text-xs text-red-500">No child records linked to parent session.</div>;
@@ -50,7 +80,7 @@ export default function ParentPortal() {
       setPaymentLoading(false);
       setFeeStatus('Paid');
       setShowPaymentModal(false);
-      alert("Payment of $2,100 cleared successfully via secure Stripe Sandbox.");
+      alert(`Payment of ₹${totalFeeAmount} cleared successfully via secure Stripe Sandbox.`);
     }, 2000);
   };
 
@@ -61,8 +91,28 @@ export default function ParentPortal() {
         <div className="glassmorphism p-5 rounded-3xl border border-white/50 shadow-md space-y-4">
           <div className="space-y-2 pb-4 border-b border-slate-200/50 dark:border-slate-850">
             <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2.5 py-0.5 rounded-full uppercase">Parent Account</span>
-            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1 leading-tight">{currentUser.name}</h3>
-            <p className="text-[10px] text-slate-400">Child: <strong>{childObj.name}</strong></p>
+            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1 leading-tight">{parentName}</h3>
+            {parentChildrenIds && parentChildrenIds.length > 1 ? (
+              <div className="mt-2 text-left">
+                <label className="text-[9px] text-slate-400 block font-semibold mb-1">Select Child:</label>
+                <select
+                  value={selectedChildId}
+                  onChange={(e) => setSelectedChildId(e.target.value)}
+                  className="w-full px-2 py-1 text-xs border rounded-lg bg-white/70 dark:bg-slate-900/50 focus:ring-1 focus:ring-blue-500 font-medium text-slate-800 dark:text-slate-100"
+                >
+                  {parentChildrenIds.map(childId => {
+                    const child = students.find(s => s.id === childId);
+                    return (
+                      <option key={childId} value={childId}>
+                        {child ? child.name : childId}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-400">Child: <strong>{childObj?.name || 'N/A'}</strong></p>
+            )}
           </div>
 
           <nav className="flex flex-col gap-1.5 text-xs font-semibold">
@@ -120,7 +170,7 @@ export default function ParentPortal() {
               </div>
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Pending Fee Due</p>
-                <h3 className="text-2xl font-extrabold mt-1">{feeStatus === 'Unpaid' ? '$2,100' : '$0.00'}</h3>
+                <h3 className="text-2xl font-extrabold mt-1">{feeStatus === 'Unpaid' ? `₹${totalFeeAmount}` : '₹0.00'}</h3>
                 <p className="text-[10px] text-red-500 font-semibold mt-1">
                   {feeStatus === 'Unpaid' ? 'Due by: June 30' : 'Settled (Stripe)'}
                 </p>
@@ -137,7 +187,7 @@ export default function ParentPortal() {
                     <div key={hw.id} className="py-2.5 flex justify-between items-center">
                       <div>
                         <p className="font-bold text-slate-900 dark:text-white">{hw.title}</p>
-                        <p className="text-[10px] text-slate-400">Subject: {hw.subject} • Due: {hw.dueDate}</p>
+                        <p className="text-[10px] text-slate-400">Subject: {getSubjectName(hw.subject)} • Due: {hw.dueDate}</p>
                       </div>
                       <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
                         sub ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
@@ -147,6 +197,26 @@ export default function ParentPortal() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* School Circulars / Notices */}
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-lg border border-slate-200/50 dark:border-slate-850 space-y-4">
+              <h3 className="font-extrabold text-sm">Recent School Circulars & Notices</h3>
+              <div className="grid sm:grid-cols-2 gap-4 text-xs font-light text-left">
+                {circulars.filter(c => c.targetGroup === 'All' || c.targetGroup === 'Parents').slice(0, 4).map(notice => (
+                  <div key={notice.id} className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="flex justify-between items-center text-[9px] text-slate-400">
+                      <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">Notice</span>
+                      <span>{notice.date}</span>
+                    </div>
+                    <p className="font-bold text-slate-900 dark:text-white leading-snug">{notice.title}</p>
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-light">{notice.content}</p>
+                  </div>
+                ))}
+                {circulars.filter(c => c.targetGroup === 'All' || c.targetGroup === 'Parents').length === 0 && (
+                  <p className="text-slate-400 py-4 text-center col-span-2">No active notices for parents.</p>
+                )}
               </div>
             </div>
           </div>
@@ -256,15 +326,23 @@ export default function ParentPortal() {
               <div className="border-y border-slate-100 dark:border-slate-850 py-3 text-xs font-light text-slate-650 dark:text-slate-350 space-y-2">
                 <div className="flex justify-between">
                   <span>Tuition & Enrollment Seat:</span>
-                  <span className="font-bold">$1,800.00</span>
+                  <span className="font-bold">₹{tuitionAmount}.00</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Science Laboratory Activities:</span>
-                  <span className="font-bold">$300.00</span>
+                  <span className="font-bold">₹{labAmount}.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Bus Fee / Transport:</span>
+                  <span className="font-bold">₹{busAmount}.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Books & Study Material:</span>
+                  <span className="font-bold">₹{booksAmount}.00</span>
                 </div>
                 <div className="flex justify-between border-t border-slate-100 dark:border-slate-850 pt-2 font-bold text-slate-900 dark:text-white">
                   <span>Total Bill Amount:</span>
-                  <span>$2,100.00</span>
+                  <span>₹{totalFeeAmount}.00</span>
                 </div>
               </div>
 
@@ -330,7 +408,7 @@ export default function ParentPortal() {
                       disabled={paymentLoading}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded-xl shadow flex items-center justify-center gap-1"
                     >
-                      {paymentLoading ? 'Clearing...' : 'Clear $2,100.00'}
+                      {paymentLoading ? 'Clearing...' : `Clear ₹${totalFeeAmount}.00`}
                     </button>
                   </div>
                 </form>

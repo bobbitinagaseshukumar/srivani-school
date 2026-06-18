@@ -4,7 +4,7 @@ import { ArrowRight, FileText, CheckCircle2, DollarSign, HelpCircle } from 'luci
 import ScrollReveal from '../ScrollReveal';
 
 export default function Admissions() {
-  const { addNotification, addAuditLog } = useContext(AppContext);
+  const { addNotification, addAuditLog, fees } = useContext(AppContext);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     studentName: '',
@@ -95,37 +95,39 @@ export default function Admissions() {
           <div className="lg:col-span-7 space-y-4">
             <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6 space-y-4">
               <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-1.5">
-                <DollarSign className="text-blue-600" size={20} /> Annual Fee Structure (Academic Term)
+                <span className="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center font-extrabold text-xs shrink-0">₹</span> Annual Fee Structure (Academic Term)
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold">
-                      <th className="py-2.5">Class / Level</th>
-                      <th className="py-2.5">Registration Fee</th>
-                      <th className="py-2.5">Tuition Fee (Per Term)</th>
-                      <th className="py-2.5 text-right">Lab & Activities</th>
+                      <th className="py-2.5">Class / Grade</th>
+                      <th className="py-2.5">Academic Year</th>
+                      <th className="py-2.5">Tuition Fee</th>
+                      <th className="py-2.5">Lab Fee</th>
+                      <th className="py-2.5">Bus Fee</th>
+                      <th className="py-2.5">Books Fee</th>
+                      <th className="py-2.5 text-right">Total Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
-                    <tr>
-                      <td className="py-3 font-semibold">Primary (Grades 1-5)</td>
-                      <td className="py-3">$200</td>
-                      <td className="py-3">$1,200</td>
-                      <td className="py-3 text-right">$300</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 font-semibold">Middle (Grades 6-8)</td>
-                      <td className="py-3">$250</td>
-                      <td className="py-3">$1,500</td>
-                      <td className="py-3 text-right">$450</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 font-semibold">High School (Grades 9-10)</td>
-                      <td className="py-3">$300</td>
-                      <td className="py-3">$2,100</td>
-                      <td className="py-3 text-right">$600</td>
-                    </tr>
+                    {fees && fees.map((f, i) => {
+                      const busFVal = f.busFee !== undefined ? f.busFee : 250;
+                      const booksFVal = f.booksFee !== undefined ? f.booksFee : 180;
+                      return (
+                        <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="py-3 font-semibold text-slate-900 dark:text-white">{f.class}</td>
+                          <td className="py-3 font-mono">{f.year}</td>
+                          <td className="py-3 font-mono text-emerald-650 dark:text-emerald-400">₹{f.tuitionFee}</td>
+                          <td className="py-3 font-mono text-blue-650 dark:text-blue-400">₹{f.labFee}</td>
+                          <td className="py-3 font-mono text-indigo-650 dark:text-indigo-400">₹{busFVal}</td>
+                          <td className="py-3 font-mono text-amber-650 dark:text-amber-400">₹{booksFVal}</td>
+                          <td className="py-3 font-mono font-bold text-right text-slate-900 dark:text-white">
+                            ₹{f.tuitionFee + f.labFee + busFVal + booksFVal}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

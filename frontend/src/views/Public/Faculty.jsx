@@ -4,15 +4,18 @@ import { Search, Filter, BookOpen, Star, Mail, Phone, Award } from 'lucide-react
 import ScrollReveal from '../ScrollReveal';
 
 export default function Faculty() {
-  const { teachers } = useContext(AppContext);
+  const { teachers, subjects } = useContext(AppContext);
   const [search, setSearch] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
   const [expFilter, setExpFilter] = useState('');
 
-  // Extract unique subjects and departments for filter dropdowns
-  const uniqueSubjects = [...new Set(teachers.map(t => t.subject))];
+  // Extract unique departments for filter dropdown
   const uniqueDepts = [...new Set(teachers.map(t => t.department))];
+  // Use context subjects for subject filter — shows names, filters by code
+  const subjectOptions = subjects && subjects.length > 0
+    ? subjects
+    : teachers.map(t => ({ code: t.subject, name: t.subject }));
 
   // Filtering logic
   const filteredTeachers = teachers.filter(t => {
@@ -45,7 +48,7 @@ export default function Faculty() {
         <div className="glassmorphism p-5 rounded-2xl shadow-md border border-white/50 space-y-4">
           <div className="grid md:grid-cols-12 gap-4">
             {/* Search bar */}
-            <div className="md:col-span-5 relative">
+            <div className="md:col-span-4 relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
@@ -57,21 +60,21 @@ export default function Faculty() {
             </div>
 
             {/* Subject Filter */}
-            <div className="md:col-span-2.5">
+            <div className="md:col-span-3">
               <select
                 value={subjectFilter}
                 onChange={(e) => setSubjectFilter(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">All Subjects</option>
-                {uniqueSubjects.map((sub, i) => (
-                  <option key={i} value={sub}>{sub}</option>
+              <option value="">All Subjects</option>
+                {subjectOptions.map((sub) => (
+                  <option key={sub.id || sub.code} value={sub.code}>{sub.name}</option>
                 ))}
               </select>
             </div>
 
             {/* Department Filter */}
-            <div className="md:col-span-2.5">
+            <div className="md:col-span-3">
               <select
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}

@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+// Module level counter to assign alternating animations to reveal instances
+let revealCounter = 0;
+
 export default function ScrollReveal({ children, className = "" }) {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [revealIndex] = useState(() => revealCounter++);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,15 +33,17 @@ export default function ScrollReveal({ children, className = "" }) {
     };
   }, []);
 
+  const isEven = revealIndex % 2 === 0;
+
   return (
     <div
       ref={ref}
-      className={`${className} transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] transform perspective-1000 ${
+      className={`${className} transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] transform preserve-3d ${
         isVisible 
-          ? 'opacity-100 rotate-x-0' 
-          : 'opacity-0 -rotate-x-12'
+          ? (isEven ? 'reveal-even-visible' : 'reveal-odd-visible') 
+          : (isEven ? 'reveal-even-hidden' : 'reveal-odd-hidden')
       }`}
-      style={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+      style={{ backfaceVisibility: 'hidden' }}
     >
       {children}
     </div>

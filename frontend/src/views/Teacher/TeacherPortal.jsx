@@ -1,17 +1,83 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText } from 'lucide-react';
 
+const parseSlot = (slot) => {
+  if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
+  if (typeof slot === 'object' && slot !== null) {
+    return {
+      subject: slot.subject || 'FREE PERIOD',
+      time: slot.time || '09:30 AM - 10:15 AM'
+    };
+  }
+  if (typeof slot === 'string') {
+    const timeMatch = slot.match(/\(([^)]+)\)/);
+    const time = timeMatch ? timeMatch[1] : '09:30 AM - 10:15 AM';
+    const subject = slot.replace(/\([^)]+\)/, '').trim();
+    return { subject, time };
+  }
+  return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
+};
+
+const getSubjectStyle = (subject) => {
+  const cleanSub = (subject || '').toUpperCase().trim();
+  if (cleanSub.includes('PHYSICS')) {
+    return {
+      bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
+      text: 'text-blue-700 dark:text-blue-350',
+      tag: 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300',
+      accent: 'border-l-4 border-l-blue-500'
+    };
+  }
+  if (cleanSub.includes('MATH')) {
+    return {
+      bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
+      text: 'text-purple-700 dark:text-purple-350',
+      tag: 'bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300',
+      accent: 'border-l-4 border-l-purple-500'
+    };
+  }
+  if (cleanSub.includes('ENGLISH')) {
+    return {
+      bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50',
+      text: 'text-amber-700 dark:text-amber-350',
+      tag: 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300',
+      accent: 'border-l-4 border-l-amber-500'
+    };
+  }
+  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK') || cleanSub.includes('COMPUTER')) {
+    return {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50',
+      text: 'text-emerald-700 dark:text-emerald-350',
+      tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300',
+      accent: 'border-l-4 border-l-emerald-500'
+    };
+  }
+  return {
+    bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
+    text: 'text-slate-500 dark:text-slate-400',
+    tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+    accent: 'border-l-4 border-l-slate-400'
+  };
+};
+
 export default function TeacherPortal() {
-  const { 
-    currentUser, students, attendance, markAttendance,
-    marks, uploadMarks,
-    homework, createHomework, evaluateHomework,
-    notes, createNotes,
-    circulars, createCircular,
-    liveClasses, createLiveClass,
-    logoutUser 
-  } = useContext(AppContext);
+  const { teachers, students, marks, addMark, homework, addHomework, editHomework, deleteHomework,
+    notes, addNote, editNote, deleteNote, liveClasses, addLiveClass, editLiveClass, deleteLiveClass,
+    attendance, addAttendance, notifications, markNotificationRead, currentUser, logoutUser, subjects } = useContext(AppContext);
+
+  // Find the logged-in teacher's profile matching currentUser.id and retrieve their assigned subject.
+  const currentTeacherProfile = teachers ? teachers.find(t => t.id === currentUser.id) : null;
+  const teacherSubject = currentTeacherProfile ? currentTeacherProfile.subject : 'PHYSICS';
+  const teacherName = currentTeacherProfile ? currentTeacherProfile.name : currentUser.name;
+
+  const getSubjectName = (code) => {
+    if (!code) return '';
+    const cleanCode = code.toUpperCase().trim();
+    if (cleanCode === 'FREE PERIOD') return 'Free Period';
+    const found = subjects ? subjects.find(s => s.code.toUpperCase() === cleanCode) : null;
+    return found ? found.name : code;
+  };
 
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [selectedClass, setSelectedClass] = useState('Class 10');
@@ -21,19 +87,39 @@ export default function TeacherPortal() {
   // Attendance grid tracking state (studentId -> status)
   const [attendanceSheet, setAttendanceSheet] = useState({});
 
+  // Extract all periods for this teacher across all classes and days from AppContext
+  const teacherPeriods = [];
+  if (timetables) {
+    timetables.forEach(t => {
+      t.slots.forEach((slot, index) => {
+        const parsed = parseSlot(slot);
+        if (parsed.subject.toUpperCase() === teacherSubject.toUpperCase()) {
+          teacherPeriods.push({
+            id: `${t.class}_${t.day}_${index}`,
+            class: t.class,
+            day: t.day,
+            time: parsed.time,
+            subjectLabel: parsed.subject,
+            periodNum: index + 1
+          });
+        }
+      });
+    });
+  }
+
   // Marks upload forms
   const [examType, setExamType] = useState('mid 1');
-  const [subjectSelected, setSubjectSelected] = useState('PHYSICS');
+  const [subjectSelected, setSubjectSelected] = useState(teacherSubject);
   const [marksSheet, setMarksSheet] = useState({}); // studentId -> marks
   const [remarksSheet, setRemarksSheet] = useState({}); // studentId -> remark
 
   // Homework creator state
   const [showAddHw, setShowAddHw] = useState(false);
-  const [hwForm, setHwForm] = useState({ title: '', description: '', subject: 'PHYSICS', class: 'Class 10', section: 'A', dueDate: '' });
+  const [hwForm, setHwForm] = useState({ title: '', description: '', subject: teacherSubject, class: 'Class 10', section: 'A', dueDate: '' });
 
   // Notes upload creator state
   const [showAddNotes, setShowAddNotes] = useState(false);
-  const [notesForm, setNotesForm] = useState({ title: '', description: '', subject: 'PHYSICS', class: 'Class 10', chapter: 'Chapter 5', type: 'PDF' });
+  const [notesForm, setNotesForm] = useState({ title: '', description: '', subject: teacherSubject, class: 'Class 10', chapter: 'Chapter 5', type: 'PDF' });
 
   // Class circular state
   const [showAddNotice, setShowAddNotice] = useState(false);
@@ -41,7 +127,15 @@ export default function TeacherPortal() {
 
   // Live Class Creator state
   const [showAddLiveClass, setShowAddLiveClass] = useState(false);
-  const [liveForm, setLiveForm] = useState({ subject: 'PHYSICS', title: '', startTime: '11:00 AM', duration: '45 Mins', meetingLink: 'https://meet.google.com/abc-defg-hij' });
+  const [liveForm, setLiveForm] = useState({ subject: teacherSubject, title: '', startTime: '11:00 AM', duration: '45 Mins', meetingLink: 'https://meet.google.com/abc-defg-hij' });
+
+  // Keep state synchronized with teacher's assigned subject in case it resolves late or changes
+  useEffect(() => {
+    setSubjectSelected(teacherSubject);
+    setHwForm(prev => ({ ...prev, subject: teacherSubject }));
+    setNotesForm(prev => ({ ...prev, subject: teacherSubject }));
+    setLiveForm(prev => ({ ...prev, subject: teacherSubject }));
+  }, [teacherSubject]);
 
   const activeStudents = students.filter(s => s.class === selectedClass && s.section === selectedSection);
 
@@ -101,7 +195,19 @@ export default function TeacherPortal() {
       file: 'reference_docs.pdf'
     });
     setShowAddHw(false);
-    setHwForm({ title: '', description: '', subject: 'PHYSICS', class: 'Class 10', section: 'A', dueDate: '' });
+    setHwForm({ title: '', description: '', subject: teacherSubject, class: 'Class 10', section: 'A', dueDate: '' });
+  };
+
+  const handleCreateNotes = (e) => {
+    e.preventDefault();
+    if (!notesForm.title || !notesForm.chapter) return;
+    createNotes({
+      ...notesForm,
+      teacherId: currentUser.id,
+      file: notesForm.type === 'Video' ? 'https://youtube.com/watch?v=mock' : 'study_material.' + notesForm.type.toLowerCase()
+    });
+    setShowAddNotes(false);
+    setNotesForm({ title: '', description: '', subject: teacherSubject, class: 'Class 10', chapter: 'Chapter 5', type: 'PDF' });
   };
 
   const handleCreateLiveClass = (e) => {
@@ -113,7 +219,7 @@ export default function TeacherPortal() {
       section: 'A'
     });
     setShowAddLiveClass(false);
-    setLiveForm({ subject: 'PHYSICS', title: '', startTime: '11:00 AM', duration: '45 Mins', meetingLink: 'https://meet.google.com/abc-defg-hij' });
+    setLiveForm({ subject: teacherSubject, title: '', startTime: '11:00 AM', duration: '45 Mins', meetingLink: 'https://meet.google.com/abc-defg-hij' });
   };
 
   return (
@@ -121,10 +227,18 @@ export default function TeacherPortal() {
       {/* Sidebar Navigation */}
       <div className="w-full lg:w-64 shrink-0 space-y-4">
         <div className="glassmorphism p-5 rounded-3xl border border-white/50 shadow-md">
-          <div className="space-y-1 mb-6">
-            <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-400">Faculty Desk</h3>
-            <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">{currentUser.name}</p>
-            <p className="text-[10px] text-slate-400 font-mono">ID: {currentUser.id}</p>
+          <div className="text-center space-y-2 pb-4 border-b border-slate-200/50 dark:border-slate-800 mb-6">
+            <img 
+              src={currentTeacherProfile ? currentTeacherProfile.photo : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"} 
+              alt={teacherName} 
+              className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-blue-500/20 shadow-md"
+            />
+            <div>
+              <h3 className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-white leading-tight">{teacherName}</h3>
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold">{currentTeacherProfile ? currentTeacherProfile.qualification : ''}</p>
+              <p className="text-[9px] text-slate-400 font-semibold uppercase">{getSubjectName(currentTeacherProfile ? currentTeacherProfile.subject : 'PHYSICS')} Faculty</p>
+              <p className="text-[9px] text-slate-400 font-mono">ID: {currentUser.id}</p>
+            </div>
           </div>
 
           <nav className="flex flex-col gap-1.5 text-xs font-semibold">
@@ -133,6 +247,7 @@ export default function TeacherPortal() {
               { id: 'Attendance', icon: CheckSquare, label: 'Mark Attendance' },
               { id: 'Marks', icon: Award, label: 'Upload Marks' },
               { id: 'Homework', icon: Clipboard, label: 'Homework Desk' },
+              { id: 'Notes', icon: BookOpen, label: 'Study Notes' },
               { id: 'LiveClasses', icon: Calendar, label: 'Live Virtual Classes' },
               { id: 'Circulars', icon: FileText, label: 'Class Announcements' }
             ].map((item) => (
@@ -189,17 +304,36 @@ export default function TeacherPortal() {
             </div>
 
             {/* Today schedule */}
-            <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-lg border border-slate-200/50 dark:border-slate-850 space-y-4">
-              <h3 className="font-extrabold text-sm">Today's Class Schedule</h3>
-              <div className="grid sm:grid-cols-2 gap-4 text-xs font-light">
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <p className="font-bold text-slate-900 dark:text-white">Physics Lab Lecture</p>
-                  <p className="text-[10px] text-slate-400">Class 10-A | 09:30 AM - 10:15 AM</p>
-                </div>
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <p className="font-bold text-slate-900 dark:text-white">Mathematics Homework Review</p>
-                  <p className="text-[10px] text-slate-400">Class 10-B | 11:30 AM - 12:15 PM</p>
-                </div>
+            <div className="bg-white dark:bg-slate-800/60 rounded-3xl p-6 shadow-xl border border-slate-200/50 dark:border-slate-850 space-y-4">
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">Your Personal Weekly Period Schedule</h3>
+                <p className="text-[10px] text-slate-400">Class periods where you are registered as the active course educator</p>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-light">
+                {teacherPeriods.map((period) => {
+                  const style = getSubjectStyle(period.subjectLabel);
+                  return (
+                    <div key={period.id} className={`p-4 rounded-2xl border ${style.bg} ${style.accent} flex flex-col justify-between transition-all duration-200 hover:scale-[1.03] hover:shadow-md`}>
+                      <div>
+                        <span className={`inline-block text-[9px] font-extrabold tracking-tight px-2 py-0.5 rounded-full mb-2 ${style.tag}`}>
+                          {getSubjectName(period.subjectLabel)}
+                        </span>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-xs">{period.class}</h4>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Period {period.periodNum}</p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center text-[9px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
+                        <span>{period.day}</span>
+                        <span>{period.time}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {teacherPeriods.length === 0 && (
+                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 text-xs italic sm:col-span-3">
+                    No teaching periods scheduled on the timetable.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -343,11 +477,10 @@ export default function TeacherPortal() {
 
               <input 
                 type="text"
-                placeholder="Subject (e.g. SANSKRIT, PHYSICS)"
-                value={subjectSelected} 
-                onChange={(e) => setSubjectSelected(e.target.value)}
-                list="subjects-list"
-                className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 w-56 font-bold"
+                placeholder="Subject"
+                value={getSubjectName(subjectSelected)} 
+                readOnly
+                className="px-3 py-1.5 border rounded-lg bg-slate-150 dark:bg-slate-900/50 text-xs w-56 font-bold cursor-not-allowed"
               />
 
               <button
@@ -461,10 +594,9 @@ export default function TeacherPortal() {
                   <input 
                     type="text"
                     placeholder="Subject Name"
-                    value={hwForm.subject}
-                    onChange={(e) => setHwForm(prev => ({ ...prev, subject: e.target.value }))}
-                    list="subjects-list"
-                    className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                    value={getSubjectName(teacherSubject)}
+                    readOnly
+                    className="px-3.5 py-2 border rounded-xl bg-slate-150 dark:bg-slate-900/50 text-xs font-bold cursor-not-allowed"
                   />
                   <select
                     value={hwForm.class}
@@ -509,7 +641,7 @@ export default function TeacherPortal() {
                 <div key={hw.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-md space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">{hw.subject} • {hw.class}</span>
+                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">{getSubjectName(hw.subject)} • {hw.class}</span>
                       <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{hw.title}</h4>
                     </div>
                     <span className="text-[10px] text-red-500 font-semibold">Due: {hw.dueDate}</span>
@@ -603,11 +735,10 @@ export default function TeacherPortal() {
                     className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                   />
                   <input 
-                    type="text" required placeholder="Subject (e.g. PHYSICS)"
-                    value={liveForm.subject}
-                    onChange={(e) => setLiveForm(prev => ({ ...prev, subject: e.target.value }))}
-                    list="subjects-list"
-                    className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                    type="text" required placeholder="Subject"
+                    value={getSubjectName(teacherSubject)}
+                    readOnly
+                    className="px-3.5 py-2 border rounded-xl bg-slate-150 dark:bg-slate-900/50 text-xs font-bold cursor-not-allowed"
                   />
                   <input 
                     type="text" required placeholder="Start Time (e.g. 10:30 AM)"
@@ -645,7 +776,7 @@ export default function TeacherPortal() {
                 <div key={item.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4">
                   <div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{item.subject} • {item.class}</span>
+                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{getSubjectName(item.subject)} • {item.class}</span>
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
                         item.status === 'Live' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'bg-slate-100 text-slate-500 dark:bg-slate-900'
                       }`}>{item.status}</span>
@@ -661,6 +792,129 @@ export default function TeacherPortal() {
                   </a>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Study Notes Tab */}
+        {activeTab === 'Notes' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-extrabold font-montserrat">Study Notes & Resources Desk</h2>
+                <p className="text-xs text-slate-400 font-light mt-1">Upload study notes, slides, documents, or video links for student download.</p>
+              </div>
+              <button
+                onClick={() => setShowAddNotes(!showAddNotes)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
+              >
+                <Plus size={16} /> Upload Notes
+              </button>
+            </div>
+
+            {showAddNotes && (
+              <form onSubmit={handleCreateNotes} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-xl">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Upload New Study Material</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <input 
+                    type="text" required placeholder="Notes Title"
+                    value={notesForm.title}
+                    onChange={(e) => setNotesForm(prev => ({ ...prev, title: e.target.value }))}
+                    className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  />
+                  <input 
+                    type="text" required placeholder="Chapter (e.g. Chapter 1)"
+                    value={notesForm.chapter}
+                    onChange={(e) => setNotesForm(prev => ({ ...prev, chapter: e.target.value }))}
+                    className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <textarea 
+                  rows={3} required placeholder="Material description..."
+                  value={notesForm.description}
+                  onChange={(e) => setNotesForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                ></textarea>
+                <div className="grid sm:grid-cols-4 gap-4">
+                  <div className="sm:col-span-1">
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Subject</label>
+                    <input 
+                      type="text"
+                      value={getSubjectName(teacherSubject)}
+                      readOnly
+                      className="w-full px-3.5 py-2 border rounded-xl bg-slate-150 dark:bg-slate-900/50 text-xs font-bold cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="sm:col-span-1">
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Class</label>
+                    <select
+                      value={notesForm.class}
+                      onChange={(e) => setNotesForm(prev => ({ ...prev, class: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="Playclass">Playclass</option>
+                      <option value="LKG">LKG</option>
+                      <option value="UKG">UKG</option>
+                      <option value="Class 1">Class 1</option>
+                      <option value="Class 2">Class 2</option>
+                      <option value="Class 3">Class 3</option>
+                      <option value="Class 4">Class 4</option>
+                      <option value="Class 5">Class 5</option>
+                      <option value="Class 6">Class 6</option>
+                      <option value="Class 7">Class 7</option>
+                      <option value="Class 8">Class 8</option>
+                      <option value="Class 9">Class 9</option>
+                      <option value="Class 10">Class 10</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Material Type</label>
+                    <select
+                      value={notesForm.type}
+                      onChange={(e) => setNotesForm(prev => ({ ...prev, type: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="PDF">PDF Document</option>
+                      <option value="PPT">PPT Presentation</option>
+                      <option value="DOCX">Word Document</option>
+                      <option value="Video">Video Link / Tutorial</option>
+                      <option value="Image">Image / Diagram</option>
+                    </select>
+                  </div>
+                </div>
+                <button 
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow"
+                >
+                  Upload Material
+                </button>
+              </form>
+            )}
+
+            {/* Notes List */}
+            <div className="grid sm:grid-cols-2 gap-6">
+              {notes.map((note) => (
+                <div key={note.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-md flex flex-col justify-between space-y-4 font-poppins">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded">{getSubjectName(note.subject)} • {note.class}</span>
+                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{note.type}</span>
+                    </div>
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-3">{note.title}</h4>
+                    <p className="text-[10px] text-slate-450 mt-1">{note.chapter}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-light mt-2">{note.description}</p>
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-slate-850 pt-3 flex justify-between items-center text-[10px] text-slate-400">
+                    <span>File: {note.file || 'notes_material.pdf'}</span>
+                    <span>Downloads: {note.downloads || 0}</span>
+                  </div>
+                </div>
+              ))}
+              {notes.length === 0 && (
+                <div className="sm:col-span-2 text-center py-8 text-slate-400 text-xs">
+                  No notes uploaded yet. Start by clicking "Upload Notes".
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -734,17 +988,14 @@ export default function TeacherPortal() {
         )}
       </div>
       <datalist id="subjects-list">
-        <option value="SANSKRIT" />
-        <option value="ENGLISH" />
-        <option value="TELUGU" />
-        <option value="HINDI" />
-        <option value="GENERAL SCIENCE" />
-        <option value="DRAWING" />
-        <option value="MATHEMATICS" />
-        <option value="YOGA TRAINING" />
-        <option value="PHYSICS" />
-        <option value="CHEMISTRY" />
-        <option value="GENERALKNOWLEDGE" />
+        {(subjects && subjects.length > 0 ? subjects : [
+          { code: 'SANSKRIT', name: 'Sanskrit' }, { code: 'ENGLISH', name: 'English' },
+          { code: 'TELUGU', name: 'Telugu' }, { code: 'HINDI', name: 'Hindi' },
+          { code: 'GENERALSCIENCE', name: 'General Science' }, { code: 'DRAWING', name: 'Drawing & Art' },
+          { code: 'MATHEMATICS', name: 'Mathematics' }, { code: 'YOGA', name: 'Yoga & P.E.' },
+          { code: 'PHYSICS', name: 'Physics' }, { code: 'CHEMISTRY', name: 'Chemistry' },
+          { code: 'GENERALKNOWLEDGE', name: 'General Knowledge' },
+        ]).map(s => <option key={s.code} value={s.code}>{s.name}</option>)}
       </datalist>
     </div>
   );

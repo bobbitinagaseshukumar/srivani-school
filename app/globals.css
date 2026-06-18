@@ -1,67 +1,334 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
+/* =============================================
+   BASE RESET
+   ============================================= */
+html, body {
   font-family: 'Inter', sans-serif;
   margin: 0;
   padding: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom premium classes */
+/* =============================================
+   PAGE LOAD ENTRANCE
+   ============================================= */
+@keyframes page-enter {
+  0%   { opacity: 0; transform: scale(0.97) translateY(16px); }
+  100% { opacity: 1; transform: scale(1) translateY(0px); }
+}
+body {
+  animation: page-enter 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =============================================
+   GLASSMORPHISM
+   ============================================= */
 .glassmorphism {
   background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  position: relative;
+  overflow: hidden;
 }
-
 .dark .glassmorphism {
   background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Animations */
+/* Shimmer sweep on glassmorphism cards */
+.glassmorphism::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 60%
+  );
+  transition: left 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.glassmorphism:hover::before {
+  left: 150%;
+}
+
+/* =============================================
+   FLOATING ANIMATIONS
+   ============================================= */
 @keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(2deg); }
+  0%   { transform: translateY(0px) rotate(0deg); }
+  33%  { transform: translateY(-12px) rotate(1.5deg); }
+  66%  { transform: translateY(-6px) rotate(-1deg); }
   100% { transform: translateY(0px) rotate(0deg); }
 }
+@keyframes float-alt {
+  0%   { transform: translateY(0px) translateX(0px) rotate(0deg); }
+  25%  { transform: translateY(-8px) translateX(5px) rotate(2deg); }
+  75%  { transform: translateY(5px) translateX(-4px) rotate(-1.5deg); }
+  100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+}
+@keyframes float-orbit {
+  0%   { transform: translateY(0px) translateX(0px) scale(1); }
+  50%  { transform: translateY(-18px) translateX(8px) scale(1.04); }
+  100% { transform: translateY(0px) translateX(0px) scale(1); }
+}
+.animate-float-slow  { animation: float 7s ease-in-out infinite; }
+.animate-float-fast  { animation: float 3.5s ease-in-out infinite; }
+.animate-float-alt   { animation: float-alt 5s ease-in-out infinite; }
+.animate-float-orbit { animation: float-orbit 9s ease-in-out infinite; }
 
-.animate-float-slow {
-  animation: float 6s ease-in-out infinite;
+/* =============================================
+   PULSE GLOW  (for CTAs / important buttons)
+   ============================================= */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55); }
+  50%       { box-shadow: 0 0 22px 8px rgba(59, 130, 246, 0.22); }
+}
+@keyframes pulse-glow-rose {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
+  50%       { box-shadow: 0 0 22px 8px rgba(244, 63, 94, 0.22); }
+}
+.animate-pulse-glow      { animation: pulse-glow 2.4s ease-in-out infinite; }
+.animate-pulse-glow-rose { animation: pulse-glow-rose 2.4s ease-in-out infinite; }
+
+/* =============================================
+   BOUNCE-IN  (stat counters, badges)
+   ============================================= */
+@keyframes bounce-in {
+  0%   { transform: scale(0.3) translateY(30px); opacity: 0; }
+  60%  { transform: scale(1.12) translateY(-6px); opacity: 1; }
+  80%  { transform: scale(0.95) translateY(2px); }
+  100% { transform: scale(1) translateY(0px); opacity: 1; }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+/* Staggered children */
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.13s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.21s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.29s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.37s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.45s; }
+
+/* =============================================
+   SLIDE-IN FROM SIDES
+   ============================================= */
+@keyframes slide-in-left {
+  0%   { opacity: 0; transform: translateX(-60px) rotateY(-8deg); }
+  100% { opacity: 1; transform: translateX(0) rotateY(0deg); }
+}
+@keyframes slide-in-right {
+  0%   { opacity: 0; transform: translateX(60px) rotateY(8deg); }
+  100% { opacity: 1; transform: translateX(0) rotateY(0deg); }
+}
+@keyframes slide-in-up {
+  0%   { opacity: 0; transform: translateY(50px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slide-left  { animation: slide-in-left  0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-right { animation: slide-in-right 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up    { animation: slide-in-up    0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* =============================================
+   SCALE-SPRING  (on click/tap)
+   ============================================= */
+@keyframes scale-spring {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.92); }
+  65%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+/* Apply via JS or inline style. The keyframe itself is available for use */
+
+/* =============================================
+   SMOOTH NAV UNDERLINE
+   ============================================= */
+.nav-underline {
+  position: relative;
+  display: inline-block;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  border-radius: 2px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-underline:hover::after,
+.nav-underline.active::after { width: 100%; }
+
+/* =============================================
+   3D CARD TILT  (perspective wrapper)
+   ============================================= */
+.card-3d-wrap {
+  perspective: 900px;
+  perspective-origin: center center;
+}
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s ease;
+  will-change: transform;
+}
+.card-3d:hover {
+  box-shadow: 0 28px 60px -12px rgba(59,130,246,0.28), 0 12px 24px -8px rgba(0,0,0,0.15);
 }
 
-.animate-float-fast {
-  animation: float 3s ease-in-out infinite;
+/* =============================================
+   SCROLLBAR
+   ============================================= */
+::-webkit-scrollbar         { width: 7px; height: 7px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: rgba(100,116,139,0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.52); }
+
+/* =============================================
+   3D SCROLL REVEAL  (ScrollReveal component)
+   ============================================= */
+.perspective-1000 { perspective: 1000px; }
+.perspective-2000 { perspective: 2000px; }
+.preserve-3d      { transform-style: preserve-3d; }
+.backface-hidden  { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+.rotate-y-180 { transform: rotateY(180deg); }
+.rotate-y-0   { transform: rotateY(0deg); }
+
+/* Desktop reveal — 3D tilt from bottom */
+.reveal-even-hidden {
+  opacity: 0;
+  transform: perspective(1100px) translateY(50px) scale(0.95) rotateX(-14deg);
+}
+.reveal-even-visible {
+  opacity: 1;
+  transform: perspective(1100px) translateY(0px) scale(1) rotateX(0deg);
+}
+.reveal-odd-hidden {
+  opacity: 0;
+  transform: perspective(1100px) translateY(50px) scale(0.95) rotateX(-14deg);
+}
+.reveal-odd-visible {
+  opacity: 1;
+  transform: perspective(1100px) translateY(0px) scale(1) rotateX(0deg);
 }
 
-/* Premium Gradients */
-.gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+/* Mobile reveal — slide from sides */
+@media (max-width: 767px) {
+  .reveal-even-hidden {
+    opacity: 0;
+    transform: perspective(900px) translateX(-40px) scale(0.96) rotateY(-10deg);
+  }
+  .reveal-even-visible {
+    opacity: 1;
+    transform: perspective(900px) translateX(0px) scale(1) rotateY(0deg);
+  }
+  .reveal-odd-hidden {
+    opacity: 0;
+    transform: perspective(900px) translateX(40px) scale(0.96) rotateY(10deg);
+  }
+  .reveal-odd-visible {
+    opacity: 1;
+    transform: perspective(900px) translateX(0px) scale(1) rotateY(0deg);
+  }
 }
 
-.gradient-dark {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+/* =============================================
+   3D HOVER CARD ROTATIONS
+   ============================================= */
+.hover\:rotate-y-6:hover  { transform: translateY(-8px) scale(1.05) rotateY(6deg)  !important; }
+.hover\:rotate-y-0:hover  { transform: translateY(-8px) scale(1.05) rotateY(0deg)  !important; }
+.hover\:rotate-y--6:hover { transform: translateY(-8px) scale(1.05) rotateY(-6deg) !important; }
+.hover\:rotate-y-3:hover  { transform: translateY(-6px) scale(1.02) rotateY(3deg)  !important; }
+.hover\:rotate-x-3:hover  { transform: translateY(-6px) scale(1.02) rotateX(3deg)  !important; }
+.hover\:rotate-y-3.hover\:rotate-x-3:hover {
+  transform: translateY(-6px) scale(1.02) rotateX(3deg) rotateY(3deg) !important;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* =============================================
+   3D FLIP CARD  (Login page)
+   ============================================= */
+.flip-card       { perspective: 1400px; }
+.flip-card-inner { transform-style: preserve-3d; transition: transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+.flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+
+/* =============================================
+   GRADIENT UTILITIES
+   ============================================= */
+.gradient-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.gradient-dark    { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+.gradient-hero    { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); }
+
+/* =============================================
+   HERO BACKGROUND ANIMATED MESH
+   ============================================= */
+@keyframes mesh-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+.bg-animated-mesh {
+  background: linear-gradient(-45deg, #0f172a, #1e1b4b, #0c1a3a, #1e293b);
+  background-size: 400% 400%;
+  animation: mesh-shift 14s ease infinite;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 4px;
+
+/* =============================================
+   TICKER / MARQUEE
+   ============================================= */
+@keyframes ticker-x {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+.ticker-scroll {
+  display: flex;
+  animation: ticker-x 28s linear infinite;
+  width: max-content;
+}
+.ticker-scroll:hover { animation-play-state: paused; }
+
+/* =============================================
+   MOBILE  — role switcher & safe areas
+   ============================================= */
+@media (max-width: 640px) {
+  .role-switcher-panel {
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-radius: 1.25rem 1.25rem 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 12px) !important;
+  }
+}
+
+/* =============================================
+   ACCESSIBILITY — respect reduced motion
+   ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body { animation: none !important; }
+  .glassmorphism::before { display: none !important; }
 }

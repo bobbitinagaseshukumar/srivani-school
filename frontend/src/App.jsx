@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from './context/AppContext';
 
 // Import Public Pages
@@ -25,11 +25,75 @@ import ParentPortal from './views/Parent/ParentPortal';
 import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users } from 'lucide-react';
 
 export default function App() {
-  const { currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead } = useContext(AppContext);
+  const { currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead, schoolInfo } = useContext(AppContext);
   const [currentTab, setCurrentTab] = useState('home'); // home, about, faculty, academics, facilities, gallery, admissions, contact, login, portal
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(true);
+
+  // Synchronize routing state with browser history / URL hash
+  useEffect(() => {
+    const getTabFromHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['home', 'about', 'faculty', 'academics', 'facilities', 'gallery', 'admissions', 'contact', 'login', 'portal'];
+      return validTabs.includes(hash) ? hash : 'home';
+    };
+
+    // On mount, read initial tab from hash
+    const initialTab = getTabFromHash();
+    setCurrentTab(initialTab);
+
+    // If the hash is empty, set it to the initial tab
+    if (!window.location.hash) {
+      window.history.replaceState({ tab: initialTab }, '', `#${initialTab}`);
+    }
+
+    const handlePopState = (event) => {
+      const tab = event.state?.tab || getTabFromHash();
+      setCurrentTab(tab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Sync state changes to browser history
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    if (currentHash !== currentTab) {
+      window.history.pushState({ tab: currentTab }, '', `#${currentTab}`);
+    }
+  }, [currentTab]);
+
+  // Reset scroll position to top when transitioning between tabs or switching roles
+  useEffect(() => {
+    const handleScroll = () => {
+      window.scrollTo(0, 0);
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    };
+    
+    // Execute immediately
+    handleScroll();
+    
+    // Execute after short delays to override any asynchronous layout rendering jumps
+    const t1 = setTimeout(handleScroll, 20);
+    const t2 = setTimeout(handleScroll, 100);
+    const t3 = setTimeout(handleScroll, 250);
+    
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [currentTab, currentUser.role]);
+
+  // Redirect to home if user logs out (role becomes Guest) and they are on the portal tab
+  useEffect(() => {
+    if (currentUser.role === 'Guest' && currentTab === 'portal') {
+      setCurrentTab('home');
+    }
+  }, [currentUser.role, currentTab]);
 
   // Quick switch handler to bypass login during demonstration
   const handleQuickSwitch = (role) => {
@@ -84,6 +148,7 @@ export default function App() {
   };
 
   const unreadNotifications = notifications.filter(n => !n.read);
+  const isPortalOrLogin = currentTab === 'login' || currentTab === 'portal';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between font-sans transition-colors duration-300">
@@ -94,13 +159,13 @@ export default function App() {
           {/* Logo / Brand */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentTab('home')}>
             <img 
-              src="/logo.jpg" 
-              alt="Sri Vani Vidyanikethan Logo" 
+              src={schoolInfo?.logo || "/logo.jpg"} 
+              alt="School Logo" 
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-md border border-slate-200/50 dark:border-slate-800/80 bg-white"
             />
             <div>
-              <h1 className="text-[10px] sm:text-xs md:text-sm font-extrabold font-montserrat tracking-tight leading-tight m-0 text-slate-950 dark:text-white">SRI VANI VIDYANIKETHAN</h1>
-              <p className="text-[7px] sm:text-[8px] md:text-[9px] text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase m-0 leading-none">EM SCHOOL</p>
+              <h1 className="text-[10px] sm:text-xs md:text-sm font-extrabold font-montserrat tracking-tight leading-tight m-0 text-slate-950 dark:text-white uppercase">{schoolInfo?.name || 'SRI VANI VIDYANIKETHAN'}</h1>
+              <p className="text-[7px] sm:text-[8px] md:text-[9px] text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase m-0 leading-none">{schoolInfo?.tagline || 'EM SCHOOL'}</p>
             </div>
           </div>
 
@@ -132,14 +197,6 @@ export default function App() {
 
           {/* Utilities Panel */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 transition-colors"
-            >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-
             {/* Notifications Alert Dropdown */}
             {currentUser.role !== 'Guest' && (
               <div className="relative">
@@ -253,98 +310,96 @@ export default function App() {
       </header>
 
       {/* Main Core View Area */}
-      <main className="flex-1 pb-24">
+      <main className={isPortalOrLogin ? 'flex-1' : 'flex-1 pb-24'}>
         {renderContent()}
       </main>
 
-      {/* Persistent Demo Toolbar */}
-      {showRoleSwitcher && (
-        <div className="fixed bottom-4 inset-x-4 max-w-4xl mx-auto bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white rounded-3xl border border-slate-700/80 shadow-2xl p-4 z-50 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <div className="text-left">
-              <p className="font-extrabold font-montserrat">Quick Switch simulator</p>
-              <p className="text-[9px] text-slate-400">Evaluate all 5 roles instantly with one-click access (Bypasses logins)</p>
+      {/* Persistent Demo Toolbar — hidden on login and portal pages */}
+      {showRoleSwitcher && !isPortalOrLogin && (
+        <div className="fixed bottom-0 sm:bottom-4 inset-x-0 sm:inset-x-4 max-w-4xl sm:mx-auto bg-slate-900/95 backdrop-blur-md text-white sm:rounded-3xl rounded-t-3xl border border-slate-700/80 shadow-2xl px-3 py-3 sm:p-4 z-50 text-xs" style={{paddingBottom: 'max(12px, env(safe-area-inset-bottom))'}}>
+          <div className="flex items-center justify-between mb-2 sm:mb-0 sm:hidden">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="font-extrabold font-montserrat text-[11px]">Quick Switch</p>
             </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-1.5 justify-center">
-            <button 
-              onClick={() => handleQuickSwitch('Guest')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'Guest' && currentTab !== 'login' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
+            <button
+              onClick={() => setShowRoleSwitcher(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg border border-slate-700/50 text-[10px]"
             >
-              Public Web
-            </button>
-            <button 
-              onClick={() => handleQuickSwitch('SuperAdmin')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'SuperAdmin' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
-            >
-              Super Admin
-            </button>
-            <button 
-              onClick={() => handleQuickSwitch('Admin')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'Admin' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
-            >
-              Admin Portal
-            </button>
-            <button 
-              onClick={() => handleQuickSwitch('Teacher')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'Teacher' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
-            >
-              Teacher Portal
-            </button>
-            <button 
-              onClick={() => handleQuickSwitch('Student')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'Student' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
-            >
-              Student Portal
-            </button>
-            <button 
-              onClick={() => handleQuickSwitch('Parent')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                currentUser.role === 'Parent' ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-slate-700'
-              }`}
-            >
-              Parent Portal
+              Hide
             </button>
           </div>
-
-          <button 
-            onClick={() => setShowRoleSwitcher(false)}
-            className="text-slate-400 hover:text-white p-1 rounded-lg border border-slate-700/50"
-          >
-            Hide Panel
-          </button>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <div className="text-left">
+                <p className="font-extrabold font-montserrat">Quick Switch simulator</p>
+                <p className="text-[9px] text-slate-400">Evaluate all 5 roles instantly (Bypasses logins)</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5 justify-center">
+              {[['Guest','Public Web'],['SuperAdmin','Super Admin'],['Admin','Admin'],['Teacher','Teacher'],['Student','Student'],['Parent','Parent']].map(([role, label]) => (
+                <button
+                  key={role}
+                  onClick={() => handleQuickSwitch(role)}
+                  className={`px-2.5 py-1.5 rounded-xl font-bold transition-all text-[10px] sm:text-xs ${
+                    (currentUser.role === role && !(role === 'Guest' && currentTab === 'login'))
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-800 hover:bg-slate-700'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowRoleSwitcher(false)}
+              className="hidden sm:block text-slate-400 hover:text-white p-1 rounded-lg border border-slate-700/50 shrink-0"
+            >
+              Hide Panel
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Global Footer */}
-      <footer className="bg-slate-900 text-white py-12 border-t border-slate-800 text-xs">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8 text-left">
+
+
+      {/* Global Footer — hidden on login and portal pages */}
+      {!isPortalOrLogin && (
+      <footer className="bg-slate-900 text-white py-10 border-t border-slate-800 text-xs">
+        <div className="max-w-7xl mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-left">
           
           {/* Brand Col */}
-          <div className="space-y-4">
+          <div className="space-y-4 text-left">
             <div className="flex items-center gap-2">
               <img 
                 src="/logo.jpg" 
                 alt="Sri Vani Vidyanikethan Logo" 
                 className="w-8 h-8 rounded-lg object-cover bg-white"
               />
-              <h4 className="font-bold tracking-tight">SRI VANI VIDYANIKETHAN</h4>
+              <h4 className="font-bold tracking-tight">{schoolInfo?.name || 'SRI VANI VIDYANIKETHAN'}</h4>
             </div>
             <p className="text-slate-400 font-light leading-relaxed">
-              Empowering children through interactive learning, core values, and analytical reasoning from Playclass to Class 10.
+              Empowering children through interactive learning, core values, and analytical reasoning.
             </p>
+            <div className="pt-2">
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-350 transition-colors border border-slate-700/50 shadow-md"
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Sun size={14} className="text-amber-500" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={14} className="text-blue-450" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -364,7 +419,7 @@ export default function App() {
             <ul className="space-y-2 text-slate-300 font-light">
               <li className="cursor-pointer hover:underline" onClick={() => setCurrentTab('admissions')}>Apply Registration</li>
               <li className="cursor-pointer hover:underline" onClick={() => setCurrentTab('contact')}>Helpdesk Support</li>
-              <li className="cursor-pointer hover:underline" onClick={() => setCurrentTab('login')}>Portal Access</li>
+              <li className="cursor-pointer hover:underline" onClick={() => setCurrentTab(currentUser.role === 'Guest' ? 'login' : 'portal')}>Portal Access</li>
             </ul>
           </div>
 
@@ -381,13 +436,14 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 border-t border-slate-800 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center text-slate-500 font-light gap-2">
-          <p>© 2026 SRI VANI VIDYANIKETHAN EM SCHOOL. All Rights Reserved.</p>
+          <p>© 2026 {schoolInfo?.name || 'SRI VANI VIDYANIKETHAN'} {schoolInfo?.tagline || 'EM SCHOOL'}. All Rights Reserved.</p>
           <div className="flex gap-4">
             <span className="cursor-pointer hover:text-white">Security Controls</span>
             <span className="cursor-pointer hover:text-white">Privacy Clause</span>
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }

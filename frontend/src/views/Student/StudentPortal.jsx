@@ -2,9 +2,84 @@ import React, { useContext, useState } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { BookOpen, Calendar, Clipboard, Download, GraduationCap, LayoutDashboard, Award, ShieldAlert, Sparkles, RefreshCw } from 'lucide-react';
 
+const parseSlot = (slot) => {
+  if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
+  if (typeof slot === 'object' && slot !== null) {
+    return {
+      subject: slot.subject || 'FREE PERIOD',
+      time: slot.time || '09:30 AM - 10:15 AM'
+    };
+  }
+  if (typeof slot === 'string') {
+    const timeMatch = slot.match(/\(([^)]+)\)/);
+    const time = timeMatch ? timeMatch[1] : '09:30 AM - 10:15 AM';
+    const subject = slot.replace(/\([^)]+\)/, '').trim();
+    return { subject, time };
+  }
+  return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
+};
+
+const getSubjectStyle = (subject) => {
+  const cleanSub = (subject || '').toUpperCase().trim();
+  if (cleanSub.includes('PHYSICS')) {
+    return {
+      bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
+      text: 'text-blue-700 dark:text-blue-350',
+      tag: 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300',
+      accent: 'border-l-4 border-l-blue-500'
+    };
+  }
+  if (cleanSub.includes('MATH')) {
+    return {
+      bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
+      text: 'text-purple-700 dark:text-purple-350',
+      tag: 'bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300',
+      accent: 'border-l-4 border-l-purple-500'
+    };
+  }
+  if (cleanSub.includes('ENGLISH')) {
+    return {
+      bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50',
+      text: 'text-amber-700 dark:text-amber-350',
+      tag: 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300',
+      accent: 'border-l-4 border-l-amber-500'
+    };
+  }
+  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK') || cleanSub.includes('COMPUTER')) {
+    return {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50',
+      text: 'text-emerald-700 dark:text-emerald-350',
+      tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300',
+      accent: 'border-l-4 border-l-emerald-500'
+    };
+  }
+  return {
+    bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
+    text: 'text-slate-500 dark:text-slate-400',
+    tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+    accent: 'border-l-4 border-l-slate-400'
+  };
+};
+
+const getTeacherForSubject = (subjectName, teachersList) => {
+  if (!teachersList) return 'No Teacher';
+  const cleanSub = (subjectName || '').toUpperCase().trim();
+  if (cleanSub === 'FREE PERIOD' || cleanSub === '') return '';
+  const match = teachersList.find(t => (t.subject || '').toUpperCase().trim() === cleanSub);
+  return match ? match.name : 'TBD';
+};
+
 export default function StudentPortal() {
-  const { currentUser, students, homework, submitHomework, notes, marks, circulars, liveClasses, logoutUser } = useContext(AppContext);
+  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Dashboard');
+
+  const getSubjectName = (code) => {
+    if (!code) return '';
+    const cleanCode = code.toUpperCase().trim();
+    if (cleanCode === 'FREE PERIOD') return 'Free Period';
+    const found = subjects ? subjects.find(s => s.code.toUpperCase() === cleanCode) : null;
+    return found ? found.name : code;
+  };
 
   const studentObj = students.find(s => s.id === currentUser.id);
 
@@ -21,14 +96,15 @@ export default function StudentPortal() {
   // Student grades
   const studentMarks = marks.filter(m => m.studentId === studentObj.id);
 
-  // Timetable
-  const timetable = [
-    { day: 'Monday', slots: ['Physics (09:30 AM)', 'Mathematics (10:30 AM)', 'English (01:00 PM)'] },
-    { day: 'Tuesday', slots: ['Computer Science (09:30 AM)', 'Physics Lab (10:30 AM)', 'Mathematics (01:00 PM)'] },
-    { day: 'Wednesday', slots: ['Mathematics (09:30 AM)', 'English (10:30 AM)', 'Library Hour (01:00 PM)'] },
-    { day: 'Thursday', slots: ['Physics (09:30 AM)', 'Computer Science (10:30 AM)', 'Art & Craft (01:00 PM)'] },
-    { day: 'Friday', slots: ['English (09:30 AM)', 'Mathematics (10:30 AM)', 'Weekly Assessment (01:00 PM)'] }
-  ];
+  // Dynamic Timetable matching class from Super Admin
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const timetable = daysOfWeek.map(d => {
+    const matched = timetables ? timetables.find(t => t.class === studentObj.class && t.day === d) : null;
+    return {
+      day: d,
+      slots: matched && matched.slots ? matched.slots : ['No period scheduled', 'No period scheduled', 'No period scheduled']
+    };
+  });
 
   const handleUploadHwFile = (hwId) => {
     // Simulate uploading assignment file
@@ -151,7 +227,7 @@ export default function StudentPortal() {
                   <div key={i} className="flex flex-col items-center gap-2 w-20">
                     <div className="w-8 bg-gradient-to-t from-blue-600 to-indigo-500 rounded-t-md transition-all" style={{ height: `${m.marks * 1.2}px` }}></div>
                     <span className="text-[10px] text-slate-900 dark:text-white font-bold">{m.marks}%</span>
-                    <span className="text-[9px] text-slate-400">{m.subject}</span>
+                    <span className="text-[9px] text-slate-400">{getSubjectName(m.subject)}</span>
                   </div>
                 ))}
                 {studentMarks.length === 0 && (
@@ -178,7 +254,7 @@ export default function StudentPortal() {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
                     {studentMarks.map((m) => (
                       <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                        <td className="p-4 font-bold text-slate-900 dark:text-white">{m.subject}</td>
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{getSubjectName(m.subject)}</td>
                         <td className="p-4">{m.examType}</td>
                         <td className="p-4 font-mono font-bold">{m.marks} / {m.maxMarks}</td>
                         <td className="p-4 font-bold text-blue-600 dark:text-blue-400">{m.grade}</td>
@@ -204,7 +280,7 @@ export default function StudentPortal() {
                   <div key={hw.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-md space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{hw.subject}</span>
+                        <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{getSubjectName(hw.subject)}</span>
                         <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{hw.title}</h4>
                       </div>
                       <span className="text-[10px] text-red-500 font-semibold font-mono">Due: {hw.dueDate}</span>
@@ -255,7 +331,7 @@ export default function StudentPortal() {
               {classNotes.map((item) => (
                 <div key={item.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/55 dark:border-slate-800 rounded-2xl p-5 shadow-md flex justify-between items-center gap-4">
                   <div className="space-y-1">
-                    <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold px-2 py-0.5 rounded">{item.subject} • {item.chapter}</span>
+                    <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold px-2 py-0.5 rounded">{getSubjectName(item.subject)} • {item.chapter}</span>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{item.title}</h4>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-light leading-relaxed">{item.description}</p>
                   </div>
@@ -279,22 +355,82 @@ export default function StudentPortal() {
         {/* Timetable Tab */}
         {activeTab === 'Timetable' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-extrabold font-montserrat">Weekly Academic Timetable</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-extrabold font-montserrat">Weekly Academic Timetable</h2>
+                <p className="text-[10px] text-slate-450 mt-0.5">Real-time schedule for your class room and registered courses</p>
+              </div>
+              <span className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-3 py-1.5 rounded-full border border-blue-500/20">{studentObj.class} Section {studentObj.section}</span>
+            </div>
             
-            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-850">
-                {timetable.map((t, idx) => (
-                  <div key={idx} className="p-4 grid sm:grid-cols-4 gap-4 text-xs items-center">
-                    <div className="font-bold text-slate-900 dark:text-white">{t.day}</div>
-                    <div className="sm:col-span-3 flex flex-wrap gap-2">
-                      {t.slots.map((s, i) => (
-                        <span key={i} className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-[10px] px-3 py-1.5 rounded-lg border border-slate-200/40 dark:border-slate-800 font-medium">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            <div className="bg-white dark:bg-slate-800/60 rounded-3xl p-6 shadow-xl border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                {(() => {
+                  const maxPeriods = timetables 
+                    ? Math.max(4, ...timetables.filter(t => t.class === studentObj.class).map(t => t.slots ? t.slots.length : 0)) 
+                    : 4;
+                  return (
+                    <table className="w-full min-w-[650px] border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-850 text-slate-450 font-bold uppercase tracking-wider text-[9px]">
+                          <th className="py-3 px-2 text-left w-24">Day</th>
+                          {Array.from({ length: maxPeriods }).map((_, pIdx) => (
+                            <th key={pIdx} className="py-3 px-2 text-center">Period {pIdx + 1}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                          .filter(d => {
+                            if (d === 'Saturday' || d === 'Sunday') {
+                              return timetables && timetables.some(t => t.class === studentObj.class && t.day === d && t.slots && t.slots.some(slot => {
+                                const parsed = parseSlot(slot);
+                                return parsed.subject && parsed.subject !== 'FREE PERIOD' && parsed.subject !== '';
+                              }));
+                            }
+                            return true;
+                          })
+                          .map(d => {
+                            const matched = timetables ? timetables.find(t => t.class === studentObj.class && t.day === d) : null;
+                            
+                            return (
+                              <tr key={d} className="hover:bg-slate-50/30 dark:hover:bg-slate-900/10">
+                                <td className="py-4 px-2 font-bold text-slate-900 dark:text-white align-middle w-24">
+                                  <span className="inline-block px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-xl text-[10px] border border-slate-200/50 dark:border-slate-800 w-full text-center">
+                                    {d}
+                                  </span>
+                                </td>
+                                {Array.from({ length: maxPeriods }).map((_, periodIdx) => {
+                                  const slotRaw = matched && matched.slots && matched.slots[periodIdx] ? matched.slots[periodIdx] : null;
+                                  const parsed = parseSlot(slotRaw);
+                                  const style = getSubjectStyle(parsed.subject);
+                                  const teacherName = getTeacherForSubject(parsed.subject, teachers);
+                                  
+                                  return (
+                                    <td key={periodIdx} className="py-4 px-2 text-center align-middle">
+                                      <div className={`p-2.5 rounded-2xl border ${style.bg} ${style.accent} flex flex-col items-center justify-center space-y-1 transition duration-200 hover:scale-[1.03] hover:shadow-md`}>
+                                        <span className={`text-[10px] font-extrabold tracking-tight px-2.5 py-0.5 rounded-full ${style.tag}`}>
+                                          {getSubjectName(parsed.subject)}
+                                        </span>
+                                        <span className="text-[9px] font-mono text-slate-500 font-medium">
+                                          {parsed.time}
+                                        </span>
+                                        {parsed.subject !== 'FREE PERIOD' && (
+                                          <span className="text-[8px] text-slate-500 dark:text-slate-400 font-semibold italic bg-white/40 dark:bg-black/10 px-1.5 py-0.5 rounded leading-tight">
+                                            {teacherName}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  );
+                })()}
               </div>
             </div>
           </div>
