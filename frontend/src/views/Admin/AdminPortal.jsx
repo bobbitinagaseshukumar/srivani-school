@@ -3,7 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import { 
   Users, GraduationCap, Calendar, FileText, Settings, Plus, Trash2, 
   Search, Award, MessageSquare, AlertCircle, RefreshCw, Layers, BookOpen, Download, FileSpreadsheet,
-  Edit2, Building2, X, UserPlus 
+  Edit2, Building2, X, UserPlus, User 
 } from 'lucide-react';
 
 export default function AdminPortal() {
