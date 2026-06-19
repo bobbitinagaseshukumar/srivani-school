@@ -1328,6 +1328,44 @@ export default function SuperAdminPortal() {
                 onChange={(e) => setStudentForm(prev => ({ ...prev, address: e.target.value }))}
                 className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
               />
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Student Profile Photo</label>
+                <div className="grid sm:grid-cols-2 gap-4 items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full border bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center overflow-hidden shrink-0">
+                      {studentForm.photo ? (
+                        <img src={studentForm.photo} alt="Student Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={20} className="text-slate-400" />
+                      )}
+                    </div>
+                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800 text-[11px] font-bold text-slate-655 dark:text-slate-300 transition-all">
+                      Choose Photo File
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setStudentForm(prev => ({ ...prev, photo: ev.target.result }));
+                          };
+                          reader.readAsDataURL(file);
+                        }} 
+                      />
+                    </label>
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="— or paste photo link URL —" 
+                    value={studentForm.photo} 
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, photo: e.target.value }))} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                  />
+                </div>
+              </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
                 {studentEditId ? 'Update Student Profile' : 'Enroll Student'}
               </button>

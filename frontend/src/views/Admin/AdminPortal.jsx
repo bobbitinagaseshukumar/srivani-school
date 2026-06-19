@@ -57,7 +57,8 @@ export default function AdminPortal() {
   const [enrollForm, setEnrollForm] = useState({
     name: '', registerNo: '', class: 'Class 10', section: 'A', password: '',
     phone: '', email: '', address: '',
-    parentName: '', parentPhone: '', parentEmail: ''
+    parentName: '', parentPhone: '', parentEmail: '',
+    photo: ''
   });
 
   // Facility form state
@@ -187,7 +188,7 @@ export default function AdminPortal() {
       parentName: enrollForm.parentName,
       parentPhone: enrollForm.parentPhone,
       emergencyContact: enrollForm.parentPhone,
-      photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      photo: enrollForm.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
       password: enrollForm.password
     });
     if (!studentResult.success) {
@@ -206,7 +207,8 @@ export default function AdminPortal() {
     setEnrollForm({
       name: '', registerNo: '', class: 'Class 10', section: 'A', password: '',
       phone: '', email: '', address: '',
-      parentName: '', parentPhone: '', parentEmail: ''
+      parentName: '', parentPhone: '', parentEmail: '',
+      photo: ''
     });
     setShowEnrollStudent(false);
     alert('Student enrolled and parent portal account created successfully!');
@@ -391,6 +393,45 @@ export default function AdminPortal() {
                 <input type="text" placeholder="Mobile" value={enrollForm.phone} onChange={(e) => setEnrollForm(prev => ({ ...prev, phone: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
                 <input type="email" placeholder="Email" value={enrollForm.email} onChange={(e) => setEnrollForm(prev => ({ ...prev, email: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
                 <input type="text" placeholder="Address" value={enrollForm.address} onChange={(e) => setEnrollForm(prev => ({ ...prev, address: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Student Profile Photo</label>
+                <div className="grid sm:grid-cols-2 gap-4 items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full border bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center overflow-hidden shrink-0">
+                      {enrollForm.photo ? (
+                        <img src={enrollForm.photo} alt="Student Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={20} className="text-slate-400" />
+                      )}
+                    </div>
+                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800 text-[11px] font-bold text-slate-650 dark:text-slate-300 transition-all">
+                      Choose Photo File
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setEnrollForm(prev => ({ ...prev, photo: ev.target.result }));
+                          };
+                          reader.readAsDataURL(file);
+                        }} 
+                      />
+                    </label>
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="— or paste photo link URL —" 
+                    value={enrollForm.photo} 
+                    onChange={(e) => setEnrollForm(prev => ({ ...prev, photo: e.target.value }))} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                  />
+                </div>
               </div>
 
               <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 pt-2">Parent Information</h3>
