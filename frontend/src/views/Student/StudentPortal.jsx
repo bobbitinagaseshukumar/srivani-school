@@ -170,7 +170,7 @@ export default function StudentPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 min-w-0 space-y-6">
         
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (

@@ -780,7 +780,7 @@ export default function SuperAdminPortal() {
                 <span className="font-bold text-xs text-amber-800 dark:text-amber-400 uppercase tracking-wider">⏳ Pending Applications (Highlighted)</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
+                <table className="w-full min-w-[750px] text-xs text-left">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                       <th className="p-4">Student Name</th>
@@ -834,7 +834,7 @@ export default function SuperAdminPortal() {
             <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">📋 All Admission Applications Records</h4>
             <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
+                <table className="w-full min-w-[750px] text-xs text-left">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                       <th className="p-4">Student Name</th>
@@ -990,7 +990,7 @@ export default function SuperAdminPortal() {
 
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[750px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Admin name</th>
@@ -1144,7 +1144,7 @@ export default function SuperAdminPortal() {
 
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[750px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Teacher Name</th>
@@ -1392,7 +1392,7 @@ export default function SuperAdminPortal() {
           {/* Student list */}
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[850px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Name</th>
@@ -1539,7 +1539,7 @@ export default function SuperAdminPortal() {
 
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[750px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Parent Name</th>
@@ -2077,7 +2077,7 @@ export default function SuperAdminPortal() {
             </div>
 
             {/* Schedule Matrix Grid */}
-            <div className="md:col-span-7">
+            <div className="md:col-span-7 min-w-0">
               <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden text-left">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-850 flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
                   <div>
@@ -2242,13 +2242,13 @@ export default function SuperAdminPortal() {
             </div>
 
             {/* Fee List */}
-            <div className="md:col-span-7">
+            <div className="md:col-span-7 min-w-0">
               <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-850 overflow-hidden text-left">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40">
                   <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-400">Tuition schedule database</h4>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
+                  <table className="w-full min-w-[700px] text-xs text-left">
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-450 font-bold uppercase tracking-wider text-[9px]">
                         <th className="p-4">Class / Grade</th>
@@ -2375,7 +2375,7 @@ export default function SuperAdminPortal() {
 
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden text-left">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[600px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Bulletin Title</th>
@@ -2835,7 +2835,7 @@ export default function SuperAdminPortal() {
           <h3 className="font-extrabold text-lg font-montserrat">Global System Audit Logs</h3>
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+              <table className="w-full min-w-[650px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">User Initiator</th>
@@ -3890,7 +3890,7 @@ function AcademicsManagerPanel({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[600px] text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500">
                     <th className="py-2.5">Grade</th>

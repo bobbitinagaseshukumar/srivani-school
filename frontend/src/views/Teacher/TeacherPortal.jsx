@@ -276,7 +276,7 @@ export default function TeacherPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 min-w-0 space-y-6">
         
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (
@@ -396,7 +396,7 @@ export default function TeacherPortal() {
               <div className="space-y-4">
                 <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-left">
+                    <table className="w-full min-w-[500px] text-xs text-left">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
                           <th className="p-4">Student Name</th>
@@ -505,7 +505,7 @@ export default function TeacherPortal() {
               <div className="space-y-4">
                 <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-left">
+                    <table className="w-full min-w-[500px] text-xs text-left">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
                           <th className="p-4">Student Name</th>

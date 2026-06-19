@@ -318,7 +318,7 @@ export default function App() {
       </header>
 
       {/* Main Core View Area */}
-      <main className={isPortalOrLogin ? 'flex-1' : 'flex-1 pb-24'}>
+      <main className={isPortalOrLogin ? 'flex-1 min-w-0' : 'flex-1 min-w-0 pb-24'}>
         {renderContent()}
       </main>
 
