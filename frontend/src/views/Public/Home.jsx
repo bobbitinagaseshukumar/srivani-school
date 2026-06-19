@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { Award, BookOpen, GraduationCap, Users, ShieldAlert, ChevronRight, MessageSquare, ArrowUpRight, Compass, Sparkles, Megaphone, Bell, Info } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
@@ -8,6 +8,14 @@ export default function Home({ onNavigate }) {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const activeTestimonials = (testimonials || []).filter(t => t.active);
   const banner = admissionBanner || { active: true, year: '2026–2027', headline: 'ADMISSIONS OPEN FOR', subtitle: 'Register Online Today.', buttonLabel: 'Apply Now' };
+
+  useEffect(() => {
+    if (activeTestimonials.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentTestimonial(prev => (prev + 1) % activeTestimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeTestimonials.length]);
 
   const iconMap = { '🎓': Users, '👨🏫': GraduationCap, '🏫': BookOpen, '🏆': Award };
   const stats = (homepageStats || []).map((s, idx) => ({
@@ -27,12 +35,32 @@ export default function Home({ onNavigate }) {
     <div className="min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Admission Open Banner — controlled by Super Admin */}
       {banner.active && (
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-center py-2.5 px-4 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2">
-          <Sparkles size={14} className="shrink-0" />
-          <span className="truncate">{banner.headline} {banner.year}! {banner.subtitle}</span>
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 text-xs sm:text-sm font-semibold flex items-center justify-between gap-4 overflow-hidden relative">
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(100%); }
+              100% { transform: translateX(-100%); }
+            }
+            .admission-marquee {
+              display: inline-block;
+              white-space: nowrap;
+              animation: marquee 25s linear infinite;
+            }
+            .admission-marquee:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+          <div className="flex-1 overflow-hidden relative flex items-center">
+            <div className="admission-marquee flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('admissions')}>
+              <Sparkles size={14} className="inline shrink-0 text-amber-300" />
+              <span>✨ {banner.headline} {banner.year}! {banner.subtitle} — Apply online for the academic session. ✨</span>
+              <Sparkles size={14} className="inline shrink-0 text-amber-300" />
+              <span className="ml-8">✨ {banner.headline} {banner.year}! {banner.subtitle} — Register today to secure your seat. ✨</span>
+            </div>
+          </div>
           <button
             onClick={() => onNavigate('admissions')}
-            className="ml-2 shrink-0 bg-white text-indigo-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-100 transition-all shadow-md"
+            className="shrink-0 bg-white text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-slate-100 transition-all shadow-md z-10 hover:scale-105"
           >
             {banner.buttonLabel}
           </button>

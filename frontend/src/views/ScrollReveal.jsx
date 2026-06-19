@@ -13,12 +13,13 @@ export default function ScrollReveal({ children, className = "" }) {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.unobserve(entry.target);
+        } else {
+          setIsVisible(false);
         }
       },
       { 
         threshold: 0.1, 
-        rootMargin: '0px 0px -60px 0px' // Triggers slightly before element enters viewport
+        rootMargin: '0px 0px -40px 0px' 
       }
     );
 

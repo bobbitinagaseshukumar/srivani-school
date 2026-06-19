@@ -353,16 +353,16 @@ export const AppProvider = ({ children }) => {
 
   const [timetables, setTimetables] = useState(() => {
     return readStoredValue('school_timetables', [
-      { class: 'Class 10', day: 'Monday', slots: ['PHYSICS (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'ENGLISH (01:00 PM)'] },
-      { class: 'Class 10', day: 'Tuesday', slots: ['GENERALKNOWLEDGE (09:30 AM)', 'PHYSICS (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
-      { class: 'Class 10', day: 'Wednesday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
-      { class: 'Class 10', day: 'Thursday', slots: ['PHYSICS (09:30 AM)', 'GENERALKNOWLEDGE (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
-      { class: 'Class 10', day: 'Friday', slots: ['ENGLISH (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'GENERALKNOWLEDGE (01:00 PM)'] },
-      { class: 'Class 9', day: 'Monday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
-      { class: 'Class 9', day: 'Tuesday', slots: ['PHYSICS (09:30 AM)', 'GENERALKNOWLEDGE (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
-      { class: 'Class 9', day: 'Wednesday', slots: ['GENERALKNOWLEDGE (09:30 AM)', 'PHYSICS (10:30 AM)', 'MATHEMATICS (01:00 PM)'] },
-      { class: 'Class 9', day: 'Thursday', slots: ['MATHEMATICS (09:30 AM)', 'ENGLISH (10:30 AM)', 'PHYSICS (01:00 PM)'] },
-      { class: 'Class 9', day: 'Friday', slots: ['ENGLISH (09:30 AM)', 'MATHEMATICS (10:30 AM)', 'GENERALKNOWLEDGE (01:00 PM)'] }
+      { class: 'Class 10', day: 'Monday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'ENGLISH (11:30 AM - 12:15 PM)'] },
+      { class: 'Class 10', day: 'Tuesday', slots: ['GENERALKNOWLEDGE (09:30 AM - 10:15 AM)', 'PHYSICS (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 10', day: 'Wednesday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 10', day: 'Thursday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'GENERALKNOWLEDGE (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 10', day: 'Friday', slots: ['ENGLISH (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'GENERALKNOWLEDGE (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 9', day: 'Monday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 9', day: 'Tuesday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'GENERALKNOWLEDGE (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 9', day: 'Wednesday', slots: ['GENERALKNOWLEDGE (09:30 AM - 10:15 AM)', 'PHYSICS (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 9', day: 'Thursday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
+      { class: 'Class 9', day: 'Friday', slots: ['ENGLISH (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'GENERALKNOWLEDGE (01:00 PM - 01:45 PM)'] }
     ]);
   });
 

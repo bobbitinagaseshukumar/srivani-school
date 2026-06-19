@@ -90,19 +90,19 @@ html, body {
 }
 .reveal-even-hidden {
   opacity: 0;
-  transform: perspective(1000px) translateY(45px) scale(0.96) rotateX(-12deg);
+  transform: perspective(1200px) translateY(50px) rotateY(-15deg) rotateX(8deg) scale(0.93);
 }
 .reveal-even-visible {
   opacity: 1;
-  transform: perspective(1000px) translateY(0px) scale(1) rotateX(0deg);
+  transform: perspective(1200px) translateY(0px) rotateY(0deg) rotateX(0deg) scale(1);
 }
 .reveal-odd-hidden {
   opacity: 0;
-  transform: perspective(1000px) translateY(45px) scale(0.96) rotateX(-12deg);
+  transform: perspective(1200px) translateY(50px) rotateY(15deg) rotateX(8deg) scale(0.93);
 }
 .reveal-odd-visible {
   opacity: 1;
-  transform: perspective(1000px) translateY(0px) scale(1) rotateX(0deg);
+  transform: perspective(1200px) translateY(0px) rotateY(0deg) rotateX(0deg) scale(1);
 }
 
 @media (max-width: 767px) {

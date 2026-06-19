@@ -13,7 +13,9 @@ const presetTimings = [
   '11:30 AM - 12:15 PM',
   '01:00 PM - 01:45 PM',
   '02:00 PM - 02:45 PM',
-  '03:00 PM - 03:45 PM'
+  '03:00 PM - 03:45 PM',
+  '03:45 PM - 04:30 PM',
+  '04:30 PM - 05:15 PM'
 ];
 
 const parseSlot = (slot) => {
