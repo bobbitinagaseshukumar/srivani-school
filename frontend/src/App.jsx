@@ -30,6 +30,11 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
@@ -121,6 +126,9 @@ export default function App() {
   };
 
   const renderContent = () => {
+    if (!mounted) {
+      return <Home onNavigate={setCurrentTab} />;
+    }
     // If user explicitly requests 'portal' tab, route them appropriately
     if (currentTab === 'portal' && currentUser.role !== 'Guest') {
       switch (currentUser.role) {
@@ -198,7 +206,7 @@ export default function App() {
           {/* Utilities Panel */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Notifications Alert Dropdown */}
-            {currentUser.role !== 'Guest' && (
+            {mounted && currentUser.role !== 'Guest' && (
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
@@ -240,7 +248,7 @@ export default function App() {
             )}
 
             {/* Portal Action Button */}
-            {currentUser.role === 'Guest' ? (
+            {!mounted || currentUser.role === 'Guest' ? (
               <button
                 onClick={() => setCurrentTab('login')}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs p-2 sm:px-4 sm:py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
@@ -289,7 +297,7 @@ export default function App() {
             ))}
             
             <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
-              {currentUser.role === 'Guest' ? (
+              {!mounted || currentUser.role === 'Guest' ? (
                 <button
                   onClick={() => { setCurrentTab('login'); setMobileMenuOpen(false); }}
                   className="w-full text-left px-4 py-2.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 font-bold flex items-center gap-1.5"
