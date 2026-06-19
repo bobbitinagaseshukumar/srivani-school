@@ -24,8 +24,10 @@ export default function AdminPortal() {
 
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [studentSearch, setStudentSearch] = useState('');
+  const [studentClassFilter, setStudentClassFilter] = useState('All');
   const [teacherSearch, setTeacherSearch] = useState('');
   const [parentSearch, setParentSearch] = useState('');
+  const [parentClassFilter, setParentClassFilter] = useState('All');
 
   // Circular form
   const [showAddCircular, setShowAddCircular] = useState(false);
@@ -417,16 +419,28 @@ export default function AdminPortal() {
               <p className="text-xs text-slate-400 font-light mt-1">Authorized database view. Student account creation is restricted to Super Admin only.</p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input 
-                type="text" 
-                placeholder="Search students by name or register no..."
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              />
+            {/* Search & Class Filter */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="relative max-w-sm w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  type="text" 
+                  placeholder="Search students by name or register no..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <select
+                value={studentClassFilter}
+                onChange={(e) => setStudentClassFilter(e.target.value)}
+                className="px-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none font-bold"
+              >
+                <option value="All">All Classes</option>
+                {['Playclass', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
 
             {/* Student Table */}
@@ -446,7 +460,11 @@ export default function AdminPortal() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-150/40 dark:divide-slate-850 font-light">
-                    {students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.registerNo.toLowerCase().includes(studentSearch.toLowerCase())).map((stud) => (
+                    {students.filter(s => {
+                      const matchesSearch = s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.registerNo.toLowerCase().includes(studentSearch.toLowerCase());
+                      const matchesClass = studentClassFilter === 'All' ? true : s.class === studentClassFilter;
+                      return matchesSearch && matchesClass;
+                    }).map((stud) => (
                       <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                         <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <img src={stud.photo} alt={stud.name} className="w-7 h-7 object-cover rounded-full border shadow-sm" />
@@ -596,15 +614,28 @@ export default function AdminPortal() {
               <p className="text-xs text-slate-400 font-light mt-1">Guardian relationship indexes. Parent account creation is restricted to Super Admin only.</p>
             </div>
 
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input 
-                type="text" 
-                placeholder="Search parents by name..."
-                value={parentSearch}
-                onChange={(e) => setParentSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              />
+            {/* Search & Class Filter */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="relative max-w-sm w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  type="text" 
+                  placeholder="Search parents by name..."
+                  value={parentSearch}
+                  onChange={(e) => setParentSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <select
+                value={parentClassFilter}
+                onChange={(e) => setParentClassFilter(e.target.value)}
+                className="px-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none font-bold"
+              >
+                <option value="All">All Classes</option>
+                {['Playclass', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
 
             <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
@@ -619,7 +650,14 @@ export default function AdminPortal() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-150/40 dark:divide-slate-850 font-light">
-                    {parents.filter(p => p.name.toLowerCase().includes(parentSearch.toLowerCase())).map((par) => (
+                    {parents.filter(p => {
+                      const matchesSearch = p.name.toLowerCase().includes(parentSearch.toLowerCase());
+                      const matchesClass = parentClassFilter === 'All' ? true : (p.childrenIds || []).some(cId => {
+                        const kid = students.find(s => s.id === cId);
+                        return kid && kid.class === parentClassFilter;
+                      });
+                      return matchesSearch && matchesClass;
+                    }).map((par) => (
                       <tr key={par.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                         <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
                           {par.name}

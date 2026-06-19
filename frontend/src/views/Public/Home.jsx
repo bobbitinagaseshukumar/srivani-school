@@ -38,24 +38,29 @@ export default function Home({ onNavigate }) {
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 text-xs sm:text-sm font-semibold flex items-center justify-between gap-4 overflow-hidden relative">
           <style>{`
             @keyframes marquee {
-              0% { transform: translateX(100%); }
-              100% { transform: translateX(-100%); }
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
             }
             .admission-marquee {
-              display: inline-block;
+              display: flex;
               white-space: nowrap;
-              animation: marquee 25s linear infinite;
+              width: max-content;
+              animation: marquee 50s linear infinite;
             }
             .admission-marquee:hover {
               animation-play-state: paused;
             }
           `}</style>
           <div className="flex-1 overflow-hidden relative flex items-center">
-            <div className="admission-marquee flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('admissions')}>
-              <Sparkles size={14} className="inline shrink-0 text-amber-300" />
-              <span>✨ {banner.headline} {banner.year}! {banner.subtitle} — Apply online for the academic session. ✨</span>
-              <Sparkles size={14} className="inline shrink-0 text-amber-300" />
-              <span className="ml-8">✨ {banner.headline} {banner.year}! {banner.subtitle} — Register today to secure your seat. ✨</span>
+            <div className="admission-marquee flex cursor-pointer" onClick={() => onNavigate('admissions')}>
+              <div className="flex items-center gap-2 pr-32 shrink-0">
+                <Sparkles size={14} className="inline shrink-0 text-amber-300" />
+                <span>{banner.headline} {banner.year}! {banner.subtitle} — Register online today to secure your seat.</span>
+              </div>
+              <div className="flex items-center gap-2 pr-32 shrink-0">
+                <Sparkles size={14} className="inline shrink-0 text-amber-300" />
+                <span>{banner.headline} {banner.year}! {banner.subtitle} — Register online today to secure your seat.</span>
+              </div>
             </div>
           </div>
           <button

@@ -146,6 +146,7 @@ export default function SuperAdminPortal() {
   // Admissions tab states
   const [whatsappToast, setWhatsappToast] = useState(null);
   const [newDocName, setNewDocName] = useState('');
+  const [showPendingAdmissions, setShowPendingAdmissions] = useState(false);
 
   // Facilities tab states
   const [showFacilityForm, setShowFacilityForm] = useState(false);
@@ -185,6 +186,7 @@ export default function SuperAdminPortal() {
   const [parentEditId, setParentEditId] = useState(null);
   const [parentForm, setParentForm] = useState({ name: '', phone: '', email: '', password: '', childrenIds: [] });
   const [parentSearch, setParentSearch] = useState('');
+  const [parentClassFilter, setParentClassFilter] = useState('All');
 
   // Timetables states
   const [timetableClass, setTimetableClass] = useState('Class 10');
@@ -586,6 +588,9 @@ export default function SuperAdminPortal() {
             {tab}{tab === 'Enquiries' && enquiries.filter(e => e.status === 'New').length > 0 && (
               <span className="ml-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">{enquiries.filter(e => e.status === 'New').length}</span>
             )}
+            {tab === 'Admissions' && admissions.filter(a => a.status === 'Pending').length > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">{admissions.filter(a => a.status === 'Pending').length}</span>
+            )}
           </button>
         ))}
       </div>
@@ -691,63 +696,145 @@ export default function SuperAdminPortal() {
             </div>
           )}
 
-          {/* Admissions Table */}
-          <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                    <th className="p-4">Student Name</th>
-                    <th className="p-4">Grade Applied</th>
-                    <th className="p-4">Parent Name</th>
-                    <th className="p-4">Phone</th>
-                    <th className="p-4">WhatsApp</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4">Date</th>
-                    <th className="p-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
-                  {(admissions || []).map((adm) => (
-                    <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                      <td className="p-4 font-bold text-slate-900 dark:text-white">{adm.studentName}</td>
-                      <td className="p-4">{adm.gradeApplied}</td>
-                      <td className="p-4">{adm.parentName}</td>
-                      <td className="p-4">{adm.phone}</td>
-                      <td className="p-4">{adm.whatsapp || adm.phone}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
-                          adm.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
-                          adm.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
-                          'bg-amber-500/10 text-amber-600'
-                        }`}>{adm.status}</span>
-                      </td>
-                      <td className="p-4 text-slate-400 font-mono text-[10px]">{adm.date}</td>
-                      <td className="p-4 text-right space-x-2">
-                        {adm.status === 'Pending' && (
-                          <>
-                            <button
-                              onClick={() => {
-                                approveAdmission(adm.id);
-                                setWhatsappToast(adm.parentName);
-                                setTimeout(() => setWhatsappToast(null), 3000);
-                              }}
-                              className="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold"
-                            >✓ Approve</button>
-                            <button
-                              onClick={() => rejectAdmission(adm.id)}
-                              className="px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold"
-                            >✗ Reject</button>
-                          </>
-                        )}
-                      </td>
+          {/* Collapsible Pending Applications Alert Banner */}
+          {admissions.filter(a => a.status === 'Pending').length > 0 && (
+            <div 
+              onClick={() => setShowPendingAdmissions(!showPendingAdmissions)}
+              className="cursor-pointer bg-gradient-to-r from-amber-500/20 to-orange-500/20 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-500/30 rounded-2xl p-4 flex justify-between items-center transition-all hover:scale-[1.01] duration-300 shadow-md animate-pulse"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <AlertCircle size={20} />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-amber-800 dark:text-amber-300">New Admission Applications Submitted!</h4>
+                  <p className="text-xs text-amber-700/80 dark:text-amber-400/80 font-light">
+                    You have <span className="font-bold">{admissions.filter(a => a.status === 'Pending').length}</span> pending admission applications. Click to expand and review.
+                  </p>
+                </div>
+              </div>
+              <button className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
+                {showPendingAdmissions ? 'Hide Applications' : 'View Applications'}
+              </button>
+            </div>
+          )}
+
+          {/* Pending Admissions Table - Collapsed by default, expanded when clicked */}
+          {showPendingAdmissions && admissions.filter(a => a.status === 'Pending').length > 0 && (
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden border-l-4 border-l-amber-500">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-amber-500/5 flex justify-between items-center">
+                <span className="font-bold text-xs text-amber-800 dark:text-amber-400 uppercase tracking-wider">⏳ Pending Applications (Highlighted)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="p-4">Student Name</th>
+                      <th className="p-4">Grade Applied</th>
+                      <th className="p-4">Parent Name</th>
+                      <th className="p-4">Phone</th>
+                      <th className="p-4">WhatsApp</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                  {(!admissions || admissions.length === 0) && (
-                    <tr><td colSpan={8} className="p-8 text-center text-slate-400 italic">No admission applications yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-150/40 dark:divide-slate-850 font-light">
+                    {admissions.filter(a => a.status === 'Pending').map((adm) => (
+                      <tr key={adm.id} className="bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{adm.studentName}</td>
+                        <td className="p-4">{adm.gradeApplied}</td>
+                        <td className="p-4">{adm.parentName}</td>
+                        <td className="p-4">{adm.phone}</td>
+                        <td className="p-4">{adm.whatsapp || adm.phone}</td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                            {adm.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-slate-400 font-mono text-[10px]">{adm.date}</td>
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              approveAdmission(adm.id);
+                              setWhatsappToast(adm.parentName);
+                              setTimeout(() => setWhatsappToast(null), 3000);
+                            }}
+                            className="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold"
+                          >✓ Approve</button>
+                          <button
+                            onClick={() => rejectAdmission(adm.id)}
+                            className="px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold"
+                          >✗ Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Admissions Table (Historical / All records) */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">📋 All Admission Applications Records</h4>
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="p-4">Student Name</th>
+                      <th className="p-4">Grade Applied</th>
+                      <th className="p-4">Parent Name</th>
+                      <th className="p-4">Phone</th>
+                      <th className="p-4">WhatsApp</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                    {(admissions || []).map((adm) => (
+                      <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{adm.studentName}</td>
+                        <td className="p-4">{adm.gradeApplied}</td>
+                        <td className="p-4">{adm.parentName}</td>
+                        <td className="p-4">{adm.phone}</td>
+                        <td className="p-4">{adm.whatsapp || adm.phone}</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                            adm.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
+                            adm.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
+                            'bg-amber-500/10 text-amber-600'
+                          }`}>{adm.status}</span>
+                        </td>
+                        <td className="p-4 text-slate-400 font-mono text-[10px]">{adm.date}</td>
+                        <td className="p-4 text-right space-x-2">
+                          {adm.status === 'Pending' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  approveAdmission(adm.id);
+                                  setWhatsappToast(adm.parentName);
+                                  setTimeout(() => setWhatsappToast(null), 3000);
+                                }}
+                                className="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold"
+                              >✓ Approve</button>
+                              <button
+                                onClick={() => rejectAdmission(adm.id)}
+                                className="px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold"
+                              >✗ Reject</button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {(!admissions || admissions.length === 0) && (
+                      <tr><td colSpan={8} className="p-8 text-center text-slate-400 italic">No admission applications yet.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -1342,11 +1429,21 @@ export default function SuperAdminPortal() {
             </form>
           )}
 
-          <input 
-            type="text" placeholder="Search Parent accounts by name..." value={parentSearch}
-            onChange={(e) => setParentSearch(e.target.value)}
-            className="px-4 py-2 max-w-xs border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          />
+          <div className="flex flex-wrap gap-3 items-center">
+            <input 
+              type="text" placeholder="Search Parent accounts by name..." value={parentSearch}
+              onChange={(e) => setParentSearch(e.target.value)}
+              className="px-4 py-2 max-w-xs border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+            <select
+              value={parentClassFilter}
+              onChange={(e) => setParentClassFilter(e.target.value)}
+              className="px-4 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none font-bold"
+            >
+              <option value="All">All Classes</option>
+              {classesList.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
 
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
@@ -1362,7 +1459,14 @@ export default function SuperAdminPortal() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
-                  {parents.filter(p => p.name.toLowerCase().includes(parentSearch.toLowerCase())).map((par) => (
+                  {parents.filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(parentSearch.toLowerCase());
+                    const matchesClass = parentClassFilter === 'All' ? true : (p.childrenIds || []).some(cId => {
+                      const kid = students.find(s => s.id === cId);
+                      return kid && kid.class === parentClassFilter;
+                    });
+                    return matchesSearch && matchesClass;
+                  }).map((par) => (
                     <tr key={par.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                         <User size={14} className="text-purple-500" /> {par.name}
