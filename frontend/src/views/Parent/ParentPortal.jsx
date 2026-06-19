@@ -148,7 +148,7 @@ export default function ParentPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 min-w-0 space-y-6">
         
         {/* Child Overview Tab */}
         {activeTab === 'Dashboard' && (

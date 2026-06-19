@@ -15,7 +15,7 @@ export default function AdminPortal() {
     exams, createExam, deleteExam,
     classes, setClasses,
     sections, setSections,
-    subjects, setSubjects,
+    subjects, addSubject,
     supportTickets, replySupportTicket,
     logoutUser,
     facilities, addFacility, editFacility, deleteFacility,
@@ -42,7 +42,7 @@ export default function AdminPortal() {
 
   // Exam creator state
   const [showAddExam, setShowAddExam] = useState(false);
-  const [examForm, setExamForm] = useState({ name: '', examType: 'Unit Test', class: 'Class 10', subject: 'PHYSICS', date: '' });
+  const [examForm, setExamForm] = useState({ name: '', examType: 'Unit Test', class: 'Class 10', section: 'All', subject: 'PHYSICS', date: '' });
 
   // Reports state
   const [reportType, setReportType] = useState('Attendance');
@@ -105,12 +105,13 @@ export default function AdminPortal() {
   const handleAddSubject = (e) => {
     e.preventDefault();
     if (!newSubjectVal.trim()) return;
-    const cleanSub = newSubjectVal.trim().toUpperCase();
-    if (subjects.includes(cleanSub)) {
+    const cleanSub = newSubjectVal.trim();
+    const subCode = cleanSub.toUpperCase().replace(/\s+/g, '');
+    if ((subjects || []).some(s => s.code === subCode || s.name.toLowerCase() === cleanSub.toLowerCase())) {
       alert("Subject already exists.");
       return;
     }
-    setSubjects([...subjects, cleanSub]);
+    addSubject({ name: cleanSub, code: subCode, department: 'General' });
     setNewSubjectVal('');
     alert("New Subject added successfully.");
   };
@@ -122,7 +123,7 @@ export default function AdminPortal() {
       return;
     }
     createExam(examForm);
-    setExamForm({ name: '', examType: 'Unit Test', class: 'Class 10', subject: 'PHYSICS', date: '' });
+    setExamForm({ name: '', examType: 'Unit Test', class: 'Class 10', section: 'All', subject: 'PHYSICS', date: '' });
     setShowAddExam(false);
     alert("Exam scheduled and published to student desks.");
   };
@@ -815,9 +816,9 @@ export default function AdminPortal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Academic Curriculum:</label>
               <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 border rounded-xl max-h-60 overflow-y-auto">
                 {subjects.map(sub => (
-                  <div key={sub} className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border text-xs font-bold flex items-center justify-between shadow-sm">
-                    <span>{sub}</span>
-                    <span className="text-[8px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded">Core Subject</span>
+                  <div key={sub.id || sub.code} className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border text-xs font-bold flex items-center justify-between shadow-sm">
+                    <span>{sub.name} ({sub.code})</span>
+                    <span className="text-[8px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded">{sub.department || 'General'}</span>
                   </div>
                 ))}
               </div>
@@ -860,7 +861,7 @@ export default function AdminPortal() {
                     <option value="Annual">Annual</option>
                   </select>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <select
                     value={examForm.class}
                     onChange={(e) => setExamForm(prev => ({ ...prev, class: e.target.value }))}
@@ -869,11 +870,19 @@ export default function AdminPortal() {
                     {classes.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                   <select
+                    value={examForm.section}
+                    onChange={(e) => setExamForm(prev => ({ ...prev, section: e.target.value }))}
+                    className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="All">All Sections</option>
+                    {sections.map(sec => <option key={sec} value={sec}>Section {sec}</option>)}
+                  </select>
+                  <select
                     value={examForm.subject}
                     onChange={(e) => setExamForm(prev => ({ ...prev, subject: e.target.value }))}
                     className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                   >
-                    {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                    {subjects.map(s => <option key={s.id || s.code} value={s.code}>{s.name}</option>)}
                   </select>
                   <input 
                     type="date" required
@@ -895,7 +904,7 @@ export default function AdminPortal() {
                     <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                       <th className="p-4">Exam Name</th>
                       <th className="p-4">Exam Type</th>
-                      <th className="p-4">Target Class</th>
+                      <th className="p-4">Target Class / Section</th>
                       <th className="p-4">Subject</th>
                       <th className="p-4">Exam Date</th>
                       <th className="p-4 text-right">Action</th>
@@ -906,7 +915,7 @@ export default function AdminPortal() {
                       <tr key={ex.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                         <td className="p-4 font-bold text-slate-900 dark:text-white">{ex.name}</td>
                         <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">{ex.examType}</td>
-                        <td className="p-4 font-bold">{ex.class}</td>
+                        <td className="p-4 font-bold">{ex.class} {ex.section !== 'All' ? `(Sec ${ex.section})` : '(All)'}</td>
                         <td className="p-4 font-semibold text-emerald-500">{ex.subject}</td>
                         <td className="p-4 font-mono font-bold text-slate-500">{ex.date}</td>
                         <td className="p-4 text-right">

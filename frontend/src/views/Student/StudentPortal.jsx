@@ -70,7 +70,7 @@ const getTeacherForSubject = (subjectName, teachersList) => {
 };
 
 export default function StudentPortal() {
-  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints } = useContext(AppContext);
+  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints, exams } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [complaintSubject, setComplaintSubject] = useState('');
   const [complaintDescription, setComplaintDescription] = useState('');
@@ -97,6 +97,11 @@ export default function StudentPortal() {
 
   // Student grades
   const studentMarks = marks.filter(m => m.studentId === studentObj.id);
+
+  // Filter exams assigned to student's class and section
+  const studentExams = (exams || []).filter(ex => 
+    ex.class === studentObj.class && (ex.section === 'All' || ex.section === studentObj.section)
+  );
 
   // Dynamic Timetable matching class from Super Admin
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -212,6 +217,45 @@ export default function StudentPortal() {
                     <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-light">{notice.content}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Upcoming Examinations Schedule */}
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-lg border border-slate-200/50 dark:border-slate-850 space-y-3">
+              <h3 className="font-extrabold text-sm flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-montserrat">
+                <Award size={18} /> Upcoming Examination Schedule
+              </h3>
+              <div className="overflow-x-auto">
+                {studentExams.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-2">No upcoming examinations scheduled for your class/section.</p>
+                ) : (
+                  <table className="w-full text-xs text-left min-w-[500px]">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-850 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                        <th className="py-2">Exam Title</th>
+                        <th className="py-2">Type</th>
+                        <th className="py-2">Subject</th>
+                        <th className="py-2">Date</th>
+                        <th className="py-2 text-right">Target Group</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                      {studentExams.map((ex) => (
+                        <tr key={ex.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="py-3 font-bold text-slate-900 dark:text-white">{ex.name}</td>
+                          <td className="py-3 text-blue-600 dark:text-blue-400 font-semibold">{ex.examType}</td>
+                          <td className="py-3 font-semibold text-emerald-500">{getSubjectName(ex.subject)}</td>
+                          <td className="py-3 font-mono font-bold text-slate-500">{ex.date}</td>
+                          <td className="py-3 text-right">
+                            <span className="bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded text-[8px] font-bold">
+                              {ex.class} {ex.section !== 'All' ? `(Sec ${ex.section})` : '(All)'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </div>
