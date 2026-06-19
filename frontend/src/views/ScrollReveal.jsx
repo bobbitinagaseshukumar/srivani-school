@@ -37,16 +37,17 @@ export default function ScrollReveal({ children, className = "" }) {
   const isEven = revealIndex % 2 === 0;
 
   return (
-    <div
-      ref={ref}
-      className={`${className} transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] transform preserve-3d ${
-        isVisible 
-          ? (isEven ? 'reveal-even-visible' : 'reveal-odd-visible') 
-          : (isEven ? 'reveal-even-hidden' : 'reveal-odd-hidden')
-      }`}
-      style={{ backfaceVisibility: 'hidden' }}
-    >
-      {children}
+    <div ref={ref} className={className}>
+      <div
+        className={`transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] transform preserve-3d ${
+          isVisible 
+            ? (isEven ? 'reveal-even-visible' : 'reveal-odd-visible') 
+            : (isEven ? 'reveal-even-hidden' : 'reveal-odd-hidden')
+        }`}
+        style={{ backfaceVisibility: 'hidden' }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
