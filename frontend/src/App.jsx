@@ -100,6 +100,70 @@ export default function App() {
     }
   }, [currentUser.role, currentTab]);
 
+  // Synchronize routing state with browser history / URL hash
+  useEffect(() => {
+    const getTabFromHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['home', 'about', 'faculty', 'academics', 'facilities', 'gallery', 'admissions', 'contact', 'login', 'portal'];
+      return validTabs.includes(hash) ? hash : 'home';
+    };
+
+    // On mount, read initial tab from hash
+    const initialTab = getTabFromHash();
+    setCurrentTab(initialTab);
+
+    // If the hash is empty, set it to the initial tab
+    if (!window.location.hash) {
+      window.history.replaceState({ tab: initialTab }, '', `#${initialTab}`);
+    }
+
+    const handlePopState = (event) => {
+      const tab = event.state?.tab || getTabFromHash();
+      setCurrentTab(tab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Sync state changes to browser history
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    if (currentHash !== currentTab) {
+      window.history.pushState({ tab: currentTab }, '', `#${currentTab}`);
+    }
+  }, [currentTab]);
+
+  // Reset scroll position to top when transitioning between tabs or switching roles
+  useEffect(() => {
+    const handleScroll = () => {
+      window.scrollTo(0, 0);
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    };
+    
+    // Execute immediately
+    handleScroll();
+    
+    // Execute after short delays to override any asynchronous layout rendering jumps
+    const t1 = setTimeout(handleScroll, 20);
+    const t2 = setTimeout(handleScroll, 100);
+    const t3 = setTimeout(handleScroll, 250);
+    
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [currentTab, currentUser.role]);
+
+  // Redirect to home if user logs out (role becomes Guest) and they are on the portal tab
+  useEffect(() => {
+    if (currentUser.role === 'Guest' && currentTab === 'portal') {
+      setCurrentTab('home');
+    }
+  }, [currentUser.role, currentTab]);
+
   // Quick switch handler to bypass login during demonstration
   const handleQuickSwitch = (role) => {
     if (role === 'Guest') {
