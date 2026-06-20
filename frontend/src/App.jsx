@@ -31,7 +31,7 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true); // Active immediately on first render
   const [isIntroFading, setIsIntroFading] = useState(false);
   const videoRef = useRef(null);
   const introTimeoutRef = useRef(null);
@@ -42,7 +42,6 @@ export default function App() {
       introTimeoutRef.current = null;
     }
     setIsIntroFading(true);
-    sessionStorage.setItem('srivani_intro_played', 'true');
     setTimeout(() => {
       setShowIntro(false);
     }, 1000); // Smooth 1-second transition to settle back
@@ -50,12 +49,6 @@ export default function App() {
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const introPlayed = sessionStorage.getItem('srivani_intro_played');
-      if (!introPlayed) {
-        setShowIntro(true);
-      }
-    }
   }, []);
 
   // Handle video playback and autoplay unmuted fallback on showIntro
@@ -63,7 +56,7 @@ export default function App() {
     let interactionListener = null;
 
     if (showIntro && videoRef.current) {
-      // Safety fallback: auto-close splash screen after 15.5 seconds (0.5s fade + 15s video)
+      // Safety fallback: auto-close splash screen after 15.5 seconds (video duration + transition)
       introTimeoutRef.current = setTimeout(() => {
         handleCloseIntro();
       }, 15500);
@@ -75,6 +68,7 @@ export default function App() {
         try {
           video.muted = false;
           await video.play();
+          console.log("Autoplay unmuted succeeded!");
         } catch (error) {
           console.log("Autoplay unmuted blocked. Playing muted, will unmute on interaction.", error);
           
@@ -92,6 +86,8 @@ export default function App() {
           interactionListener = () => {
             if (video) {
               video.muted = false;
+              // Force play again if the browser paused it on unmute
+              video.play().catch((e) => console.log("Play failed on unmute:", e));
             }
             cleanupListeners();
           };
@@ -99,6 +95,8 @@ export default function App() {
           window.addEventListener('click', interactionListener, { passive: true });
           window.addEventListener('touchstart', interactionListener, { passive: true });
           window.addEventListener('scroll', interactionListener, { passive: true });
+          window.addEventListener('mousedown', interactionListener, { passive: true });
+          window.addEventListener('keydown', interactionListener, { passive: true });
         }
       };
 
@@ -107,6 +105,8 @@ export default function App() {
           window.removeEventListener('click', interactionListener);
           window.removeEventListener('touchstart', interactionListener);
           window.removeEventListener('scroll', interactionListener);
+          window.removeEventListener('mousedown', interactionListener);
+          window.removeEventListener('keydown', interactionListener);
           interactionListener = null;
         }
       };
