@@ -339,7 +339,8 @@ export default function App() {
           ref={containerRef}
           style={{ 
             position: 'fixed', 
-            top: 0, left: 0, right: 0, bottom: 0, 
+            top: 0, 
+            left: 0, 
             width: '100vw', 
             height: '100dvh', 
             display: 'flex', 
@@ -353,33 +354,35 @@ export default function App() {
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Dynamic Fullscreen Video - contain mode to show entire video with black bars */}
+          {/* Video - uses auto sizing with max constraints for natural letterboxing */}
           <video 
             ref={videoRef}
             style={{ 
-              width: '100%', 
-              height: '100%', 
-              objectFit: 'contain',
+              width: 'auto', 
+              height: 'auto', 
+              maxWidth: '100%',
+              maxHeight: '100%',
               display: 'block',
-              maxWidth: '100vw',
-              maxHeight: '100dvh'
+              margin: 'auto'
             }}
             className="pointer-events-none"
-            src="/srivani_school_logo.mp4?v=4"
+            src="/srivani_school_logo.mp4?v=5"
             autoPlay
             playsInline
+            webkit-playsinline=""
             muted={isMuted}
+            preload="auto"
             onEnded={handleCloseIntro}
             onError={handleCloseIntro}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-          {/* Custom Premium Cinematic Controls (Bottom of screen) */}
-          <div className="absolute bottom-12 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
-            {/* Skip Option */}
+          {/* Skip Button - fixed at bottom center */}
+          <div style={{ position: 'absolute', bottom: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
             <button
               onClick={handleCloseIntro}
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer"
+              style={{ backdropFilter: 'blur(12px)', background: 'linear-gradient(to right, #2563eb, #4f46e5)' }}
             >
               Skip ➔
             </button>

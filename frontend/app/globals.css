@@ -156,9 +156,13 @@ html, body {
   animation: mesh-shift 14s ease infinite;
 }
 
-/* Force splash intro video to always contain (never crop/cover) on all devices */
+/* Force splash intro video to letterbox naturally on all devices */
 video[src*="srivani_school_logo"] {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  max-height: 100dvh !important;
   object-fit: contain !important;
-  width: 100% !important;
-  height: 100% !important;
+  display: block !important;
 }
