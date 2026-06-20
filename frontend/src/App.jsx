@@ -29,7 +29,6 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState('home'); // home, about, faculty, academics, facilities, gallery, admissions, contact, login, portal
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showRoleSwitcher, setShowRoleSwitcher] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [showIntro, setShowIntro] = useState(true); // Active immediately on first render
   const [isIntroFading, setIsIntroFading] = useState(false);
@@ -270,30 +269,7 @@ export default function App() {
     }
   }, [currentUser.role, currentTab]);
 
-  // Quick switch handler to bypass login during demonstration
-  const handleQuickSwitch = (role) => {
-    if (role === 'Guest') {
-      logoutUser();
-      setCurrentTab('home');
-    } else {
-      let username = '';
-      if (role === 'SuperAdmin') username = 'super@srivani.edu';
-      else if (role === 'Admin') username = 'admin@srivani.edu';
-      else if (role === 'Teacher') username = 'T101';
-      else if (role === 'Student') username = 'S1001';
-      else if (role === 'Parent') username = 'P1001';
-      
-      const pass = role === 'SuperAdmin' ? 'super123' : 
-                   role === 'Admin' ? 'admin123' : 
-                   role === 'Teacher' ? 'teacher123' : 
-                   role === 'Student' ? 'student123' : 'parent123';
 
-      loginUser(username, pass, role);
-      setCurrentTab('portal');
-    }
-    setMobileMenuOpen(false);
-    setShowNotifications(false);
-  };
 
   const renderContent = () => {
     if (!mounted) {
@@ -568,57 +544,9 @@ export default function App() {
       </header>
 
       {/* Main Core View Area */}
-      <main className={isPortalOrLogin ? 'flex-1 min-w-0' : 'flex-1 min-w-0 pb-24'}>
+      <main className="flex-1 min-w-0">
         {renderContent()}
       </main>
-
-      {/* Persistent Demo Toolbar — hidden on login and portal pages */}
-      {showRoleSwitcher && !isPortalOrLogin && (
-        <div className="fixed bottom-0 sm:bottom-4 inset-x-0 sm:inset-x-4 max-w-4xl sm:mx-auto bg-slate-900/95 backdrop-blur-md text-white sm:rounded-3xl rounded-t-3xl border border-slate-700/80 shadow-2xl px-3 py-3 sm:p-4 z-50 text-xs" style={{paddingBottom: 'max(12px, env(safe-area-inset-bottom))'}}>
-          <div className="flex items-center justify-between mb-2 sm:mb-0 sm:hidden">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="font-extrabold font-montserrat text-[11px]">Quick Switch</p>
-            </div>
-            <button
-              onClick={() => setShowRoleSwitcher(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg border border-slate-700/50 text-[10px]"
-            >
-              Hide
-            </button>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <div className="text-left">
-                <p className="font-extrabold font-montserrat">Quick Switch simulator</p>
-                <p className="text-[9px] text-slate-400">Evaluate all 5 roles instantly (Bypasses logins)</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5 justify-center">
-              {[['Guest','Public Web'],['SuperAdmin','Super Admin'],['Admin','Admin'],['Teacher','Teacher'],['Student','Student'],['Parent','Parent']].map(([role, label]) => (
-                <button
-                  key={role}
-                  onClick={() => handleQuickSwitch(role)}
-                  className={`px-2.5 py-1.5 rounded-xl font-bold transition-all text-[10px] sm:text-xs ${
-                    (currentUser.role === role && !(role === 'Guest' && currentTab === 'login'))
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-800 hover:bg-slate-700'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowRoleSwitcher(false)}
-              className="hidden sm:block text-slate-400 hover:text-white p-1 rounded-lg border border-slate-700/50 shrink-0"
-            >
-              Hide Panel
-            </button>
-          </div>
-        </div>
-      )}
 
 
 

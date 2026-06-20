@@ -20,33 +20,10 @@ export default function Login({ onLoginSuccess }) {
     setIsMounted(true);
   }, []);
 
-  // Helper credentials updated to Sri Vani email domains
-  const credentialsHelper = {
-    Admin: { id: 'admin@srivani.edu', pass: 'admin123' },
-    Student: { id: 'S1001', pass: 'student123', name: 'Alice Johnson (Class 10)' },
-    Parent: { id: 'P1001', pass: 'parent123', name: 'Robert Johnson (Alice parent)' },
-    Teacher: { id: 'T101', pass: 'teacher123', name: 'Dr. David Banner (Physics Faculty)' },
-    SuperAdmin: { id: 'super@srivani.edu', pass: 'super123' }
-  };
-
-  const handleFillCredentials = () => {
-    const helper = credentialsHelper[role];
-    if (helper) {
-      setEmailOrId(helper.id);
-      setPassword(helper.pass);
-    }
-  };
-
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
-    const helper = credentialsHelper[selectedRole];
-    if (helper) {
-      setEmailOrId(helper.id);
-      setPassword(helper.pass);
-    } else {
-      setEmailOrId('');
-      setPassword('');
-    }
+    setEmailOrId('');
+    setPassword('');
     setStage('enter-credentials');
     setError('');
   };
@@ -241,51 +218,9 @@ export default function Login({ onLoginSuccess }) {
             : 'absolute top-0 left-0 opacity-0 pointer-events-none'
         }`}>
           {/* Stage 2: Login form for selected role */}
-          <div className="w-full max-w-5xl mx-auto grid lg:grid-cols-12 gap-8 items-center relative">
-            
-            {/* Credentials Helper Side Panel */}
-            <div className="lg:col-span-5 space-y-4 text-left">
-              <div className="glassmorphism p-6 rounded-3xl border border-white/50 shadow-xl space-y-4">
-                <div className="inline-flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
-                  <Sparkles size={12} /> Test Credentials Helper
-                </div>
-                <h3 className="font-extrabold text-lg font-montserrat">Autofill Guide</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed">
-                  We pre-populated verification IDs for easy review. Click below to load parameters instantly.
-                </p>
-
-                {credentialsHelper[role] ? (
-                  <div 
-                    onClick={handleFillCredentials}
-                    className="p-4 rounded-2xl bg-blue-600/10 border border-blue-500/30 cursor-pointer hover:bg-blue-600/15 transition-all space-y-2"
-                  >
-                    <p className="text-xs font-bold text-blue-600 dark:text-blue-400 flex justify-between">
-                      <span>Load {role} Credentials</span>
-                      <span className="text-[10px] font-mono">Autofill 🔑</span>
-                    </p>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-350 font-mono">
-                      ID: <strong>{credentialsHelper[role].id}</strong> <br />
-                      Password: <strong>{credentialsHelper[role].pass}</strong>
-                    </p>
-                    {credentialsHelper[role].name && (
-                      <p className="text-[9px] text-slate-400 italic">Target: {credentialsHelper[role].name}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic">No credentials loaded for role: {role}</p>
-                )}
-
-                <button
-                  onClick={() => setStage('select-role')}
-                  className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1"
-                >
-                  <ArrowLeft size={14} /> Back to Role Selection
-                </button>
-              </div>
-            </div>
-
+          <div className="w-full max-w-xl mx-auto relative">
             {/* Login Credentials Box */}
-            <div className="lg:col-span-7">
+            <div className="w-full">
               <div className="glassmorphism rounded-3xl p-6 lg:p-10 shadow-2xl border border-white/50 text-left relative overflow-hidden">
                 
                 <div className="mb-6 flex justify-between items-start">
@@ -380,14 +315,7 @@ export default function Login({ onLoginSuccess }) {
                       </div>
                     </div>
 
-                    <div className="pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={handleFillCredentials}
-                        className="text-xs text-blue-650 dark:text-blue-400 font-bold hover:underline flex items-center justify-center gap-1 py-2 rounded-xl bg-slate-100/50 dark:bg-slate-900/30 sm:bg-transparent sm:dark:bg-transparent border border-slate-200/50 dark:border-slate-850/80 sm:border-none cursor-pointer"
-                      >
-                        <RefreshCcw size={12} /> Autofill Selected Credentials
-                      </button>
+                    <div className="pt-4 flex justify-end">
                       <button
                         type="submit"
                         className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto"

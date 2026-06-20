@@ -912,7 +912,7 @@ export const AppProvider = ({ children }) => {
     let userId = '';
 
     if (role === 'SuperAdmin') {
-      if (emailOrId === 'super@srivani.edu' && password === 'super123') {
+      if (emailOrId === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
         name = 'Super Administrator';
         userId = 'SA001';
         success = true;
