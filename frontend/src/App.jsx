@@ -337,17 +337,35 @@ export default function App() {
       {showIntro && (
         <div 
           ref={containerRef}
-          style={{ height: '100dvh', width: '100vw' }}
-          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out cursor-pointer ${
+          style={{ 
+            position: 'fixed', 
+            top: 0, left: 0, right: 0, bottom: 0, 
+            width: '100vw', 
+            height: '100dvh', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            backgroundColor: '#000000',
+            zIndex: 9999,
+            overflow: 'hidden'
+          }}
+          className={`transition-opacity duration-1000 ease-in-out cursor-pointer ${
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Dynamic Fullscreen Video Object-Contain to fit all screen ratios without cropping */}
+          {/* Dynamic Fullscreen Video - contain mode to show entire video with black bars */}
           <video 
             ref={videoRef}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            className="absolute inset-0 pointer-events-none"
-            src="/srivani_school_logo.mp4?v=3"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain',
+              display: 'block',
+              maxWidth: '100vw',
+              maxHeight: '100dvh'
+            }}
+            className="pointer-events-none"
+            src="/srivani_school_logo.mp4?v=4"
             autoPlay
             playsInline
             muted={isMuted}

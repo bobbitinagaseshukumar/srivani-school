@@ -155,3 +155,10 @@ html, body {
   background-size: 400% 400%;
   animation: mesh-shift 14s ease infinite;
 }
+
+/* Force splash intro video to always contain (never crop/cover) on all devices */
+video[src*="srivani_school_logo"] {
+  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+}
