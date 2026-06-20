@@ -319,10 +319,10 @@ export default function App() {
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Dynamic Fullscreen Video Object-Cover to fill phone/laptop ratios */}
+          {/* Dynamic Fullscreen Video Object-Contain to fit all screen ratios without cropping */}
           <video 
             ref={videoRef}
-            className="w-full h-full object-cover scale-[1.01] pointer-events-none"
+            className="w-full h-full object-contain pointer-events-none"
             src="/srivani_school_logo.mp4"
             autoPlay
             playsInline
