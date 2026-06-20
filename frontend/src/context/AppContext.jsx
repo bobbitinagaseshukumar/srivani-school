@@ -513,6 +513,222 @@ export const AppProvider = ({ children }) => {
     return window.localStorage.getItem('school_theme') || 'light';
   });
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Sync state from API on load
+  useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const res = await fetch('/api/data');
+        const json = await res.json();
+        if (json.success && json.data) {
+          const data = json.data;
+          if (data.schools) setSchools(data.schools);
+          if (data.teachers) setTeachers(data.teachers);
+          if (data.students) setStudents(data.students);
+          if (data.parents) setParents(data.parents);
+          if (data.admins) setAdmins(data.admins);
+          if (data.attendance) setAttendance(data.attendance);
+          if (data.marks) setMarks(data.marks);
+          if (data.homework) setHomework(data.homework);
+          if (data.notes) setNotes(data.notes);
+          if (data.circulars) setCirculars(data.circulars);
+          if (data.liveClasses) setLiveClasses(data.liveClasses);
+          if (data.libraryBooks) setLibraryBooks(data.libraryBooks);
+          if (data.hostels) setHostels(data.hostels);
+          if (data.transportRoutes) setTransportRoutes(data.transportRoutes);
+          if (data.timetables) setTimetables(data.timetables);
+          if (data.fees) setFees(data.fees);
+          if (data.tickerItems) setTickerItems(data.tickerItems);
+          if (data.schoolInfo) setSchoolInfo(data.schoolInfo);
+          if (data.managementCommittee) setManagementCommittee(data.managementCommittee);
+          if (data.exams) setExams(data.exams);
+          if (data.classes) setClasses(data.classes);
+          if (data.sections) setSections(data.sections);
+          if (data.auditLogs) setAuditLogs(data.auditLogs);
+          if (data.supportTickets) setSupportTickets(data.supportTickets);
+          if (data.galleryItems) setGalleryItems(data.galleryItems);
+          if (data.academicCalendar) setAcademicCalendar(data.academicCalendar);
+          if (data.academicPrograms) setAcademicPrograms(data.academicPrograms);
+          if (data.testimonials) setTestimonials(data.testimonials);
+          if (data.enquiries) setEnquiries(data.enquiries);
+          if (data.subjects) setSubjects(data.subjects);
+          if (data.admissionBanner) setAdmissionBanner(data.admissionBanner);
+          if (data.admissions) setAdmissions(data.admissions);
+          if (data.facilities) setFacilities(data.facilities);
+          if (data.homepageInfra) setHomepageInfra(data.homepageInfra);
+          if (data.homepageStats) setHomepageStats(data.homepageStats);
+          if (data.gradingProcess) setGradingProcess(data.gradingProcess);
+          if (data.gradingScheme) setGradingScheme(data.gradingScheme);
+          if (data.departments) setDepartments(data.departments);
+          if (data.galleryCategories) setGalleryCategories(data.galleryCategories);
+          if (data.complaints) setComplaints(data.complaints);
+          if (data.whatsappLogs) setWhatsappLogs(data.whatsappLogs);
+          if (data.requiredDocuments) setRequiredDocuments(data.requiredDocuments);
+          if (data.leaveRequests) setLeaveRequests(data.leaveRequests);
+          if (data.starredFormFields) setStarredFormFields(data.starredFormFields);
+          console.log('✅ Loaded application state from MongoDB Atlas');
+        } else {
+          console.log('ℹ️ MongoDB Atlas state empty or first-time load. Initializing state from localStorage.');
+        }
+      } catch (err) {
+        console.error('❌ Failed to load state from MongoDB, using localStorage fallback:', err);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    fetchState();
+  }, []);
+
+  // Sync state to API (debounced)
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const syncState = async () => {
+      try {
+        const payload = {
+          schools,
+          teachers,
+          students,
+          parents,
+          admins,
+          attendance,
+          marks,
+          homework,
+          notes,
+          circulars,
+          liveClasses,
+          libraryBooks,
+          hostels,
+          transportRoutes,
+          timetables,
+          fees,
+          tickerItems,
+          schoolInfo,
+          managementCommittee,
+          exams,
+          classes,
+          sections,
+          auditLogs,
+          supportTickets,
+          galleryItems,
+          academicCalendar,
+          academicPrograms,
+          testimonials,
+          enquiries,
+          subjects,
+          admissionBanner,
+          admissions,
+          facilities,
+          homepageInfra,
+          homepageStats,
+          gradingProcess,
+          gradingScheme,
+          departments,
+          galleryCategories,
+          complaints,
+          whatsappLogs,
+          requiredDocuments,
+          leaveRequests,
+          starredFormFields
+        };
+
+        const res = await fetch('/api/data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (!json.success) {
+          console.error('❌ Failed to save state to MongoDB Atlas:', json.error);
+        }
+      } catch (err) {
+        console.error('❌ Failed to sync state to MongoDB Atlas:', err);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      syncState();
+    }, 2000); // 2 second debounce
+
+    return () => clearTimeout(timer);
+  }, [
+    isLoaded,
+    schools,
+    teachers,
+    students,
+    parents,
+    admins,
+    attendance,
+    marks,
+    homework,
+    notes,
+    circulars,
+    liveClasses,
+    libraryBooks,
+    hostels,
+    transportRoutes,
+    timetables,
+    fees,
+    tickerItems,
+    schoolInfo,
+    managementCommittee,
+    exams,
+    classes,
+    sections,
+    auditLogs,
+    supportTickets,
+    galleryItems,
+    academicCalendar,
+    academicPrograms,
+    testimonials,
+    enquiries,
+    subjects,
+    admissionBanner,
+    admissions,
+    facilities,
+    homepageInfra,
+    homepageStats,
+    gradingProcess,
+    gradingScheme,
+    departments,
+    galleryCategories,
+    complaints,
+    whatsappLogs,
+    requiredDocuments,
+    leaveRequests,
+    starredFormFields
+  ]);
+
+  // Recalculate attendance percentages on startup based on loaded attendance records
+  useEffect(() => {
+    if (students && attendance) {
+      let updated = false;
+      const newStudents = students.map(s => {
+        const studentHistory = attendance.filter(h => h.studentId === s.id);
+        if (studentHistory.length > 0) {
+          const presents = studentHistory.filter(h => h.status === 'Present' || h.status === 'Half Day').length;
+          const pct = parseFloat(((presents / studentHistory.length) * 100).toFixed(1));
+          if (s.attendancePct !== pct) {
+            updated = true;
+            return { ...s, attendancePct: pct };
+          }
+        } else {
+          if (s.attendancePct !== 0) {
+            updated = true;
+            return { ...s, attendancePct: 0 };
+          }
+        }
+        return s;
+      });
+      if (updated) {
+        setStudents(newStudents);
+      }
+    }
+  }, [attendance, isLoaded]);
+
   // Keep state synced to localStorage
   useEffect(() => {
     localStorage.setItem('school_current_user', JSON.stringify(currentUser));
@@ -1242,6 +1458,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{
+      isLoaded,
       currentUser,
       loginUser,
       logoutUser,

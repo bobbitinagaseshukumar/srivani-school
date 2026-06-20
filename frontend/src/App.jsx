@@ -25,7 +25,7 @@ import ParentPortal from './views/Parent/ParentPortal';
 import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 export default function App() {
-  const { currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead, schoolInfo } = useContext(AppContext);
+  const { isLoaded, currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead, schoolInfo } = useContext(AppContext);
   const [currentTab, setCurrentTab] = useState('home'); // home, about, faculty, academics, facilities, gallery, admissions, contact, login, portal
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -327,6 +327,27 @@ export default function App() {
 
   const unreadNotifications = notifications.filter(n => !n.read);
   const isPortalOrLogin = currentTab === 'login' || currentTab === 'portal';
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center font-sans">
+        <div className="space-y-6 text-center">
+          <div className="relative w-20 h-20 mx-auto">
+            {/* Outer spin ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+            {/* Inner pulsing circle */}
+            <div className="absolute inset-3 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 animate-pulse flex items-center justify-center">
+              <span className="text-xl">🏫</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold tracking-wider uppercase font-montserrat">SRI VANI VIDYANIKETHAN</h2>
+            <p className="text-xs text-slate-400 font-mono tracking-widest animate-pulse">Syncing database state...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between font-sans transition-colors duration-300 ${
