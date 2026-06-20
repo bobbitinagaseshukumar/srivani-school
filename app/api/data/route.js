@@ -31,7 +31,7 @@ export async function POST(req) {
     const updatedState = await AppState.findOneAndUpdate(
       { stateKey: 'main' },
       { $set: body },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     );
     
     return NextResponse.json({ success: true, data: updatedState });
