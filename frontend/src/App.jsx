@@ -22,7 +22,7 @@ import StudentPortal from './views/Student/StudentPortal';
 import ParentPortal from './views/Parent/ParentPortal';
 
 // Icons
-import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users, Play } from 'lucide-react';
+import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 export default function App() {
   const { currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead, schoolInfo } = useContext(AppContext);
@@ -33,6 +33,9 @@ export default function App() {
   const [mounted, setMounted] = useState(false);
   const [showIntro, setShowIntro] = useState(true); // Active immediately on first render
   const [isIntroFading, setIsIntroFading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [needsPlayPrompt, setNeedsPlayPrompt] = useState(false);
   const videoRef = useRef(null);
   const introTimeoutRef = useRef(null);
 
@@ -47,19 +50,50 @@ export default function App() {
     }, 1000); // Smooth 1-second transition to settle back
   };
 
+  const handleTogglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play().catch(err => console.log("Play failed", err));
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handleToggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handlePlayFromPrompt = () => {
+    setNeedsPlayPrompt(false);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+      videoRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.error("Play failed after prompt:", err);
+        handleCloseIntro();
+      });
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   // Handle video playback and autoplay unmuted fallback on showIntro
   useEffect(() => {
-    let interactionListener = null;
-
     if (showIntro && videoRef.current) {
-      // Safety fallback: auto-close splash screen after 15.5 seconds (video duration + transition)
+      // Safety fallback: auto-close splash screen after 20 seconds
       introTimeoutRef.current = setTimeout(() => {
         handleCloseIntro();
-      }, 15500);
+      }, 20000);
 
       const playVideo = async () => {
         const video = videoRef.current;
@@ -67,55 +101,18 @@ export default function App() {
 
         try {
           video.muted = false;
+          setIsMuted(false);
           await video.play();
+          setIsPlaying(true);
           console.log("Autoplay unmuted succeeded!");
         } catch (error) {
-          console.log("Autoplay unmuted blocked. Playing muted, will unmute on interaction.", error);
-          
-          // Fallback: play muted immediately so video is active from second 0
-          video.muted = true;
-          try {
-            await video.play();
-          } catch (mutePlayError) {
-            console.error("Muted play also failed, skipping intro.", mutePlayError);
-            handleCloseIntro();
-            return;
-          }
-
-          // Unmute as soon as the user touches, clicks, or scrolls anywhere on the document
-          interactionListener = () => {
-            if (video) {
-              video.muted = false;
-              // Force play again if the browser paused it on unmute
-              video.play().catch((e) => console.log("Play failed on unmute:", e));
-            }
-            cleanupListeners();
-          };
-
-          window.addEventListener('click', interactionListener, { passive: true });
-          window.addEventListener('touchstart', interactionListener, { passive: true });
-          window.addEventListener('scroll', interactionListener, { passive: true });
-          window.addEventListener('mousedown', interactionListener, { passive: true });
-          window.addEventListener('keydown', interactionListener, { passive: true });
-        }
-      };
-
-      const cleanupListeners = () => {
-        if (interactionListener) {
-          window.removeEventListener('click', interactionListener);
-          window.removeEventListener('touchstart', interactionListener);
-          window.removeEventListener('scroll', interactionListener);
-          window.removeEventListener('mousedown', interactionListener);
-          window.removeEventListener('keydown', interactionListener);
-          interactionListener = null;
+          console.log("Autoplay unmuted blocked by browser policies.", error);
+          setNeedsPlayPrompt(true);
+          setIsPlaying(false);
         }
       };
 
       playVideo();
-
-      return () => {
-        cleanupListeners();
-      };
     }
   }, [showIntro]);
 
@@ -537,7 +534,7 @@ export default function App() {
       )}
 
       {/* Cinematic Splash Screen Video Intro */}
-      {mounted && showIntro && (
+      {showIntro && (
         <div 
           className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out ${
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
@@ -549,9 +546,76 @@ export default function App() {
             className="w-full h-full object-cover scale-[1.01]"
             src="/srivani_school_logo.mp4"
             playsInline
+            muted={isMuted}
             onEnded={handleCloseIntro}
             onError={handleCloseIntro}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
           />
+
+          {/* Premium Center Play Icon Overlay (Shown if autoplay with audio is blocked by the browser) */}
+          {needsPlayPrompt && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
+              <button
+                onClick={handlePlayFromPrompt}
+                className="group relative flex flex-col items-center gap-4 cursor-pointer focus:outline-none"
+              >
+                {/* Glowing Rings */}
+                <div className="absolute w-24 h-24 bg-amber-400/30 rounded-full blur-md animate-ping duration-1000"></div>
+                <div className="absolute w-20 h-20 bg-blue-500/20 rounded-full blur-md group-hover:scale-110 transition-transform"></div>
+                
+                {/* Play Button */}
+                <div className="relative w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] border border-blue-400/30 group-hover:scale-105 transition-transform duration-300">
+                  <Play className="w-6 h-6 fill-current text-white translate-x-0.5" />
+                </div>
+                
+                {/* Text Label */}
+                <div className="text-center font-sans">
+                  <p className="text-sm font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-400 uppercase tracking-widest animate-pulse">
+                    Play Cinematic Intro
+                  </p>
+                  <p className="text-[10px] text-slate-400 tracking-wider mt-1 uppercase font-semibold">
+                    Click to start presentation with audio
+                  </p>
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* Custom Premium Cinematic Controls (Bottom of screen) */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
+            {/* Play/Pause Toggle */}
+            <button
+              onClick={handleTogglePlay}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all focus:outline-none flex items-center justify-center cursor-pointer"
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-white/20"></div>
+
+            {/* Mute/Unmute Toggle */}
+            <button
+              onClick={handleToggleMute}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all focus:outline-none flex items-center justify-center cursor-pointer"
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-white/20"></div>
+
+            {/* Skip Option */}
+            <button
+              onClick={handleCloseIntro}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer"
+            >
+              Skip ➔
+            </button>
+          </div>
         </div>
       )}
     </div>
