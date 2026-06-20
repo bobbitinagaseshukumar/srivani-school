@@ -315,15 +315,17 @@ export default function App() {
       {showIntro && (
         <div 
           onClick={handleUserInteraction}
-          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out h-[100dvh] w-screen cursor-pointer ${
+          style={{ height: '100dvh', width: '100vw' }}
+          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out cursor-pointer ${
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
           {/* Dynamic Fullscreen Video Object-Contain to fit all screen ratios without cropping */}
           <video 
             ref={videoRef}
-            className="w-full h-full object-contain pointer-events-none"
-            src="/srivani_school_logo.mp4"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            className="absolute inset-0 pointer-events-none"
+            src="/srivani_school_logo.mp4?v=2"
             autoPlay
             playsInline
             muted={isMuted}
