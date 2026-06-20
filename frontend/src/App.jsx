@@ -36,6 +36,7 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false); // Try unmuted by default
   const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef(null);
+  const containerRef = useRef(null);
   const introTimeoutRef = useRef(null);
 
   const handleCloseIntro = () => {
@@ -184,6 +185,27 @@ export default function App() {
     }
   }, [showIntro, isIntroFading]);
 
+  // Direct native DOM listener on the video container to bypass React's event delegation
+  // (Prevents iOS Safari/WebKit from rejecting play() due to losing the user gesture context)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleNativeInteraction = (e) => {
+      // Do not trigger unmute if clicking on the Skip button
+      if (e.target.closest('button')) return;
+      handleUserInteraction();
+    };
+
+    container.addEventListener('click', handleNativeInteraction);
+    container.addEventListener('touchstart', handleNativeInteraction);
+
+    return () => {
+      container.removeEventListener('click', handleNativeInteraction);
+      container.removeEventListener('touchstart', handleNativeInteraction);
+    };
+  }, [showIntro]);
+
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
     const getTabFromHash = () => {
@@ -314,7 +336,7 @@ export default function App() {
       {/* Cinematic Splash Screen Video Intro */}
       {showIntro && (
         <div 
-          onClick={handleUserInteraction}
+          ref={containerRef}
           style={{ height: '100dvh', width: '100vw' }}
           className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out cursor-pointer ${
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
@@ -325,7 +347,7 @@ export default function App() {
             ref={videoRef}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             className="absolute inset-0 pointer-events-none"
-            src="/srivani_school_logo.mp4?v=2"
+            src="/srivani_school_logo.mp4?v=3"
             autoPlay
             playsInline
             muted={isMuted}
