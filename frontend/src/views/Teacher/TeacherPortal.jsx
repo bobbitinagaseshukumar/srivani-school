@@ -62,9 +62,9 @@ const getSubjectStyle = (subject) => {
 };
 
 export default function TeacherPortal() {
-  const { teachers, students, marks, addMark, homework, addHomework, editHomework, deleteHomework,
-    notes, addNote, editNote, deleteNote, liveClasses, addLiveClass, editLiveClass, deleteLiveClass,
-    attendance, addAttendance, notifications, markNotificationRead, currentUser, logoutUser, subjects, timetables } = useContext(AppContext);
+  const { teachers, students, marks, homework, notes, liveClasses, circulars,
+    attendance, notifications, markNotificationRead, currentUser, logoutUser, subjects, timetables,
+    markAttendance, uploadMarks, createHomework, evaluateHomework, createNotes, createLiveClass, createCircular } = useContext(AppContext);
 
   // Find the logged-in teacher's profile matching currentUser.id and retrieve their assigned subject.
   const currentTeacherProfile = teachers ? teachers.find(t => t.id === currentUser.id) : null;
@@ -298,18 +298,18 @@ export default function TeacherPortal() {
             <div className="grid sm:grid-cols-3 gap-6">
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Assigned Students</h4>
-                <h3 className="text-2xl font-extrabold mt-1">{students.length} Pupils</h3>
-                <p className="text-[10px] text-blue-500 font-semibold mt-1">Class 10 (Sections A & B)</p>
+                <h3 className="text-2xl font-extrabold mt-1">{activeStudents.length} Pupils</h3>
+                <p className="text-[10px] text-blue-500 font-semibold mt-1">{selectedClass} (Section {selectedSection})</p>
               </div>
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Homeworks Tracked</h4>
-                <h3 className="text-2xl font-extrabold mt-1">{homework.length} Assignments</h3>
-                <p className="text-[10px] text-emerald-500 font-semibold mt-1">Physics & Mathematics</p>
+                <h3 className="text-2xl font-extrabold mt-1">{homework.filter(h => h.teacherId === currentUser.id).length} Assignments</h3>
+                <p className="text-[10px] text-emerald-500 font-semibold mt-1">{getSubjectName(teacherSubject)}</p>
               </div>
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Scheduled Live Sessions</h4>
-                <h3 className="text-2xl font-extrabold mt-1">{liveClasses.length} Today</h3>
-                <p className="text-[10px] text-indigo-500 font-semibold mt-1">Simulated Zoom link enabled</p>
+                <h3 className="text-2xl font-extrabold mt-1">{liveClasses.filter(lc => lc.subject === teacherSubject).length} Sessions</h3>
+                <p className="text-[10px] text-indigo-500 font-semibold mt-1">{getSubjectName(teacherSubject)}</p>
               </div>
             </div>
 
@@ -498,8 +498,8 @@ export default function TeacherPortal() {
                   const marksMap = {};
                   const remarksMap = {};
                   activeStudents.forEach(s => {
-                    marksMap[s.id] = '90';
-                    remarksMap[s.id] = 'Excellent progress.';
+                    marksMap[s.id] = '';
+                    remarksMap[s.id] = '';
                   });
                   setMarksSheet(marksMap);
                   setRemarksSheet(remarksMap);

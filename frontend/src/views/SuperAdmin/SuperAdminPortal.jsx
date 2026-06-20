@@ -161,6 +161,7 @@ export default function SuperAdminPortal() {
 
   const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
   const [leaveFilter, setLeaveFilter] = useState('Pending');
+  const [admissionFilter, setAdmissionFilter] = useState('Pending');
   const [editingAdmission, setEditingAdmission] = useState(null);
   const [selectedAdmission, setSelectedAdmission] = useState(null);
 
