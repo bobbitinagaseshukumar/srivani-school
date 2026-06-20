@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const AppContext = createContext();
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 const initialSchools = [
   { id: 'school-1', name: 'SRI VANI VIDYANIKETHAN EM SCHOOL (Main Campus)', code: 'SVV-MAIN', address: '3-89, Pedda Kottala St, Pedda Kottala, Kottala, Andhra Pradesh 518502', studentsCount: 500, teachersCount: 50, status: 'Active' }
 ];
@@ -519,7 +521,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchState = async () => {
       try {
-        const res = await fetch('/api/data');
+        const res = await fetch(`${API_BASE_URL}/api/data`);
         const json = await res.json();
         if (json.success && json.data) {
           const data = json.data;
@@ -633,7 +635,7 @@ export const AppProvider = ({ children }) => {
           starredFormFields
         };
 
-        const res = await fetch('/api/data', {
+        const res = await fetch(`${API_BASE_URL}/api/data`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
