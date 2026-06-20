@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from './context/AppContext';
 
 // Import Public Pages
@@ -34,6 +34,19 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(false);
   const [isIntroFading, setIsIntroFading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const introTimeoutRef = useRef(null);
+
+  const handleCloseIntro = () => {
+    if (introTimeoutRef.current) {
+      clearTimeout(introTimeoutRef.current);
+      introTimeoutRef.current = null;
+    }
+    setIsIntroFading(true);
+    sessionStorage.setItem('srivani_intro_played', 'true');
+    setTimeout(() => {
+      setShowIntro(false);
+    }, 700);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -41,17 +54,19 @@ export default function App() {
       const introPlayed = sessionStorage.getItem('srivani_intro_played');
       if (!introPlayed) {
         setShowIntro(true);
+        // Safety fallback: auto-close splash screen after 7.5 seconds
+        // in case video fails to autoplay, gets blocked, or hangs.
+        introTimeoutRef.current = setTimeout(() => {
+          handleCloseIntro();
+        }, 7500);
       }
     }
+    return () => {
+      if (introTimeoutRef.current) {
+        clearTimeout(introTimeoutRef.current);
+      }
+    };
   }, []);
-
-  const handleCloseIntro = () => {
-    setIsIntroFading(true);
-    sessionStorage.setItem('srivani_intro_played', 'true');
-    setTimeout(() => {
-      setShowIntro(false);
-    }, 700);
-  };
 
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
@@ -493,11 +508,12 @@ export default function App() {
             <div className="w-full h-full rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(59,130,246,0.2)] bg-black/60 backdrop-blur-md">
               <video 
                 className="w-full h-full object-contain"
-                src="/srivani%20school%20logo.mp4"
+                src="/srivani_school_logo.mp4"
                 autoPlay
                 muted={isMuted}
                 playsInline
                 onEnded={handleCloseIntro}
+                onError={handleCloseIntro}
               />
             </div>
           </div>
