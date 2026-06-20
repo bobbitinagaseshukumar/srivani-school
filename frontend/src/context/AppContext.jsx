@@ -8,85 +8,33 @@ const initialSchools = [
   { id: 'school-1', name: 'SRI VANI VIDYANIKETHAN EM SCHOOL (Main Campus)', code: 'SVV-MAIN', address: '3-89, Pedda Kottala St, Pedda Kottala, Kottala, Andhra Pradesh 518502', studentsCount: 500, teachersCount: 50, status: 'Active' }
 ];
 
-const initialAdmins = [
-  { id: 'ADM01', name: 'Admin (Head Office)', email: 'admin@srivani.edu', password: 'admin123', status: 'Active' }
-];
+const initialAdmins = [];
 
-const initialTeachers = [
-  { id: 'T101', name: 'Dr. David Banner', qualification: 'Ph.D. in Physics', experience: '12 Years', subject: 'PHYSICS', department: 'Science', email: 'dbanner@srivani.edu', phone: '+91 98765-43210', designation: 'Head of Department', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', salary: 6500, joiningDate: '2018-08-15', schoolId: 'school-1', password: 'teacher123' },
-  { id: 'T102', name: 'Prof. Clara Oswald', qualification: 'M.A. in English Literature', experience: '8 Years', subject: 'ENGLISH', department: 'Humanities', email: 'coswald@srivani.edu', phone: '+91 98765-43211', designation: 'Senior Teacher', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', salary: 5200, joiningDate: '2020-09-01', schoolId: 'school-1', password: 'teacher123' },
-  { id: 'T103', name: 'Mr. Frank Castle', qualification: 'M.Sc. in Mathematics', experience: '15 Years', subject: 'MATHEMATICS', department: 'Mathematics', email: 'fcastle@srivani.edu', phone: '+91 98765-43212', designation: 'Senior Instructor', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', salary: 6800, joiningDate: '2015-01-10', schoolId: 'school-1', password: 'teacher123' },
-  { id: 'T104', name: 'Ms. Grace Hopper', qualification: 'Ph.D. in Computer Science', experience: '10 Years', subject: 'GENERALKNOWLEDGE', department: 'Information Technology', email: 'ghopper@srivani.edu', phone: '+91 98765-43213', designation: 'IT Director', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', salary: 7100, joiningDate: '2017-06-20', schoolId: 'school-1', password: 'teacher123' }
-];
+const initialTeachers = [];
 
-const initialStudents = [
-  { id: 'S1001', registerNo: 'REG20261001', rollNo: '101', name: 'Alice Johnson', dob: '2010-04-12', gender: 'Female', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43220', email: 'alice.j@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1001', parentName: 'Robert Johnson', parentPhone: '+91 98765-43230', emergencyContact: '+91 98765-99999', photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', attendancePct: 0, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
-  { id: 'S1002', registerNo: 'REG20261002', rollNo: '102', name: 'Bob Smith', dob: '2010-09-21', gender: 'Male', bloodGroup: 'A+', aadhaarNo: '9876-5432-1098', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43221', email: 'bob.s@srivani.edu', class: 'Class 10', section: 'A', parentId: 'P1002', parentName: 'Sarah Smith', parentPhone: '+91 98765-43231', emergencyContact: '+91 98765-88888', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', attendancePct: 0, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
-  { id: 'S1003', registerNo: 'REG20261003', rollNo: '103', name: 'Charlie Brown', dob: '2010-11-05', gender: 'Male', bloodGroup: 'B-', aadhaarNo: '4567-8901-2345', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43222', email: 'charlie.b@srivani.edu', class: 'Class 10', section: 'B', parentId: 'P1003', parentName: 'Lucy Brown', parentPhone: '+91 98765-43232', emergencyContact: '+91 98765-77777', photo: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150&auto=format&fit=crop&q=80', attendancePct: 0, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' },
-  { id: 'S1004', registerNo: 'REG20261004', rollNo: '104', name: 'Diana Prince', dob: '2009-05-18', gender: 'Female', bloodGroup: 'AB+', aadhaarNo: '5678-9012-3456', address: 'Pedda Kottala, Kottala, AP', phone: '+91 98765-43223', email: 'diana.p@srivani.edu', class: 'Class 9', section: 'A', parentId: 'P1004', parentName: 'Steve Prince', parentPhone: '+91 98765-43233', emergencyContact: '+91 98765-66666', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', attendancePct: 0, activeStatus: 'Active', schoolId: 'school-1', password: 'student123' }
-];
+const initialStudents = [];
 
-const initialParents = [
-  { id: 'P1001', name: 'Robert Johnson', email: 'rjohnson@gmail.com', phone: '+1 555-0301', childrenIds: ['S1001'], schoolId: 'school-1', password: 'parent123' },
-  { id: 'P1002', name: 'Sarah Smith', email: 'ssmith@gmail.com', phone: '+1 555-0302', childrenIds: ['S1002'], schoolId: 'school-1', password: 'parent123' },
-  { id: 'P1003', name: 'Lucy Brown', email: 'lbrown@gmail.com', phone: '+1 555-0303', childrenIds: ['S1003'], schoolId: 'school-1', password: 'parent123' },
-  { id: 'P1004', name: 'Steve Prince', email: 'sprince@gmail.com', phone: '+1 555-0304', childrenIds: ['S1004'], schoolId: 'school-1', password: 'parent123' }
-];
+const initialParents = [];
 
 const initialExams = [
   { id: 'ex1', name: 'Physics Unit Test 1', examType: 'Unit Test', class: 'Class 10', subject: 'PHYSICS', date: '2026-06-18' },
   { id: 'ex2', name: 'Mathematics Monthly Test', examType: 'Monthly Test', class: 'Class 10', subject: 'MATHEMATICS', date: '2026-06-20' }
 ];
 
-const initialAttendance = [
-  // Student S1001 (Alice)
-  { id: 'a1', studentId: 'S1001', date: '2026-06-08', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a2', studentId: 'S1001', date: '2026-06-09', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a3', studentId: 'S1001', date: '2026-06-10', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a4', studentId: 'S1001', date: '2026-06-11', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a5', studentId: 'S1001', date: '2026-06-12', status: 'Present', class: 'Class 10', section: 'A' },
-  // Student S1002 (Bob)
-  { id: 'a6', studentId: 'S1002', date: '2026-06-08', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a7', studentId: 'S1002', date: '2026-06-09', status: 'Absent', class: 'Class 10', section: 'A' },
-  { id: 'a8', studentId: 'S1002', date: '2026-06-10', status: 'Leave', class: 'Class 10', section: 'A' },
-  { id: 'a9', studentId: 'S1002', date: '2026-06-11', status: 'Present', class: 'Class 10', section: 'A' },
-  { id: 'a10', studentId: 'S1002', date: '2026-06-12', status: 'Half Day', class: 'Class 10', section: 'A' }
-];
+const initialAttendance = [];
 
-const initialMarks = [
-  // Alice S1001
-  { id: 'm1', studentId: 'S1001', studentName: 'Alice Johnson', examType: 'Midterm Exam', subject: 'PHYSICS', marks: 88, maxMarks: 100, grade: 'A', remarks: 'Excellent performance, strong in conceptual understanding.' },
-  { id: 'm2', studentId: 'S1001', studentName: 'Alice Johnson', examType: 'Midterm Exam', subject: 'MATHEMATICS', marks: 95, maxMarks: 100, grade: 'A+', remarks: 'Top scores, logical thinking is outstanding.' },
-  { id: 'm3', studentId: 'S1001', studentName: 'Alice Johnson', examType: 'Midterm Exam', subject: 'ENGLISH', marks: 90, maxMarks: 100, grade: 'A', remarks: 'Creative writer, active participant.' },
-  { id: 'm4', studentId: 'S1001', studentName: 'Alice Johnson', examType: 'Midterm Exam', subject: 'GENERALKNOWLEDGE', marks: 98, maxMarks: 100, grade: 'A+', remarks: 'Phenomenal coding assignments.' },
-  // Bob S1002
-  { id: 'm5', studentId: 'S1002', studentName: 'Bob Smith', examType: 'Midterm Exam', subject: 'PHYSICS', marks: 72, maxMarks: 100, grade: 'B', remarks: 'Needs to focus more on numerical problems.' },
-  { id: 'm6', studentId: 'S1002', studentName: 'Bob Smith', examType: 'Midterm Exam', subject: 'MATHEMATICS', marks: 68, maxMarks: 100, grade: 'C+', remarks: 'Needs regular practice in algebra.' },
-  { id: 'm7', studentId: 'S1002', studentName: 'Bob Smith', examType: 'Midterm Exam', subject: 'ENGLISH', marks: 78, maxMarks: 100, grade: 'B+', remarks: 'Good verbal skills, needs to write structured answers.' },
-  { id: 'm8', studentId: 'S1002', studentName: 'Bob Smith', examType: 'Midterm Exam', subject: 'GENERALKNOWLEDGE', marks: 85, maxMarks: 100, grade: 'A', remarks: 'Good grasp of web concepts.' }
-];
+const initialMarks = [];
 
-const initialHomework = [
-  { id: 'hw1', title: 'Electrostatics Laboratory Report', description: 'Write down a comprehensive laboratory report about the electric force experiments carried out on Tuesday.', subject: 'PHYSICS', class: 'Class 10', section: 'A', teacherId: 'T101', dueDate: '2026-06-16', file: 'electrostatics_guide.pdf', submissions: [
-    { studentId: 'S1001', studentName: 'Alice Johnson', submittedAt: '2026-06-12 11:30 AM', file: 'alice_electrostatics.pdf', status: 'Evaluated', grade: 'A+', feedback: 'Exceptional details in graphics!' }
-  ] },
-  { id: 'hw2', title: 'Quadratic Equations Practice Set', description: 'Solve practice problems 1 to 20 on page 114 of the textbook. Show intermediate steps.', subject: 'MATHEMATICS', class: 'Class 10', section: 'A', teacherId: 'T103', dueDate: '2026-06-18', file: 'quadratic_set.pdf', submissions: [] }
-];
+const initialHomework = [];
 
-const initialNotes = [
-  { id: 'n1', title: 'Quantum Physics Intro Notes', description: 'Quick review guide to particle-wave duality and basic quantum levels.', subject: 'PHYSICS', class: 'Class 10', chapter: 'Chapter 4', teacherId: 'T101', type: 'PDF', file: 'quantum_intro.pdf', downloads: 28 },
-  { id: 'n2', title: 'Shakespeare Hamlet Analysis', description: 'Character mappings, key quotes, and motif analysis slides.', subject: 'ENGLISH', class: 'Class 10', chapter: 'Chapter 2', teacherId: 'T102', type: 'PPT', file: 'hamlet_slides.pptx', downloads: 14 }
-];
+const initialNotes = [];
 
 const initialCirculars = [
   { id: 'c1', title: 'Annual Cultural Festival registrations open', content: 'We are pleased to announce that registration for the annual cultural festival "Aurora 2026" is now open. Events include Solo Singing, Group Dance, Drama, Debate, and Painting. Please contact the music/arts room for registration. Deadline is June 20th.', targetGroup: 'All', date: '2026-06-10', postedBy: 'Admin' },
   { id: 'c2', title: 'Upcoming Parent-Teacher Meet (Class 10)', content: 'The parent-teacher meeting for Class 10 is scheduled for this Friday from 2:00 PM to 5:00 PM. Parents can discuss midterm test performance and student conduct with subject teachers. Attendance is mandatory.', targetGroup: 'Parents', date: '2026-06-12', postedBy: 'T101' }
 ];
 
-const initialLiveClasses = [
-  { id: 'lc1', subject: 'PHYSICS', title: 'Understanding Waves & Sound Waves', class: 'Class 10', section: 'A', teacherName: 'Dr. David Banner', startTime: '10:00 AM', duration: '45 Mins', meetingLink: 'https://meet.google.com/abc-defg-hij', status: 'Live' },
-  { id: 'lc2', subject: 'MATHEMATICS', title: 'Probability Theory and Bayes Theorem', class: 'Class 10', section: 'A', teacherName: 'Mr. Frank Castle', startTime: '01:30 PM', duration: '60 Mins', meetingLink: 'https://meet.google.com/xyz-qprs-tuv', status: 'Scheduled' }
-];
+const initialLiveClasses = [];
 
 const initialLibraryBooks = [
   { id: 'b1', title: 'A Brief History of Time', author: 'Stephen Hawking', category: 'Science', rackNo: 'A-3', copies: 5, available: 3 },
@@ -94,23 +42,13 @@ const initialLibraryBooks = [
   { id: 'b3', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', category: 'Literature', rackNo: 'L-2', copies: 6, available: 4 }
 ];
 
-const initialHostels = [
-  { id: 'h1', roomNo: 'Block A - 101', type: 'AC - Triple Sharing', capacity: 3, occupied: 2, fee: '1,200/Month', students: ['Alice Johnson', 'Clara Smith'] },
-  { id: 'h2', roomNo: 'Block B - 204', type: 'Non-AC - Double Sharing', capacity: 2, occupied: 1, fee: '800/Month', students: ['Bob Smith'] }
-];
+const initialHostels = [];
 
-const initialTransportRoutes = [
-  { id: 'tr1', routeName: 'Route 44 - Manhattan Express', driverName: 'John Doe', contact: '+1 555-9001', vehicleNo: 'NY-BUS-2026', stops: ['Times Sq', 'Central Park', 'Grand Central'], currentLoc: { lat: 40.7580, lng: -73.9855 } }
-];
+const initialTransportRoutes = [];
 
-const initialAuditLogs = [
-  { id: 'al1', user: 'Admin (System)', role: 'Admin', action: 'Initialized school database profiles', timestamp: '2026-06-12 10:00 AM' },
-  { id: 'al2', user: 'Dr. David Banner', role: 'Teacher', action: 'Uploaded Physics Midterm Grades', timestamp: '2026-06-12 11:15 AM' }
-];
+const initialAuditLogs = [];
 
-const initialSupportTickets = [
-  { id: 'tkt1', name: 'Robert Johnson', role: 'Parent', subject: 'Portal Login Issue on Mobile', description: 'The parent login dashboard is slow to load graphics when using Chrome on iOS.', status: 'Open', response: '', date: '2026-06-12' }
-];
+const initialSupportTickets = [];
 
 const initialTestimonials = [
   { id: 'tmn1', text: 'Sri Vani Vidyanikethan has given my child an incredible foundation. The teachers are caring, the environment is excellent, and the results speak for themselves!', author: 'Lakshmi Devi', role: 'Parent, Class 5 Student', active: true },
@@ -206,10 +144,7 @@ const initialGalleryCategories = ['Annual Day', 'Sports', 'Special Events', 'Cul
 
 const initialComplaints = [];
 
-const initialLeaveRequests = [
-  { id: 'leave1', studentId: 'S1001', studentName: 'Alice Johnson', class: 'Class 10', section: 'A', leaveType: 'Sick Leave', startDate: '2026-06-25', endDate: '2026-06-26', reason: 'Severe fever and doctor advised rest.', status: 'Approved', adminMessage: 'Get well soon, Alice. Take care!', submittedAt: '2026-06-20, 10:15:00 AM' },
-  { id: 'leave2', studentId: 'S1002', studentName: 'Bob Smith', class: 'Class 10', section: 'A', leaveType: 'Casual Leave', startDate: '2026-06-28', endDate: '2026-06-30', reason: 'Attending my sister\'s marriage in village.', status: 'Pending', adminMessage: '', submittedAt: '2026-06-20, 11:30:00 AM' }
-];
+const initialLeaveRequests = [];
 
 const initialStarredFormFields = {
   studentName: true,
