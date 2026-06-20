@@ -22,7 +22,7 @@ import StudentPortal from './views/Student/StudentPortal';
 import ParentPortal from './views/Parent/ParentPortal';
 
 // Icons
-import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users } from 'lucide-react';
+import { Sun, Moon, Lock, User, LayoutDashboard, Compass, Menu, X, Bell, Shield, BookOpen, GraduationCap, Users, Play } from 'lucide-react';
 
 export default function App() {
   const { currentUser, loginUser, logoutUser, theme, setTheme, notifications, markNotificationRead, schoolInfo } = useContext(AppContext);
@@ -33,7 +33,8 @@ export default function App() {
   const [mounted, setMounted] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
   const [isIntroFading, setIsIntroFading] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [needsInteraction, setNeedsInteraction] = useState(false);
+  const videoRef = useRef(null);
   const introTimeoutRef = useRef(null);
 
   const handleCloseIntro = () => {
@@ -45,28 +46,63 @@ export default function App() {
     sessionStorage.setItem('srivani_intro_played', 'true');
     setTimeout(() => {
       setShowIntro(false);
-    }, 700);
+    }, 1000); // Smooth 1-second transition to settle back
+  };
+
+  const handleUserInteractionPlay = () => {
+    setNeedsInteraction(false);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.play().catch((err) => {
+        console.error("Play failed after interaction:", err);
+        handleCloseIntro();
+      });
+    }
   };
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const introPlayed = sessionStorage.getItem('srivani_intro_played');
-      if (!introPlayed) {
-        setShowIntro(true);
-        // Safety fallback: auto-close splash screen after 7.5 seconds
-        // in case video fails to autoplay, gets blocked, or hangs.
-        introTimeoutRef.current = setTimeout(() => {
-          handleCloseIntro();
-        }, 7500);
-      }
+    
+    // Check if the intro has already been played in this session
+    const introPlayed = sessionStorage.getItem('srivani_intro_played');
+    if (introPlayed) {
+      return;
     }
+
+    // 0.5 seconds delay before the cinematic intro starts
+    const startTimer = setTimeout(() => {
+      setShowIntro(true);
+    }, 500);
+
     return () => {
+      clearTimeout(startTimer);
       if (introTimeoutRef.current) {
         clearTimeout(introTimeoutRef.current);
       }
     };
   }, []);
+
+  // Handle video playback when showIntro triggers
+  useEffect(() => {
+    if (showIntro && videoRef.current) {
+      // Safety fallback: auto-close splash screen after 15.5 seconds (0.5s fade + 15s video)
+      introTimeoutRef.current = setTimeout(() => {
+        handleCloseIntro();
+      }, 15500);
+
+      const playVideo = async () => {
+        try {
+          videoRef.current.muted = false;
+          await videoRef.current.play();
+        } catch (error) {
+          console.log("Autoplay blocked. Requiring user interaction.", error);
+          setNeedsInteraction(true);
+        }
+      };
+
+      playVideo();
+    }
+  }, [showIntro]);
 
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
@@ -487,52 +523,49 @@ export default function App() {
 
       {/* Cinematic Splash Screen Video Intro */}
       {mounted && showIntro && (
-        <div className={`fixed inset-0 z-[9999] bg-[#070b13] flex flex-col items-center justify-center transition-all duration-700 ease-in-out ${
-          isIntroFading ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
-        }`}>
-          {/* Animated Background Glow */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+        <div 
+          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out ${
+            isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          {/* Dynamic Fullscreen Video Object-Cover to fill phone/laptop ratios */}
+          <video 
+            ref={videoRef}
+            className="w-full h-full object-cover scale-[1.01]"
+            src="/srivani_school_logo.mp4"
+            playsInline
+            onEnded={handleCloseIntro}
+            onError={handleCloseIntro}
+          />
 
-          {/* Cinematic Title */}
-          <div className="text-center mb-6 px-4 animate-float-slow">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-montserrat tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-200 to-purple-400 uppercase">
-              {schoolInfo?.name || 'SRI VANI VIDYANIKETHAN'}
-            </h2>
-            <p className="text-[10px] sm:text-xs text-slate-400 tracking-widest mt-1 uppercase font-semibold">
-              {schoolInfo?.tagline || 'EM SCHOOL'} &bull; Cinematic Presentation
-            </p>
-          </div>
-
-          {/* Video Container with Glow Frame */}
-          <div className="relative max-w-4xl w-full aspect-video px-4 sm:px-6 z-10">
-            <div className="w-full h-full rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(59,130,246,0.2)] bg-black/60 backdrop-blur-md">
-              <video 
-                className="w-full h-full object-contain"
-                src="/srivani_school_logo.mp4"
-                autoPlay
-                muted={isMuted}
-                playsInline
-                onEnded={handleCloseIntro}
-                onError={handleCloseIntro}
-              />
+          {/* Fallback Glassmorphism Play Button if unmuted autoplay is blocked by browser policies */}
+          {needsInteraction && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-500">
+              <button
+                onClick={handleUserInteractionPlay}
+                className="group relative flex flex-col items-center gap-4 cursor-pointer focus:outline-none"
+              >
+                {/* Glowing Outer Rings */}
+                <div className="absolute w-24 h-24 bg-amber-400/30 rounded-full blur-md animate-ping duration-1000"></div>
+                <div className="absolute w-20 h-20 bg-blue-500/20 rounded-full blur-md group-hover:scale-110 transition-transform"></div>
+                
+                {/* Play Icon */}
+                <div className="relative w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] border border-blue-400/30 group-hover:scale-105 transition-transform duration-300">
+                  <Play className="w-6 h-6 fill-current text-white translate-x-0.5" />
+                </div>
+                
+                {/* Premium Golden Label */}
+                <div className="text-center font-sans">
+                  <p className="text-xs font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-400 uppercase tracking-widest animate-pulse">
+                    Tap to Enter
+                  </p>
+                  <p className="text-[9px] text-slate-400 tracking-wider mt-1 uppercase font-semibold">
+                    With Cinematic Audio Experience
+                  </p>
+                </div>
+              </button>
             </div>
-          </div>
-
-          {/* Action Controls */}
-          <div className="flex gap-4 mt-8 z-10 font-sans">
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs tracking-wider uppercase transition-all flex items-center gap-2"
-            >
-              {isMuted ? '🔊 Unmute Audio' : '🔇 Mute Audio'}
-            </button>
-            <button
-              onClick={handleCloseIntro}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5"
-            >
-              Enter Site ➔
-            </button>
-          </div>
+          )}
         </div>
       )}
     </div>
