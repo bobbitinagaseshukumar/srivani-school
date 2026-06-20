@@ -380,18 +380,17 @@ export default function Login({ onLoginSuccess }) {
                       </div>
                     </div>
 
-                    {/* Actions Bar */}
-                    <div className="pt-2 flex justify-between items-center gap-4">
+                    <div className="pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                       <button
                         type="button"
                         onClick={handleFillCredentials}
-                        className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
+                        className="text-xs text-blue-650 dark:text-blue-400 font-bold hover:underline flex items-center justify-center gap-1 py-2 rounded-xl bg-slate-100/50 dark:bg-slate-900/30 sm:bg-transparent sm:dark:bg-transparent border border-slate-200/50 dark:border-slate-850/80 sm:border-none cursor-pointer"
                       >
                         <RefreshCcw size={12} /> Autofill Selected Credentials
                       </button>
                       <button
                         type="submit"
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 flex items-center gap-1"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto"
                       >
                         Verify Credentials <ArrowRight size={14} />
                       </button>

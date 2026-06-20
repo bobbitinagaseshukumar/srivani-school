@@ -3,7 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import { 
   Users, GraduationCap, Calendar, FileText, Settings, Plus, Trash2, 
   Search, Award, MessageSquare, AlertCircle, RefreshCw, Layers, BookOpen, Download, FileSpreadsheet,
-  Edit2, Building2, X, UserPlus, User 
+  Edit2, Building2, X, UserPlus, User, ClipboardList, CheckSquare 
 } from 'lucide-react';
 
 export default function AdminPortal() {
@@ -19,10 +19,28 @@ export default function AdminPortal() {
     supportTickets, replySupportTicket,
     logoutUser,
     facilities, addFacility, editFacility, deleteFacility,
-    addStudent, addParent
+    addStudent, addParent,
+    leaveRequests, updateLeaveStatus,
+    admissions, updateAdmissionFields, starredFormFields, toggleAdmissionFieldStar, approveAdmission, rejectAdmission
   } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
+  const [editingAdmission, setEditingAdmission] = useState(null);
+  const [leaveFilter, setLeaveFilter] = useState('Pending');
+  const [admissionFilter, setAdmissionFilter] = useState('Pending');
+  const [selectedAdmission, setSelectedAdmission] = useState(null);
+
+  const contentRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   const [studentSearch, setStudentSearch] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('All');
   const [teacherSearch, setTeacherSearch] = useState('');
@@ -251,6 +269,7 @@ export default function AdminPortal() {
             {[
               { id: 'Dashboard', icon: Users, label: 'Dashboard Overview' },
               { id: 'EnrollStudent', icon: UserPlus, label: 'Enroll Student' },
+              { id: 'Admissions', icon: FileSpreadsheet, label: 'Online Admissions' },
               { id: 'Students', icon: Users, label: 'View Students' },
               { id: 'ClassWise', icon: Layers, label: 'Class-wise Students' },
               { id: 'Teachers', icon: GraduationCap, label: 'View Teachers' },
@@ -259,6 +278,7 @@ export default function AdminPortal() {
               { id: 'Subjects', icon: BookOpen, label: 'Subjects Directory' },
               { id: 'Exams', icon: Award, label: 'Create Exams' },
               { id: 'Facilities', icon: Building2, label: 'Campus Facilities' },
+              { id: 'Leaves', icon: ClipboardList, label: 'Leave Requests' },
               { id: 'Circulars', icon: FileText, label: 'Notice Board' },
               { id: 'Reports', icon: FileSpreadsheet, label: 'Generate Reports' },
               { id: 'Helpdesk', icon: MessageSquare, label: 'Helpdesk Tickets' }
@@ -288,7 +308,7 @@ export default function AdminPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div ref={contentRef} className="flex-1 min-w-0 space-y-6">
         
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (
@@ -814,11 +834,11 @@ export default function AdminPortal() {
 
             <div className="space-y-2">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Academic Curriculum:</label>
-              <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 border rounded-xl max-h-60 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 border rounded-xl max-h-60 overflow-y-auto">
                 {subjects.map(sub => (
-                  <div key={sub.id || sub.code} className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border text-xs font-bold flex items-center justify-between shadow-sm">
-                    <span>{sub.name} ({sub.code})</span>
-                    <span className="text-[8px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded">{sub.department || 'General'}</span>
+                  <div key={sub.id || sub.code} className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border text-xs font-bold flex flex-wrap items-center justify-between gap-1.5 shadow-sm overflow-hidden break-words whitespace-normal text-left">
+                    <span className="break-all">{sub.name} ({sub.code})</span>
+                    <span className="text-[8px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded shrink-0">{sub.department || 'General'}</span>
                   </div>
                 ))}
               </div>
@@ -998,6 +1018,515 @@ export default function AdminPortal() {
               {facilities.length === 0 && (
                 <div className="sm:col-span-2 text-center py-8 text-slate-400 text-xs">No facilities added yet.</div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Online Admissions Tab */}
+        {activeTab === 'Admissions' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-extrabold font-montserrat">Online Admissions Desk</h2>
+              <div className="flex gap-2">
+                {['Pending', 'Approved', 'Rejected'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setAdmissionFilter(s)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                      admissionFilter === s 
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    {s} ({admissions.filter(a => a.status === s).length})
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 font-light mt-1">Review student applications submitted online, highlight key details, and update application information.</p>
+            <div className="w-12 h-1 bg-blue-600 rounded"></div>
+
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
+              {/* Table of Applications */}
+              <div className="lg:col-span-8 bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <th className="p-4">Student Name</th>
+                        <th className="p-4">Grade</th>
+                        <th className="p-4">Parent Name</th>
+                        <th className="p-4">Contact info</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                      {admissions.filter(a => a.status === admissionFilter).map((adm) => (
+                        <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="p-4">
+                            <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                              {adm.studentName}
+                              {Object.values(adm.starredFields || {}).some(Boolean) && <span className="text-amber-500 font-bold">★</span>}
+                            </p>
+                            <p className="text-[10px] text-slate-400">DOB: {adm.dob}</p>
+                          </td>
+                          <td className="p-4 font-semibold">{adm.grade || adm.gradeApplied}</td>
+                          <td className="p-4 font-medium">{adm.parentName}</td>
+                          <td className="p-4 font-mono text-[10px] space-y-0.5">
+                            <p>📞 {adm.parentPhone || adm.phone}</p>
+                            <p>✉️ {adm.parentEmail || adm.email}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                              adm.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
+                              adm.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
+                              'bg-amber-500/10 text-amber-600'
+                            }`}>{adm.status}</span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedAdmission(adm);
+                                setEditingAdmission({ ...adm });
+                              }}
+                              className="px-2.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/15 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold transition-all border border-blue-200/50 dark:border-blue-800/80 cursor-pointer"
+                            >
+                              Review &amp; Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {admissions.filter(a => a.status === admissionFilter).length === 0 && (
+                        <tr><td colSpan={6} className="p-8 text-center text-slate-400 italic">No applications found with status: {admissionFilter}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Review & Edit Panel (Sticky/Detailed) */}
+              <div className="lg:col-span-4">
+                {selectedAdmission && editingAdmission ? (
+                  <div className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-lg space-y-6 text-left animate-fade-in">
+                    <div className="flex justify-between items-start border-b border-slate-200/50 dark:border-slate-800 pb-3">
+                      <div>
+                        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Review Candidate</h3>
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {selectedAdmission.id}</p>
+                      </div>
+                      <button 
+                        onClick={() => { setSelectedAdmission(null); setEditingAdmission(null); }}
+                        className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 p-1 rounded-lg transition"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      updateAdmissionFields(editingAdmission.id, editingAdmission);
+                      setSelectedAdmission({ ...editingAdmission });
+                      alert('Applicant details updated successfully.');
+                    }} className="space-y-4 text-xs">
+                      {/* Field Student Name */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Student Name
+                            {editingAdmission.starredFields?.studentName && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'studentName');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  studentName: !prev.starredFields?.studentName
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.studentName 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                            title="Highlight Field"
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="text" required
+                          value={editingAdmission.studentName}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, studentName: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field DOB */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Date of Birth
+                            {editingAdmission.starredFields?.dob && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'dob');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  dob: !prev.starredFields?.dob
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.dob 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="date" required
+                          value={editingAdmission.dob}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, dob: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field Grade */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Target Grade
+                            {editingAdmission.starredFields?.grade && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'grade');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  grade: !prev.starredFields?.grade
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.grade 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <select
+                          value={editingAdmission.grade || editingAdmission.gradeApplied}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, grade: e.target.value, gradeApplied: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        >
+                          {['Playclass', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Field Parent Name */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Parent Name
+                            {editingAdmission.starredFields?.parentName && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'parentName');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  parentName: !prev.starredFields?.parentName
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.parentName 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="text" required
+                          value={editingAdmission.parentName}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentName: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field Parent Phone */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Parent Phone
+                            {editingAdmission.starredFields?.parentPhone && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'parentPhone');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  parentPhone: !prev.starredFields?.parentPhone
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.parentPhone 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="text" required
+                          value={editingAdmission.parentPhone || editingAdmission.phone}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentPhone: e.target.value, phone: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field Parent Email */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Parent Email
+                            {editingAdmission.starredFields?.parentEmail && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'parentEmail');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  parentEmail: !prev.starredFields?.parentEmail
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.parentEmail 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="email" required
+                          value={editingAdmission.parentEmail || editingAdmission.email}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentEmail: e.target.value, email: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field Address */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Address
+                            {editingAdmission.starredFields?.address && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'address');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  address: !prev.starredFields?.address
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.address 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2} required
+                          value={editingAdmission.address}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div className="pt-2 flex gap-2">
+                        <button
+                          type="submit"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition"
+                        >
+                          Save Changes
+                        </button>
+                        {selectedAdmission.status === 'Pending' && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                approveAdmission(selectedAdmission.id);
+                                setSelectedAdmission(null);
+                                setEditingAdmission(null);
+                                alert('Admission application APPROVED!');
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                rejectAdmission(selectedAdmission.id);
+                                setSelectedAdmission(null);
+                                setEditingAdmission(null);
+                                alert('Admission application Rejected.');
+                              }}
+                              className="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center glassmorphism rounded-2xl border text-slate-400 italic text-xs font-light">
+                    Select an application row to view details, toggle field-level highlight stars, or update candidate information.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leave Requests Tab */}
+        {activeTab === 'Leaves' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-extrabold font-montserrat">Student Leave Applications</h2>
+              <div className="flex gap-2">
+                {['Pending', 'Approved', 'Rejected'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setLeaveFilter(s)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                      leaveFilter === s 
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    {s} ({leaveRequests.filter(l => l.status === s).length})
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 font-light mt-1">Review leave applications submitted by students, approve or reject them, and provide feedback messages.</p>
+            <div className="w-12 h-1 bg-blue-600 rounded"></div>
+
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="p-4">Student Name</th>
+                      <th className="p-4">Class &amp; Sec</th>
+                      <th className="p-4">Leave Type</th>
+                      <th className="p-4">Dates</th>
+                      <th className="p-4">Reason</th>
+                      <th className="p-4">Admin message / Response</th>
+                      {leaveFilter === 'Pending' && <th className="p-4 text-right">Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                    {leaveRequests.filter(l => l.status === leaveFilter).map((leave) => (
+                      <tr key={leave.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{leave.studentName}</td>
+                        <td className="p-4 font-semibold">{leave.class} - {leave.section}</td>
+                        <td className="p-4">
+                          <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                            {leave.leaveType}
+                          </span>
+                        </td>
+                        <td className="p-4 font-medium text-slate-650 dark:text-slate-350">{leave.startDate} to {leave.endDate}</td>
+                        <td className="p-4 text-slate-550 dark:text-slate-400 italic">"{leave.reason}"</td>
+                        <td className="p-4">
+                          {leave.status === 'Pending' ? (
+                            <input
+                              type="text"
+                              placeholder="Write a message (e.g. Get well soon)..."
+                              value={adminFeedbackMsg[leave.id] || ''}
+                              onChange={(e) => setAdminFeedbackMsg({ ...adminFeedbackMsg, [leave.id]: e.target.value })}
+                              className="px-2 py-1.5 w-full border rounded-lg bg-white/70 dark:bg-slate-900/50 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          ) : (
+                            <p className="text-slate-600 dark:text-slate-300 italic font-mono">"{leave.adminMessage || 'No feedback message.'}"</p>
+                          )}
+                        </td>
+                        {leave.status === 'Pending' && (
+                          <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                            <button
+                              onClick={() => {
+                                const msg = adminFeedbackMsg[leave.id] || 'Approved.';
+                                updateLeaveStatus(leave.id, 'Approved', msg);
+                                alert('Leave application approved.');
+                              }}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const msg = adminFeedbackMsg[leave.id] || 'Rejected.';
+                                updateLeaveStatus(leave.id, 'Rejected', msg);
+                                alert('Leave application rejected.');
+                              }}
+                              className="px-2.5 py-1 bg-red-500 hover:bg-red-650 text-white rounded text-[10px] font-bold cursor-pointer"
+                            >
+                              ✗ Reject
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                    {leaveRequests.filter(l => l.status === leaveFilter).length === 0 && (
+                      <tr><td colSpan={leaveFilter === 'Pending' ? 7 : 6} className="p-8 text-center text-slate-400 italic">No leave applications found with status: {leaveFilter}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

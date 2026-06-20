@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { LayoutDashboard, Award, Clipboard, ShieldCheck, Mail, DollarSign, Navigation, MessageSquare, Calendar, Sparkles, CheckCircle } from 'lucide-react';
 
@@ -23,6 +23,16 @@ export default function ParentPortal() {
   };
 
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   const [selectedChildId, setSelectedChildId] = useState(
     parentChildrenIds && parentChildrenIds.length > 0 ? parentChildrenIds[0] : 'S1001'
   );
@@ -148,7 +158,7 @@ export default function ParentPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div ref={contentRef} className="flex-1 min-w-0 space-y-6">
         
         {/* Child Overview Tab */}
         {activeTab === 'Dashboard' && (

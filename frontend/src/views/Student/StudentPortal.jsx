@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { BookOpen, Calendar, Clipboard, Download, GraduationCap, LayoutDashboard, Award, ShieldAlert, Sparkles, RefreshCw, MessageSquare } from 'lucide-react';
+import { BookOpen, Calendar, Clipboard, Download, GraduationCap, LayoutDashboard, Award, ShieldAlert, Sparkles, RefreshCw, MessageSquare, FileText } from 'lucide-react';
 
 const parseSlot = (slot) => {
   if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
@@ -70,10 +70,26 @@ const getTeacherForSubject = (subjectName, teachersList) => {
 };
 
 export default function StudentPortal() {
-  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints, exams } = useContext(AppContext);
+  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints, exams, leaveRequests, submitLeaveRequest } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [complaintSubject, setComplaintSubject] = useState('');
   const [complaintDescription, setComplaintDescription] = useState('');
+  
+  const [leaveStartDate, setLeaveStartDate] = useState('');
+  const [leaveEndDate, setLeaveEndDate] = useState('');
+  const [leaveType, setLeaveType] = useState('Sick Leave');
+  const [leaveReason, setLeaveReason] = useState('');
+
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   const getSubjectName = (code) => {
     if (!code) return '';
@@ -148,6 +164,7 @@ export default function StudentPortal() {
               { id: 'Homework', icon: Clipboard, label: 'Homework Desk' },
               { id: 'Notes', icon: Download, label: 'Study Resources' },
               { id: 'Timetable', icon: Calendar, label: 'Class Timetable' },
+              { id: 'Leaves', icon: FileText, label: 'Leave Letters' },
               { id: 'Complaints', icon: MessageSquare, label: 'Complaint Box' }
             ].map((item) => (
               <button
@@ -175,7 +192,7 @@ export default function StudentPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div ref={contentRef} className="flex-1 min-w-0 space-y-6">
         
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (
@@ -478,6 +495,153 @@ export default function StudentPortal() {
                     </table>
                   );
                 })()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leave Letters Tab */}
+        {activeTab === 'Leaves' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-extrabold font-montserrat">Leave Management System</h2>
+            <p className="text-xs text-slate-400 font-light mt-1">Submit formal leave applications for admin review. Once processed, status updates will reflect below.</p>
+            <div className="w-12 h-1 bg-blue-600 rounded"></div>
+
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
+              {/* Form to Apply for Leave */}
+              <div className="lg:col-span-5">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!leaveStartDate || !leaveEndDate || !leaveReason.trim()) {
+                      alert('Please fill all fields.');
+                      return;
+                    }
+                    submitLeaveRequest(studentObj.id, studentObj.name, studentObj.class, studentObj.section, {
+                      leaveType,
+                      startDate: leaveStartDate,
+                      endDate: leaveEndDate,
+                      reason: leaveReason
+                    });
+                    setLeaveStartDate('');
+                    setLeaveEndDate('');
+                    setLeaveReason('');
+                    alert('Leave request submitted successfully. The administration has been notified.');
+                  }}
+                  className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-lg space-y-4 text-left"
+                >
+                  <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-400">Apply for Leave</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Leave Type</label>
+                    <select
+                      value={leaveType}
+                      onChange={(e) => setLeaveType(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    >
+                      <option value="Sick Leave">Sick Leave</option>
+                      <option value="Casual Leave">Casual Leave</option>
+                      <option value="Medical Leave">Medical Leave</option>
+                      <option value="Family Event">Family Event</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Start Date</label>
+                      <input
+                        type="date" required
+                        value={leaveStartDate}
+                        onChange={(e) => setLeaveStartDate(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">End Date</label>
+                      <input
+                        type="date" required
+                        value={leaveEndDate}
+                        onChange={(e) => setLeaveEndDate(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Detailed Reason</label>
+                    <textarea
+                      required placeholder="Provide a professional explanation for your absence..."
+                      value={leaveReason}
+                      onChange={(e) => setLeaveReason(e.target.value)}
+                      rows={3}
+                      className="w-full p-3 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow cursor-pointer transition-all"
+                  >
+                    Submit Leave Letter
+                  </button>
+                </form>
+              </div>
+
+              {/* Leave Requests Log */}
+              <div className="lg:col-span-7 space-y-4">
+                <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-400 text-left">Your Leave History Log</h3>
+                
+                <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2 animate-fade-in">
+                  {((leaveRequests || []).filter(l => l.studentId === studentObj.id)).length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border text-slate-400 text-xs italic">
+                      You have not submitted any leave applications yet.
+                    </div>
+                  ) : (
+                    (leaveRequests || []).filter(l => l.studentId === studentObj.id).map((leave) => (
+                      <div
+                        key={leave.id}
+                        className={`p-4 bg-white dark:bg-slate-800/60 border shadow-sm space-y-2 text-left transition-all rounded-2xl ${
+                          leave.status === 'Approved' ? 'border-l-4 border-l-emerald-500' :
+                          leave.status === 'Rejected' ? 'border-l-4 border-l-red-500' :
+                          'border-l-4 border-l-amber-500'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-slate-950 dark:text-slate-100 text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded uppercase">
+                              {leave.leaveType}
+                            </span>
+                            <p className="text-[10px] text-slate-400 font-mono mt-1">Submitted: {leave.submittedAt}</p>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
+                            leave.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
+                            leave.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
+                            'bg-amber-500/10 text-amber-600'
+                          }`}>
+                            {leave.status}
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-slate-700 dark:text-slate-350 font-light space-y-1">
+                          <p>
+                            <strong>Dates:</strong> {leave.startDate} to {leave.endDate}
+                          </p>
+                          <p>
+                            <strong>Reason:</strong> "{leave.reason}"
+                          </p>
+                        </div>
+
+                        {leave.adminMessage && (
+                          <div className="bg-slate-50 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/40 dark:border-slate-850 text-[11px] mt-2">
+                            <span className="font-bold text-slate-500 block uppercase text-[9px] mb-1">Admin Response:</span>
+                            <p className="text-slate-650 dark:text-slate-300 italic">"{leave.adminMessage}"</p>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>

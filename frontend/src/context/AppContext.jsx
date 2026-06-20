@@ -204,6 +204,22 @@ const initialGalleryCategories = ['Annual Day', 'Sports', 'Special Events', 'Cul
 
 const initialComplaints = [];
 
+const initialLeaveRequests = [
+  { id: 'leave1', studentId: 'S1001', studentName: 'Alice Johnson', class: 'Class 10', section: 'A', leaveType: 'Sick Leave', startDate: '2026-06-25', endDate: '2026-06-26', reason: 'Severe fever and doctor advised rest.', status: 'Approved', adminMessage: 'Get well soon, Alice. Take care!', submittedAt: '2026-06-20, 10:15:00 AM' },
+  { id: 'leave2', studentId: 'S1002', studentName: 'Bob Smith', class: 'Class 10', section: 'A', leaveType: 'Casual Leave', startDate: '2026-06-28', endDate: '2026-06-30', reason: 'Attending my sister\'s marriage in village.', status: 'Pending', adminMessage: '', submittedAt: '2026-06-20, 11:30:00 AM' }
+];
+
+const initialStarredFormFields = {
+  studentName: true,
+  dob: true,
+  grade: true,
+  parentName: true,
+  parentPhone: true,
+  parentEmail: false,
+  whatsappNumber: false,
+  address: false
+};
+
 const initialWhatsappLogs = [];
 
 const initialAcademicCalendar = [
@@ -483,6 +499,9 @@ export const AppProvider = ({ children }) => {
     'Proof of Address (Utility bill/Rent agreement)'
   ]));
 
+  const [leaveRequests, setLeaveRequests] = useState(() => readStoredValue('school_leave_requests', initialLeaveRequests));
+  const [starredFormFields, setStarredFormFields] = useState(() => readStoredValue('school_starred_form_fields', initialStarredFormFields));
+
   const [notifications, setNotifications] = useState([
     { id: 'ntf1', title: 'New Homework assigned in Physics', message: 'Read electrostatics guide and submit Lab report.', read: false, time: '10 mins ago', type: 'Homework' },
     { id: 'ntf2', title: 'Midterm Marks Published', message: 'Physics, Math, and Coding midterm marks are available now.', read: false, time: '1 hour ago', type: 'Exam' },
@@ -638,6 +657,8 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('school_complaints', JSON.stringify(complaints)); }, [complaints]);
   useEffect(() => { localStorage.setItem('school_whatsapp_logs', JSON.stringify(whatsappLogs)); }, [whatsappLogs]);
   useEffect(() => { localStorage.setItem('school_required_documents', JSON.stringify(requiredDocuments)); }, [requiredDocuments]);
+  useEffect(() => { localStorage.setItem('school_leave_requests', JSON.stringify(leaveRequests)); }, [leaveRequests]);
+  useEffect(() => { localStorage.setItem('school_starred_form_fields', JSON.stringify(starredFormFields)); }, [starredFormFields]);
 
   useEffect(() => {
     localStorage.setItem('school_theme', theme);
@@ -1128,6 +1149,54 @@ export const AppProvider = ({ children }) => {
     if (admission) addAuditLog(currentUser.name, currentUser.role, `Rejected admission for ${admission.studentName}`);
   };
 
+  const updateAdmissionFields = (id, updatedData) => {
+    setAdmissions(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+    addAuditLog(currentUser.name, currentUser.role, `Updated admission application details for ID: ${id}`);
+  };
+
+  const toggleAdmissionFieldStar = (id, fieldName) => {
+    setAdmissions(prev => prev.map(a => {
+      if (a.id === id) {
+        const starred = { ...(a.starredFields || {}) };
+        starred[fieldName] = !starred[fieldName];
+        return { ...a, starredFields: starred };
+      }
+      return a;
+    }));
+  };
+
+  const updateStarredFormFields = (fields) => {
+    setStarredFormFields(fields);
+    addAuditLog(currentUser.name, currentUser.role, `Updated online form highlights settings`);
+  };
+
+  // ── Student Leave Management ──
+  const submitLeaveRequest = (studentId, studentName, studentClass, studentSection, data) => {
+    const newRequest = {
+      id: `leave_${Date.now()}`,
+      studentId,
+      studentName,
+      class: studentClass,
+      section: studentSection,
+      ...data,
+      status: 'Pending',
+      adminMessage: '',
+      submittedAt: new Date().toLocaleString()
+    };
+    setLeaveRequests(prev => [newRequest, ...prev]);
+    addNotification('New Leave Application', `Student ${studentName} applied for leave: ${data.leaveType}`, 'Leave');
+    addAuditLog(studentName, 'Student', `Submitted leave request: ${data.leaveType} from ${data.startDate} to ${data.endDate}`);
+  };
+
+  const updateLeaveStatus = (id, status, adminMessage) => {
+    const request = leaveRequests.find(r => r.id === id);
+    setLeaveRequests(prev => prev.map(r => r.id === id ? { ...r, status, adminMessage } : r));
+    if (request) {
+      addNotification('Leave Request Updated', `Leave request for ${request.studentName} has been ${status}`, 'Leave');
+      addAuditLog(currentUser.name, currentUser.role, `Updated leave request status for ${request.studentName} to ${status}`);
+    }
+  };
+
   // ── Facilities Management ──
   const addFacility = (f) => { const nf = { ...f, id: `fac_${Date.now()}` }; setFacilities(prev => [...prev, nf]); addAuditLog(currentUser.name, currentUser.role, `Added facility: ${nf.title}`); };
   const editFacility = (id, u) => { setFacilities(prev => prev.map(f => f.id === id ? { ...f, ...u } : f)); addAuditLog(currentUser.name, currentUser.role, `Edited facility ID: ${id}`); };
@@ -1280,6 +1349,8 @@ export const AppProvider = ({ children }) => {
       complaints, submitComplaint, updateComplaintStatus,
       whatsappLogs,
       requiredDocuments, updateRequiredDocuments,
+      leaveRequests, submitLeaveRequest, updateLeaveStatus,
+      starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,
     }}>
 
       {children}

@@ -65,3 +65,48 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.5);
 }
+
+/* Mobile browser input & placeholder overrides */
+input, select, textarea {
+  color: #1e293b; /* Fallback legible text-slate-800 color */
+}
+
+.dark input, .dark select, .dark textarea {
+  color: #f1f5f9; /* legibility in dark mode */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #94a3b8 !important; /* text-slate-400 placeholder */
+  opacity: 1 !important; /* Override iOS Safari's default opacity fade */
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #64748b !important; /* text-slate-500 placeholder in dark mode */
+  opacity: 1 !important;
+}
+
+/* Ensure autofill styles do not break text visibility */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1e293b !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover, 
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f1f5f9 !important;
+}

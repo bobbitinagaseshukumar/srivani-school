@@ -4,7 +4,7 @@ import { ArrowRight, FileText, CheckCircle2, DollarSign, HelpCircle } from 'luci
 import ScrollReveal from '../ScrollReveal';
 
 export default function Admissions() {
-  const { addNotification, addAuditLog, fees, submitAdmission, requiredDocuments } = useContext(AppContext);
+  const { addNotification, addAuditLog, fees, submitAdmission, requiredDocuments, starredFormFields } = useContext(AppContext);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     studentName: '',
@@ -18,6 +18,13 @@ export default function Admissions() {
     prevSchool: '',
     whatsappNumber: ''
   });
+
+  const renderStar = (fieldName) => {
+    if (starredFormFields && starredFormFields[fieldName]) {
+      return <span className="text-amber-500 ml-1" title="Highlighted field">★</span>;
+    }
+    return null;
+  };
 
   const steps = [
     { title: 'Online Registration', desc: 'Fill the online application form with parent and student details.' },
@@ -166,34 +173,34 @@ export default function Admissions() {
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Full Name</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Full Name{renderStar('studentName')}</label>
                   <input
                     type="text"
                     required
                     value={formData.studentName}
                     onChange={(e) => setFormData(prev => ({ ...prev, studentName: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g. John Doe"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Date of Birth</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Date of Birth{renderStar('dob')}</label>
                   <input
                     type="date"
                     required
                     value={formData.dob}
                     onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Target Admission Grade</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Target Admission Grade{renderStar('grade')}</label>
                   <select
                     value={formData.grade}
                     onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Playclass">Playclass</option>
                     <option value="LKG">LKG</option>
@@ -214,60 +221,60 @@ export default function Admissions() {
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent / Guardian Name</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent / Guardian Name{renderStar('parentName')}</label>
                   <input
                     type="text"
                     required
                     value={formData.parentName}
                     onChange={(e) => setFormData(prev => ({ ...prev, parentName: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Parent Name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Email Address</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Email Address{renderStar('parentEmail')}</label>
                   <input
                     type="email"
                     required
                     value={formData.parentEmail}
                     onChange={(e) => setFormData(prev => ({ ...prev, parentEmail: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g. parent@example.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Phone Number</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Phone Number{renderStar('parentPhone')}</label>
                   <input
                     type="tel"
                     required
                     value={formData.parentPhone}
                     onChange={(e) => setFormData(prev => ({ ...prev, parentPhone: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="+1 555-xxxx"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number{renderStar('whatsappNumber')}</label>
                   <input
                     type="tel"
                     value={formData.whatsappNumber}
                     onChange={(e) => setFormData(prev => ({ ...prev, whatsappNumber: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="WhatsApp number (optional)"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Residential Address</label>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Residential Address{renderStar('address')}</label>
                 <textarea
                   rows={3}
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Street address, City, Zip Code"
                 ></textarea>
               </div>

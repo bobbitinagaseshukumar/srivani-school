@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText } from 'lucide-react';
 
@@ -80,6 +80,16 @@ export default function TeacherPortal() {
   };
 
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   const [selectedClass, setSelectedClass] = useState('Class 10');
   const [selectedSection, setSelectedSection] = useState('A');
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -276,7 +286,7 @@ export default function TeacherPortal() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div ref={contentRef} className="flex-1 min-w-0 space-y-6">
         
         {/* Dashboard Tab */}
         {activeTab === 'Dashboard' && (

@@ -78,7 +78,7 @@ export default function Academics() {
                   {(academicCalendar || []).map((ev, i) => (
                     <div key={ev.id || i} className="p-3.5 sm:p-4 flex justify-between items-center text-xs hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors">
                       <div className="space-y-0.5 flex-1 min-w-0 pr-3">
-                        <p className="font-bold text-slate-900 dark:text-white truncate">{ev.title}</p>
+                        <p className="font-bold text-slate-900 dark:text-white break-words whitespace-normal">{ev.title}</p>
                         <p className="text-[10px] text-slate-400">{ev.date}</p>
                       </div>
                       <span className={`shrink-0 px-2 py-0.5 rounded text-[9px] font-bold uppercase whitespace-nowrap ${
@@ -112,16 +112,17 @@ export default function Academics() {
 
               <div className="border-t border-slate-200/50 dark:border-slate-850 pt-4 space-y-2">
                 <h4 className="font-bold text-xs">Grading Scheme:</h4>
-                <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px]">
                   {(gradingScheme || [
                     { grade: 'A+', range: '90–100%', color: 'text-blue-600' },
                     { grade: 'A',  range: '80–89%',  color: 'text-emerald-600' },
                     { grade: 'B',  range: '70–79%',  color: 'text-amber-600' },
                     { grade: 'C/F',range: '< 70%',   color: 'text-red-500' },
                   ]).map((g, i) => (
-                    <div key={i} className="bg-slate-50 dark:bg-slate-900/60 p-2 rounded border border-slate-100 dark:border-slate-800">
-                      <p className={`font-extrabold text-sm ${g.color || 'text-blue-600'}`}>{g.grade}</p>
-                      <p className="text-[8px] text-slate-400 mt-0.5">{g.range}</p>
+                    <div key={i} className="bg-slate-50 dark:bg-slate-900/60 p-2 rounded border border-slate-100 dark:border-slate-800 flex flex-col justify-center min-h-[56px]">
+                      <p className="font-extrabold text-sm" style={g.color && g.color.startsWith('#') ? { color: g.color } : {}} className={g.color && !g.color.startsWith('#') ? `font-extrabold text-sm ${g.color}` : "font-extrabold text-sm"}>{g.grade}</p>
+                      <p className="text-[8px] text-slate-400 mt-0.5">{g.range.includes('%') ? g.range : `${g.range}%`}</p>
+                      {g.description && <p className="text-[7px] text-slate-500 dark:text-slate-450 italic mt-0.5 truncate" title={g.description}>{g.description}</p>}
                     </div>
                   ))}
                 </div>

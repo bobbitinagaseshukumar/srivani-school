@@ -114,7 +114,8 @@ export default function SuperAdminPortal() {
     galleryCategories, addGalleryCategory, editGalleryCategory, deleteGalleryCategory,
     complaints, updateComplaintStatus,
     whatsappLogs,
-    requiredDocuments, updateRequiredDocuments
+    requiredDocuments, updateRequiredDocuments,
+    leaveRequests, updateLeaveStatus, starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar
   } = useContext(AppContext);
 
 
@@ -157,6 +158,22 @@ export default function SuperAdminPortal() {
   // Complaints tab states
   const [complaintReplyId, setComplaintReplyId] = useState(null);
   const [complaintReplyText, setComplaintReplyText] = useState('');
+
+  const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
+  const [leaveFilter, setLeaveFilter] = useState('Pending');
+  const [editingAdmission, setEditingAdmission] = useState(null);
+  const [selectedAdmission, setSelectedAdmission] = useState(null);
+
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   // Department manager states
   const [showDeptForm, setShowDeptForm] = useState(false);
@@ -616,7 +633,7 @@ export default function SuperAdminPortal() {
             <div className="fixed inset-0 z-30" onClick={() => setShowModuleMenu(false)} />
             
             <div className="absolute left-0 right-0 mt-2 p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-3xl shadow-2xl z-40 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 animate-fadeIn max-h-[380px] overflow-y-auto">
-              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Complaints','School Settings','Audit Logs'].map((tab) => {
+              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','School Settings','Audit Logs'].map((tab) => {
                 const hasPendingAdmissions = tab === 'Admissions' && admissions.filter(a => a.status === 'Pending').length > 0;
                 const hasNewEnquiries = tab === 'Enquiries' && enquiries.filter(e => e.status === 'New').length > 0;
                 return (
@@ -648,6 +665,9 @@ export default function SuperAdminPortal() {
           </>
         )}
       </div>
+
+      {/* Main Content Area */}
+      <div ref={contentRef} className="space-y-8 min-h-[400px]">
 
       {/* Schools Tenant View */}
       {activeTab === 'Schools' && (
@@ -741,7 +761,7 @@ export default function SuperAdminPortal() {
       {/* ───── ADMISSIONS TAB ───── */}
       {activeTab === 'Admissions' && (
         <div className="space-y-6">
-          <h3 className="font-extrabold text-lg font-montserrat">Admission Applications</h3>
+          <h3 className="font-extrabold text-lg font-montserrat">Admission Applications Panel</h3>
 
           {/* WhatsApp Toast */}
           {whatsappToast && (
@@ -750,145 +770,431 @@ export default function SuperAdminPortal() {
             </div>
           )}
 
-          {/* Collapsible Pending Applications Alert Banner */}
-          {admissions.filter(a => a.status === 'Pending').length > 0 && (
-            <div 
-              onClick={() => setShowPendingAdmissions(!showPendingAdmissions)}
-              className="cursor-pointer bg-gradient-to-r from-amber-500/20 to-orange-500/20 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-500/30 rounded-2xl p-4 flex justify-between items-center transition-all hover:scale-[1.01] duration-300 shadow-md animate-pulse"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <AlertCircle size={20} />
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-sm text-amber-800 dark:text-amber-300">New Admission Applications Submitted!</h4>
-                  <p className="text-xs text-amber-700/80 dark:text-amber-400/80 font-light">
-                    You have <span className="font-bold">{admissions.filter(a => a.status === 'Pending').length}</span> pending admission applications. Click to expand and review.
-                  </p>
-                </div>
-              </div>
-              <button className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
-                {showPendingAdmissions ? 'Hide Applications' : 'View Applications'}
-              </button>
+          {/* Dynamic Form Star Highlights Config */}
+          <div className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 text-left">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">★ Public Form Highlights Configuration</h4>
+            <p className="text-[10px] text-slate-400">Select which input fields on the public Online Application Form show a gold star highlight mark.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold">
+              {Object.keys(starredFormFields || {}).map((field) => (
+                <label key={field} className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition">
+                  <input
+                    type="checkbox"
+                    checked={starredFormFields[field]}
+                    onChange={(e) => {
+                      updateStarredFormFields({
+                        ...starredFormFields,
+                        [field]: e.target.checked
+                      });
+                    }}
+                    className="rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>{field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                </label>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Pending Admissions Table - Collapsed by default, expanded when clicked */}
-          {showPendingAdmissions && admissions.filter(a => a.status === 'Pending').length > 0 && (
-            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden border-l-4 border-l-amber-500">
-              <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-amber-500/5 flex justify-between items-center">
-                <span className="font-bold text-xs text-amber-800 dark:text-amber-400 uppercase tracking-wider">⏳ Pending Applications (Highlighted)</span>
+          <div className="grid lg:grid-cols-12 gap-8 items-start">
+            {/* Table of Applications */}
+            <div className="lg:col-span-8 space-y-4">
+              <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-2 rounded-xl">
+                <span className="font-bold text-xs uppercase text-slate-500 tracking-wider">Application Records</span>
+                <div className="flex gap-1.5">
+                  {['Pending', 'Approved', 'Rejected'].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setAdmissionFilter(s)}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                        admissionFilter === s 
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'bg-white dark:bg-slate-800 text-slate-500 border hover:bg-slate-100'
+                      }`}
+                    >
+                      {s} ({admissions.filter(a => a.status === s).length})
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[750px] text-xs text-left">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                      <th className="p-4">Student Name</th>
-                      <th className="p-4">Grade Applied</th>
-                      <th className="p-4">Parent Name</th>
-                      <th className="p-4">Phone</th>
-                      <th className="p-4">WhatsApp</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Date</th>
-                      <th className="p-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-150/40 dark:divide-slate-850 font-light">
-                    {admissions.filter(a => a.status === 'Pending').map((adm) => (
-                      <tr key={adm.id} className="bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
-                        <td className="p-4 font-bold text-slate-900 dark:text-white">{adm.studentName}</td>
-                        <td className="p-4">{adm.gradeApplied}</td>
-                        <td className="p-4">{adm.parentName}</td>
-                        <td className="p-4">{adm.phone}</td>
-                        <td className="p-4">{adm.whatsapp || adm.phone}</td>
-                        <td className="p-4">
-                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-700 dark:text-amber-400">
-                            {adm.status}
-                          </span>
-                        </td>
-                        <td className="p-4 text-slate-400 font-mono text-[10px]">{adm.date}</td>
-                        <td className="p-4 text-right space-x-2">
+
+              <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[650px] text-xs text-left">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <th className="p-4">Student Name</th>
+                        <th className="p-4">Grade</th>
+                        <th className="p-4">Parent Details</th>
+                        <th className="p-4">Contact</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                      {admissions.filter(a => a.status === admissionFilter).map((adm) => (
+                        <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="p-4">
+                            <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                              {adm.studentName}
+                              {Object.values(adm.starredFields || {}).some(Boolean) && <span className="text-amber-500 font-bold">★</span>}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-mono">DOB: {adm.dob}</p>
+                          </td>
+                          <td className="p-4 font-semibold">{adm.grade || adm.gradeApplied}</td>
+                          <td className="p-4 font-medium">{adm.parentName}</td>
+                          <td className="p-4 font-mono text-[10px] space-y-0.5">
+                            <p>📞 {adm.parentPhone || adm.phone}</p>
+                            <p>✉️ {adm.parentEmail || adm.email}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
+                              adm.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
+                              adm.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
+                              'bg-amber-500/10 text-amber-600'
+                            }`}>{adm.status}</span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedAdmission(adm);
+                                setEditingAdmission({ ...adm });
+                              }}
+                              className="px-2.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/15 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold border border-blue-200/50 dark:border-blue-800/80 cursor-pointer"
+                            >
+                              Review &amp; Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {admissions.filter(a => a.status === admissionFilter).length === 0 && (
+                        <tr><td colSpan={6} className="p-8 text-center text-slate-400 italic">No applications found with status: {admissionFilter}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Detailed Application Star/Edit */}
+            <div className="lg:col-span-4">
+              {selectedAdmission && editingAdmission ? (
+                <div className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 text-left animate-fade-in">
+                  <div className="flex justify-between items-start border-b border-slate-200/50 dark:border-slate-800 pb-2.5">
+                    <div>
+                      <h4 className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">Review Applicant</h4>
+                      <span className="text-[9px] text-slate-400 font-mono">ID: {selectedAdmission.id}</span>
+                    </div>
+                    <button 
+                      onClick={() => { setSelectedAdmission(null); setEditingAdmission(null); }}
+                      className="text-slate-400 hover:text-slate-650 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg transition"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    updateAdmissionFields(editingAdmission.id, editingAdmission);
+                    setSelectedAdmission({ ...editingAdmission });
+                    alert('Applicant data and highlights updated successfully.');
+                  }} className="space-y-3.5 text-xs">
+                    {/* Field studentName */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Student Name
+                          {editingAdmission.starredFields?.studentName && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'studentName');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                studentName: !prev.starredFields?.studentName
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.studentName 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="text" required
+                        value={editingAdmission.studentName}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, studentName: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field dob */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Date of Birth
+                          {editingAdmission.starredFields?.dob && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'dob');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                dob: !prev.starredFields?.dob
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.dob 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="date" required
+                        value={editingAdmission.dob}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, dob: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field grade */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Grade
+                          {editingAdmission.starredFields?.grade && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'grade');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                grade: !prev.starredFields?.grade
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.grade 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <select
+                        value={editingAdmission.grade || editingAdmission.gradeApplied}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, grade: e.target.value, gradeApplied: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      >
+                        {['Playclass', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(g => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Field parentName */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Parent Name
+                          {editingAdmission.starredFields?.parentName && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'parentName');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                parentName: !prev.starredFields?.parentName
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.parentName 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="text" required
+                        value={editingAdmission.parentName}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentName: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field parentPhone */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Parent Phone
+                          {editingAdmission.starredFields?.parentPhone && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'parentPhone');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                parentPhone: !prev.starredFields?.parentPhone
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.parentPhone 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="text" required
+                        value={editingAdmission.parentPhone || editingAdmission.phone}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentPhone: e.target.value, phone: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field parentEmail */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Parent Email
+                          {editingAdmission.starredFields?.parentEmail && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'parentEmail');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                parentEmail: !prev.starredFields?.parentEmail
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.parentEmail 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="email" required
+                        value={editingAdmission.parentEmail || editingAdmission.email}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, parentEmail: e.target.value, email: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field address */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Address
+                          {editingAdmission.starredFields?.address && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'address');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                address: !prev.starredFields?.address
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.address 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2} required
+                        value={editingAdmission.address}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, address: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition"
+                      >
+                        Save Changes
+                      </button>
+                      {selectedAdmission.status === 'Pending' && (
+                        <>
                           <button
+                            type="button"
                             onClick={() => {
-                              approveAdmission(adm.id);
-                              setWhatsappToast(adm.parentName);
+                              approveAdmission(selectedAdmission.id);
+                              setSelectedAdmission(null);
+                              setEditingAdmission(null);
+                              setWhatsappToast(selectedAdmission.parentName);
                               setTimeout(() => setWhatsappToast(null), 3000);
                             }}
-                            className="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold"
-                          >✓ Approve</button>
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                          >
+                            Approve
+                          </button>
                           <button
-                            onClick={() => rejectAdmission(adm.id)}
-                            className="px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold"
-                          >✗ Reject</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Admissions Table (Historical / All records) */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">📋 All Admission Applications Records</h4>
-            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[750px] text-xs text-left">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                      <th className="p-4">Student Name</th>
-                      <th className="p-4">Grade Applied</th>
-                      <th className="p-4">Parent Name</th>
-                      <th className="p-4">Phone</th>
-                      <th className="p-4">WhatsApp</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Date</th>
-                      <th className="p-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
-                    {(admissions || []).map((adm) => (
-                      <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                        <td className="p-4 font-bold text-slate-900 dark:text-white">{adm.studentName}</td>
-                        <td className="p-4">{adm.gradeApplied}</td>
-                        <td className="p-4">{adm.parentName}</td>
-                        <td className="p-4">{adm.phone}</td>
-                        <td className="p-4">{adm.whatsapp || adm.phone}</td>
-                        <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
-                            adm.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' :
-                            adm.status === 'Rejected' ? 'bg-red-500/10 text-red-500' :
-                            'bg-amber-500/10 text-amber-600'
-                          }`}>{adm.status}</span>
-                        </td>
-                        <td className="p-4 text-slate-400 font-mono text-[10px]">{adm.date}</td>
-                        <td className="p-4 text-right space-x-2">
-                          {adm.status === 'Pending' && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  approveAdmission(adm.id);
-                                  setWhatsappToast(adm.parentName);
-                                  setTimeout(() => setWhatsappToast(null), 3000);
-                                }}
-                                className="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold"
-                              >✓ Approve</button>
-                              <button
-                                onClick={() => rejectAdmission(adm.id)}
-                                className="px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold"
-                              >✗ Reject</button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {(!admissions || admissions.length === 0) && (
-                      <tr><td colSpan={8} className="p-8 text-center text-slate-400 italic">No admission applications yet.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                            type="button"
+                            onClick={() => {
+                              rejectAdmission(selectedAdmission.id);
+                              setSelectedAdmission(null);
+                              setEditingAdmission(null);
+                            }}
+                            className="bg-red-500 hover:bg-red-650 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div className="p-8 text-center glassmorphism rounded-2xl border text-slate-400 italic text-xs font-light">
+                  Select an application row to view details, toggle field-level highlight stars, or update candidate information.
+                </div>
+              )}
             </div>
           </div>
 
@@ -903,10 +1209,10 @@ export default function SuperAdminPortal() {
                   <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border text-xs">
                     <span className="text-emerald-500 text-lg">📱</span>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-white">{log.recipientName || log.to}</p>
+                      <p className="font-bold text-slate-900 dark:text-white">{log.studentName || log.recipientName || log.to}</p>
                       <p className="text-[10px] text-slate-400">{log.message}</p>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">{log.timestamp || log.date}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{log.sentAt || log.timestamp || log.date}</span>
                   </div>
                 ))
               )}
@@ -2829,6 +3135,105 @@ export default function SuperAdminPortal() {
         />
       )}
 
+      {/* ───── LEAVES TAB ───── */}
+      {activeTab === 'Leaves' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-extrabold font-montserrat">Student Leave Applications</h2>
+            <div className="flex gap-2">
+              {['Pending', 'Approved', 'Rejected'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setLeaveFilter(s)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    leaveFilter === s 
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:bg-slate-200'
+                  }`}
+                >
+                  {s} ({leaveRequests.filter(l => l.status === s).length})
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 font-light mt-1">Global monitor and review panel for student leave applications.</p>
+          <div className="w-12 h-1 bg-blue-600 rounded"></div>
+
+          <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="p-4">Student Name</th>
+                    <th className="p-4">Class &amp; Sec</th>
+                    <th className="p-4">Leave Type</th>
+                    <th className="p-4">Dates</th>
+                    <th className="p-4">Reason</th>
+                    <th className="p-4">Admin message / Response</th>
+                    {leaveFilter === 'Pending' && <th className="p-4 text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                  {leaveRequests.filter(l => l.status === leaveFilter).map((leave) => (
+                    <tr key={leave.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                      <td className="p-4 font-bold text-slate-900 dark:text-white">{leave.studentName}</td>
+                      <td className="p-4 font-semibold">{leave.class} - {leave.section}</td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                          {leave.leaveType}
+                        </span>
+                      </td>
+                      <td className="p-4 font-medium text-slate-650 dark:text-slate-355">{leave.startDate} to {leave.endDate}</td>
+                      <td className="p-4 text-slate-550 dark:text-slate-405 italic">"{leave.reason}"</td>
+                      <td className="p-4">
+                        {leave.status === 'Pending' ? (
+                          <input
+                            type="text"
+                            placeholder="Write a message (e.g. Get well soon)..."
+                            value={adminFeedbackMsg[leave.id] || ''}
+                            onChange={(e) => setAdminFeedbackMsg({ ...adminFeedbackMsg, [leave.id]: e.target.value })}
+                            className="px-2 py-1.5 w-full border rounded-lg bg-white/70 dark:bg-slate-900/50 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <p className="text-slate-650 dark:text-slate-300 italic font-mono">"{leave.adminMessage || 'No feedback message.'}"</p>
+                        )}
+                      </td>
+                      {leave.status === 'Pending' && (
+                        <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              const msg = adminFeedbackMsg[leave.id] || 'Approved.';
+                              updateLeaveStatus(leave.id, 'Approved', msg);
+                              alert('Leave application approved.');
+                            }}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              const msg = adminFeedbackMsg[leave.id] || 'Rejected.';
+                              updateLeaveStatus(leave.id, 'Rejected', msg);
+                              alert('Leave application rejected.');
+                            }}
+                            className="px-2.5 py-1 bg-red-500 hover:bg-red-650 text-white rounded text-[10px] font-bold cursor-pointer"
+                          >
+                            ✗ Reject
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {leaveRequests.filter(l => l.status === leaveFilter).length === 0 && (
+                    <tr><td colSpan={leaveFilter === 'Pending' ? 7 : 6} className="p-8 text-center text-slate-400 italic">No leave applications found with status: {leaveFilter}</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Audit Logs tab */}
       {activeTab === 'Audit Logs' && (
         <div className="space-y-6">
@@ -2868,6 +3273,7 @@ export default function SuperAdminPortal() {
           </div>
         </div>
       )}
+      </div>
 
       {/* ───── FACILITIES TAB ───── */}
       {activeTab === 'Facilities' && (

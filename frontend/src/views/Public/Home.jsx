@@ -277,7 +277,7 @@ export default function Home({ onNavigate }) {
               100% { transform: translateY(-50%); }
             }
             .scroll-ticker-active {
-              animation: vertical-scroll 24s linear infinite;
+              animation: vertical-scroll 32s linear infinite;
             }
             .scroll-ticker-active:hover {
               animation-play-state: paused;
@@ -323,7 +323,7 @@ export default function Home({ onNavigate }) {
           </div>
 
           {/* Right Column: Live Scrolling News Ticker ("What's New") */}
-          <div className="md:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl border border-slate-800/80 flex flex-col overflow-hidden relative min-h-[350px] text-left">
+          <div className="md:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl border border-slate-800/80 flex flex-col overflow-hidden relative h-[290px] text-left">
             <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-10"></div>
             <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-indigo-950 to-transparent pointer-events-none z-10"></div>
 

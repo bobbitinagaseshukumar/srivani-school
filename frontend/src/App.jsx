@@ -72,6 +72,13 @@ export default function App() {
     setMounted(true);
   }, []);
 
+  // Imperatively sync video muted state to avoid React lag/diffing bugs with muted attribute
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
   // Handle video playback and autoplay unmuted fallback on showIntro
   useEffect(() => {
     let interactionListener = null;
@@ -88,6 +95,7 @@ export default function App() {
 
         // Try playing unmuted first (often allowed on link click or tab load)
         video.muted = false;
+        video.volume = 1.0;
         setIsMuted(false);
         try {
           await video.play();
@@ -112,8 +120,11 @@ export default function App() {
           interactionListener = () => {
             if (videoRef.current) {
               videoRef.current.muted = false;
+              videoRef.current.volume = 1.0;
               setIsMuted(false);
-              videoRef.current.play().catch(e => console.log("Play failed on interaction:", e));
+              if (videoRef.current.paused) {
+                videoRef.current.play().catch(e => console.log("Play failed on interaction:", e));
+              }
             }
             cleanupListeners();
           };
@@ -144,6 +155,30 @@ export default function App() {
       };
     }
   }, [showIntro]);
+
+  // Lock scrolling on document body and html while intro is active to prevent mobile layout scrolling
+  useEffect(() => {
+    if (showIntro && !isIntroFading) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      const preventTouchScroll = (e) => {
+        e.preventDefault();
+      };
+      
+      // Block touch gestures for scrolling
+      window.addEventListener('touchmove', preventTouchScroll, { passive: false });
+      
+      return () => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        window.removeEventListener('touchmove', preventTouchScroll);
+      };
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+  }, [showIntro, isIntroFading]);
 
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
@@ -282,8 +317,9 @@ export default function App() {
           {/* Dynamic Fullscreen Video Object-Cover to fill phone/laptop ratios */}
           <video 
             ref={videoRef}
-            className="w-full h-full object-contain md:object-cover scale-[1.01]"
+            className="w-full h-full object-cover scale-[1.01] pointer-events-none"
             src="/srivani_school_logo.mp4"
+            autoPlay
             playsInline
             muted={isMuted}
             onEnded={handleCloseIntro}
@@ -291,37 +327,12 @@ export default function App() {
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-
           {/* Custom Premium Cinematic Controls (Bottom of screen) */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
-            {/* Play/Pause Toggle */}
-            <button
-              onClick={handleTogglePlay}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all focus:outline-none flex items-center justify-center cursor-pointer"
-              title={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-            </button>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/20"></div>
-
-            {/* Mute/Unmute Toggle */}
-            <button
-              onClick={handleToggleMute}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all focus:outline-none flex items-center justify-center cursor-pointer"
-              title={isMuted ? 'Unmute' : 'Mute'}
-            >
-              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/20"></div>
-
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
             {/* Skip Option */}
             <button
               onClick={handleCloseIntro}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer"
             >
               Skip ➔
             </button>
