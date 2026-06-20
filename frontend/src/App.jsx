@@ -49,6 +49,17 @@ export default function App() {
     }, 1000); // Smooth 1-second transition to settle back
   };
 
+  const handleUserInteraction = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1.0;
+      setIsMuted(false);
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(e => console.log("Play failed on interaction:", e));
+      }
+    }
+  };
+
   const handleTogglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -118,14 +129,7 @@ export default function App() {
 
           // Unmute as soon as the user touches, clicks, or scrolls anywhere on the document
           interactionListener = () => {
-            if (videoRef.current) {
-              videoRef.current.muted = false;
-              videoRef.current.volume = 1.0;
-              setIsMuted(false);
-              if (videoRef.current.paused) {
-                videoRef.current.play().catch(e => console.log("Play failed on interaction:", e));
-              }
-            }
+            handleUserInteraction();
             cleanupListeners();
           };
 
@@ -310,7 +314,8 @@ export default function App() {
       {/* Cinematic Splash Screen Video Intro */}
       {showIntro && (
         <div 
-          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out ${
+          onClick={handleUserInteraction}
+          className={`fixed inset-0 z-[9999] bg-[#000000] overflow-hidden transition-opacity duration-1000 ease-in-out h-[100dvh] w-screen cursor-pointer ${
             isIntroFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -328,7 +333,7 @@ export default function App() {
             onPause={() => setIsPlaying(false)}
           />
           {/* Custom Premium Cinematic Controls (Bottom of screen) */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
+          <div className="absolute bottom-12 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 hover:border-white/20">
             {/* Skip Option */}
             <button
               onClick={handleCloseIntro}
