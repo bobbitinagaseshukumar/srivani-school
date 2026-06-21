@@ -708,11 +708,19 @@ export const AppProvider = ({ children }) => {
   }, [admissionBanner]);
 
   useEffect(() => {
-    localStorage.setItem('school_teachers', JSON.stringify(teachers));
+    try {
+      localStorage.setItem('school_teachers', JSON.stringify(teachers));
+    } catch (e) {
+      console.warn('LocalStorage quota exceeded for teachers. Photo data may be too large.', e);
+    }
   }, [teachers]);
 
   useEffect(() => {
-    localStorage.setItem('school_students', JSON.stringify(students));
+    try {
+      localStorage.setItem('school_students', JSON.stringify(students));
+    } catch (e) {
+      console.warn('LocalStorage quota exceeded for students. Photo data may be too large.', e);
+    }
   }, [students]);
 
   useEffect(() => {

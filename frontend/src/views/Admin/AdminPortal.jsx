@@ -488,8 +488,9 @@ export default function AdminPortal() {
                   <input 
                     type="text" 
                     placeholder="— or paste photo link URL —" 
-                    value={enrollForm.photo} 
+                    value={enrollForm.photo && enrollForm.photo.startsWith('data:') ? '✅ Photo uploaded (cropped)' : enrollForm.photo} 
                     onChange={(e) => setEnrollForm(prev => ({ ...prev, photo: e.target.value }))} 
+                    readOnly={enrollForm.photo && enrollForm.photo.startsWith('data:')} 
                     className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
                   />
                 </div>
@@ -1868,6 +1869,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const imageRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(0);
 
   useEffect(() => {
     const img = new Image();
@@ -1877,22 +1879,15 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       setZoom(1);
       setOffsetX(0);
       setOffsetY(0);
-      draw();
+      setImageLoaded(c => c + 1);
     };
   }, [src]);
 
   useEffect(() => {
-    if (imageRef.current) {
-      draw();
-    }
-  }, [zoom, offsetX, offsetY, cropShape]);
-
-  const draw = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
     const img = imageRef.current;
-    if (!img) return;
+    if (!canvas || !img) return;
+    const ctx = canvas.getContext('2d');
 
     const ratio = Math.max(200 / img.width, 200 / img.height);
     const imgWidth = img.width * ratio;
@@ -1928,7 +1923,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       ctx.rect(50, 50, 200, 200);
     }
     ctx.stroke();
-  };
+  }, [zoom, offsetX, offsetY, cropShape, src, imageLoaded]);
 
   const handleMouseDown = (e) => {
     isDragging.current = true;

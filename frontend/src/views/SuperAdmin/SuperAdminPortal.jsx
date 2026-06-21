@@ -1627,13 +1627,20 @@ export default function SuperAdminPortal() {
                       />
                     </label>
                   </div>
-                  <input 
-                    type="text" 
-                    placeholder="— or paste photo link URL —" 
-                    value={teacherForm.photo} 
-                    onChange={(e) => setTeacherForm(prev => ({ ...prev, photo: e.target.value }))} 
-                    className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
-                  />
+                  {teacherForm.photo && teacherForm.photo.startsWith('data:') ? (
+                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
+                      ✅ Photo uploaded (cropped)
+                      <button type="button" onClick={() => setTeacherForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      placeholder="— or paste photo link URL —" 
+                      value={teacherForm.photo} 
+                      onChange={(e) => setTeacherForm(prev => ({ ...prev, photo: e.target.value }))} 
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                    />
+                  )}
                 </div>
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
@@ -1890,13 +1897,20 @@ export default function SuperAdminPortal() {
                       />
                     </label>
                   </div>
-                  <input 
-                    type="text" 
-                    placeholder="— or paste photo link URL —" 
-                    value={studentForm.photo} 
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, photo: e.target.value }))} 
-                    className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
-                  />
+                  {studentForm.photo && studentForm.photo.startsWith('data:') ? (
+                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
+                      ✅ Photo uploaded (cropped)
+                      <button type="button" onClick={() => setStudentForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      placeholder="— or paste photo link URL —" 
+                      value={studentForm.photo} 
+                      onChange={(e) => setStudentForm(prev => ({ ...prev, photo: e.target.value }))} 
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                    />
+                  )}
                 </div>
 
               </div>
@@ -1947,7 +1961,11 @@ export default function SuperAdminPortal() {
                   }).map((stud) => (
                     <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <img src={stud.photo} alt="" className="w-7 h-7 rounded-full object-cover border" />
+                        {stud.photo ? (
+                          <img src={stud.photo} alt="" className="w-7 h-7 rounded-full object-cover border" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">{stud.name?.charAt(0)?.toUpperCase() || 'S'}</div>
+                        )}
                         {stud.name}
                       </td>
                       <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">{stud.registerNo}</td>
@@ -5379,6 +5397,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const imageRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(0);
 
   useEffect(() => {
     const img = new Image();
@@ -5388,22 +5407,15 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       setZoom(1);
       setOffsetX(0);
       setOffsetY(0);
-      draw();
+      setImageLoaded(c => c + 1);
     };
   }, [src]);
 
   useEffect(() => {
-    if (imageRef.current) {
-      draw();
-    }
-  }, [zoom, offsetX, offsetY, cropShape]);
-
-  const draw = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
     const img = imageRef.current;
-    if (!img) return;
+    if (!canvas || !img) return;
+    const ctx = canvas.getContext('2d');
 
     const ratio = Math.max(200 / img.width, 200 / img.height);
     const imgWidth = img.width * ratio;
@@ -5439,7 +5451,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       ctx.rect(50, 50, 200, 200);
     }
     ctx.stroke();
-  };
+  }, [zoom, offsetX, offsetY, cropShape, src, imageLoaded]);
 
   const handleMouseDown = (e) => {
     isDragging.current = true;
