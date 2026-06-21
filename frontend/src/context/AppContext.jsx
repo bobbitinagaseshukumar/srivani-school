@@ -358,9 +358,7 @@ export const AppProvider = ({ children }) => {
 
   const [managementCommittee, setManagementCommittee] = useState(() => {
     return readStoredValue('school_management_committee', [
-      { id: 'm1', name: 'K Dasaratha Rami Reddy', role: 'Principal & Director', qual: 'M.Ed / M.Sc, Educational Leadership', photo: '/principal.jpg' },
-      { id: 'm2', name: 'Robert Vance', role: 'Chairman, Management Committee', qual: 'MBA (Harvard Business School)', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
-      { id: 'm3', name: 'Dr. Evelyn Carter', role: 'Vice Principal', qual: 'Ph.D. in Child Psychology', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }
+      { id: 'm1', name: 'K Dasaratha Rami Reddy', role: 'Principal & Director', qual: 'M.Ed / M.Sc, Educational Leadership', photo: '/principal.jpg' }
     ]);
   });
 

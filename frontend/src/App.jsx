@@ -32,7 +32,7 @@ export default function App() {
   const [mounted, setMounted] = useState(false);
   const [showIntro, setShowIntro] = useState(true); // Active immediately on first render
   const [isIntroFading, setIsIntroFading] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Try unmuted by default
+  const [isMuted, setIsMuted] = useState(true); // Muted by default for browser autoplay compatibility
   const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
