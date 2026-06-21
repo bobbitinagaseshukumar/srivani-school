@@ -21,6 +21,17 @@ const parseSlot = (slot) => {
 
 const getSubjectStyle = (subject) => {
   const cleanSub = (subject || '').toUpperCase().trim();
+  
+  if (cleanSub.includes('FREE PERIOD') || cleanSub === '') {
+    return {
+      bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
+      text: 'text-slate-500 dark:text-slate-400',
+      tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+      accent: 'border-l-4 border-l-slate-400'
+    };
+  }
+
+  // Predefined primary mappings for key subjects
   if (cleanSub.includes('PHYSICS')) {
     return {
       bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
@@ -29,7 +40,31 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-blue-500'
     };
   }
-  if (cleanSub.includes('MATH')) {
+  if (cleanSub.includes('CHEMISTRY')) {
+    return {
+      bg: 'bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50',
+      text: 'text-orange-700 dark:text-orange-350',
+      tag: 'bg-orange-100 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300',
+      accent: 'border-l-4 border-l-orange-500'
+    };
+  }
+  if (cleanSub.includes('BIOLOGY')) {
+    return {
+      bg: 'bg-green-50 dark:bg-green-950/30 border-green-100 dark:border-green-900/50',
+      text: 'text-green-700 dark:text-green-350',
+      tag: 'bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-300',
+      accent: 'border-l-4 border-l-green-500'
+    };
+  }
+  if (cleanSub.includes('SCIENCE') || cleanSub.includes('EVS')) {
+    return {
+      bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50',
+      text: 'text-teal-700 dark:text-teal-350',
+      tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-350',
+      accent: 'border-l-4 border-l-teal-500'
+    };
+  }
+  if (cleanSub.includes('MATH') || cleanSub.includes('ALGEBRA')) {
     return {
       bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
       text: 'text-purple-700 dark:text-purple-350',
@@ -45,7 +80,39 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-amber-500'
     };
   }
-  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK') || cleanSub.includes('COMPUTER')) {
+  if (cleanSub.includes('HINDI')) {
+    return {
+      bg: 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50',
+      text: 'text-rose-700 dark:text-rose-350',
+      tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300',
+      accent: 'border-l-4 border-l-rose-500'
+    };
+  }
+  if (cleanSub.includes('TELUGU')) {
+    return {
+      bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50',
+      text: 'text-indigo-700 dark:text-indigo-350',
+      tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300',
+      accent: 'border-l-4 border-l-indigo-500'
+    };
+  }
+  if (cleanSub.includes('SANSKRIT') || cleanSub.includes('SOCIAL') || cleanSub.includes('CIVICS') || cleanSub.includes('HISTORY') || cleanSub.includes('GEOGRAPHY')) {
+    return {
+      bg: 'bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/50',
+      text: 'text-violet-700 dark:text-violet-350',
+      tag: 'bg-violet-100 dark:bg-violet-900/60 text-violet-800 dark:text-violet-300',
+      accent: 'border-l-4 border-l-violet-500'
+    };
+  }
+  if (cleanSub.includes('COMPUTER') || cleanSub.includes('IT') || cleanSub.includes('CODING')) {
+    return {
+      bg: 'bg-cyan-50 dark:bg-cyan-950/30 border-cyan-100 dark:border-cyan-900/50',
+      text: 'text-cyan-700 dark:text-cyan-350',
+      tag: 'bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-300',
+      accent: 'border-l-4 border-l-cyan-500'
+    };
+  }
+  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK')) {
     return {
       bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50',
       text: 'text-emerald-700 dark:text-emerald-350',
@@ -53,11 +120,46 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-emerald-500'
     };
   }
+  if (cleanSub.includes('ART') || cleanSub.includes('MUSIC') || cleanSub.includes('DRAWING') || cleanSub.includes('CRAFT')) {
+    return {
+      bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30 border-fuchsia-100 dark:border-fuchsia-900/50',
+      text: 'text-fuchsia-700 dark:text-fuchsia-350',
+      tag: 'bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-300',
+      accent: 'border-l-4 border-l-fuchsia-500'
+    };
+  }
+  if (cleanSub.includes('SPORTS') || cleanSub.includes('PHYSICAL') || cleanSub.includes('PE') || cleanSub.includes('GAMES') || cleanSub.includes('PLAY')) {
+    return {
+      bg: 'bg-lime-50 dark:bg-lime-950/30 border-lime-100 dark:border-lime-900/50',
+      text: 'text-lime-700 dark:text-lime-350',
+      tag: 'bg-lime-100 dark:bg-lime-900/60 text-lime-800 dark:text-lime-300',
+      accent: 'border-l-4 border-l-lime-500'
+    };
+  }
+
+  // Hash-based dynamic fallback colors to guarantee colorful display for any class subjects
+  const colors = [
+    { color: 'blue', border: 'border-blue-100 dark:border-blue-900/50', bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-700 dark:text-blue-350', tag: 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300', accent: 'border-l-4 border-l-blue-500' },
+    { color: 'purple', border: 'border-purple-100 dark:border-purple-900/50', bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-700 dark:text-purple-350', tag: 'bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300', accent: 'border-l-4 border-l-purple-500' },
+    { color: 'amber', border: 'border-amber-100 dark:border-amber-900/50', bg: 'bg-amber-50 dark:bg-amber-950/30', text: 'text-amber-700 dark:text-amber-350', tag: 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300', accent: 'border-l-4 border-l-amber-500' },
+    { color: 'emerald', border: 'border-emerald-100 dark:border-emerald-900/50', bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-700 dark:text-emerald-350', tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300', accent: 'border-l-4 border-l-emerald-500' },
+    { color: 'pink', border: 'border-pink-100 dark:border-pink-900/50', bg: 'bg-pink-50 dark:bg-pink-950/30', text: 'text-pink-700 dark:text-pink-350', tag: 'bg-pink-100 dark:bg-pink-900/60 text-pink-800 dark:text-pink-300', accent: 'border-l-4 border-l-pink-500' },
+    { color: 'indigo', border: 'border-indigo-100 dark:border-indigo-900/50', bg: 'bg-indigo-50 dark:bg-indigo-950/30', text: 'text-indigo-700 dark:text-indigo-350', tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300', accent: 'border-l-4 border-l-indigo-500' },
+    { color: 'teal', border: 'border-teal-100 dark:border-teal-900/50', bg: 'bg-teal-50 dark:bg-teal-950/30', text: 'text-teal-700 dark:text-teal-350', tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300', accent: 'border-l-4 border-l-teal-500' },
+    { color: 'rose', border: 'border-rose-100 dark:border-rose-900/50', bg: 'bg-rose-50 dark:bg-rose-950/30', text: 'text-rose-700 dark:text-rose-350', tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300', accent: 'border-l-4 border-l-rose-500' }
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < cleanSub.length; i++) {
+    hash = cleanSub.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  const picked = colors[index];
   return {
-    bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
-    text: 'text-slate-500 dark:text-slate-400',
-    tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
-    accent: 'border-l-4 border-l-slate-400'
+    bg: `${picked.bg} ${picked.border}`,
+    text: picked.text,
+    tag: picked.tag,
+    accent: picked.accent
   };
 };
 
@@ -119,10 +221,10 @@ export default function StudentPortal() {
     ex.class === studentObj.class && (ex.section === 'All' || ex.section === studentObj.section)
   );
 
-  // Dynamic Timetable matching class from Super Admin
+  // Dynamic Timetable matching class and section from Super Admin
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const timetable = daysOfWeek.map(d => {
-    const matched = timetables ? timetables.find(t => t.class === studentObj.class && t.day === d) : null;
+    const matched = timetables ? timetables.find(t => t.class === studentObj.class && (t.section || 'A') === (studentObj.section || 'A') && t.day === d) : null;
     return {
       day: d,
       slots: matched && matched.slots ? matched.slots : ['No period scheduled', 'No period scheduled', 'No period scheduled']
@@ -431,7 +533,7 @@ export default function StudentPortal() {
               <div className="overflow-x-auto">
                 {(() => {
                   const maxPeriods = timetables 
-                    ? Math.max(4, ...timetables.filter(t => t.class === studentObj.class).map(t => t.slots ? t.slots.length : 0)) 
+                    ? Math.max(4, ...timetables.filter(t => t.class === studentObj.class && (t.section || 'A') === (studentObj.section || 'A')).map(t => t.slots ? t.slots.length : 0)) 
                     : 4;
                   return (
                     <table className="w-full min-w-[650px] border-collapse">
@@ -447,7 +549,7 @@ export default function StudentPortal() {
                         {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                           .filter(d => {
                             if (d === 'Saturday' || d === 'Sunday') {
-                              return timetables && timetables.some(t => t.class === studentObj.class && t.day === d && t.slots && t.slots.some(slot => {
+                              return timetables && timetables.some(t => t.class === studentObj.class && (t.section || 'A') === (studentObj.section || 'A') && t.day === d && t.slots && t.slots.some(slot => {
                                 const parsed = parseSlot(slot);
                                 return parsed.subject && parsed.subject !== 'FREE PERIOD' && parsed.subject !== '';
                               }));
@@ -455,7 +557,7 @@ export default function StudentPortal() {
                             return true;
                           })
                           .map(d => {
-                            const matched = timetables ? timetables.find(t => t.class === studentObj.class && t.day === d) : null;
+                            const matched = timetables ? timetables.find(t => t.class === studentObj.class && (t.section || 'A') === (studentObj.section || 'A') && t.day === d) : null;
                             
                             return (
                               <tr key={d} className="hover:bg-slate-50/30 dark:hover:bg-slate-900/10">

@@ -971,12 +971,20 @@ export const AppProvider = ({ children }) => {
     if (isDuplicate) {
       return { success: false, message: `Register Number "${studentData.registerNo}" already exists in database.` };
     }
+    const maxNum = students.reduce((max, s) => {
+      const match = s.id ? s.id.match(/^S(\d+)$/) : null;
+      if (match) {
+        const num = parseInt(match[1], 10);
+        return num > max ? num : max;
+      }
+      return max;
+    }, 1000);
     const newStudent = {
       ...studentData,
       registerNo: cleanedReg,
       email: studentData.email ? studentData.email.trim().toLowerCase() : '',
-      id: `S${1001 + students.length}`,
-      attendancePct: 100.0,
+      id: `S${maxNum + 1}`,
+      attendancePct: 0,
       activeStatus: 'Active',
       schoolId: 'school-1'
     };
@@ -1066,10 +1074,18 @@ export const AppProvider = ({ children }) => {
     if (isDuplicate) {
       return { success: false, message: `Admin Email "${adminData.email}" already exists.` };
     }
+    const maxNum = admins.reduce((max, a) => {
+      const match = a.id ? a.id.match(/^ADM(\d+)$/) : null;
+      if (match) {
+        const num = parseInt(match[1], 10);
+        return num > max ? num : max;
+      }
+      return max;
+    }, 0);
     const newAdmin = {
       ...adminData,
       email: cleanedEmail,
-      id: `ADM${String(admins.length + 1).padStart(2, '0')}`,
+      id: `ADM${String(maxNum + 1).padStart(2, '0')}`,
       status: 'Active'
     };
     setAdmins(prev => [...prev, newAdmin]);
@@ -1107,16 +1123,40 @@ export const AppProvider = ({ children }) => {
   };
 
   const markAttendance = (attendanceList) => {
-    // attendanceList is array of { studentId, date, status, class, section }
-    const newRecords = attendanceList.map((rec, idx) => ({
+    // attendanceList is array of { studentId, date, status, class, section, session }
+    const listWithSession = attendanceList.map(rec => ({
+      ...rec,
+      session: rec.session || 'Morning'
+    }));
+
+    // Reconstruct next attendance array locally to compute correct stats
+    const currentAttendance = attendance || [];
+    const updatedPrev = currentAttendance.map(oldRec => {
+      const matchingNew = listWithSession.find(
+        newRec => newRec.studentId === oldRec.studentId &&
+                  newRec.date === oldRec.date &&
+                  (newRec.session || 'Morning') === (oldRec.session || 'Morning')
+      );
+      return matchingNew ? { ...oldRec, ...matchingNew } : oldRec;
+    });
+
+    const trulyNew = listWithSession.filter(newRec => 
+      !currentAttendance.some(oldRec => 
+        oldRec.studentId === newRec.studentId && 
+        oldRec.date === newRec.date && 
+        (oldRec.session || 'Morning') === (newRec.session || 'Morning')
+      )
+    ).map((rec, idx) => ({
       id: `att_${Date.now()}_${idx}`,
       ...rec
     }));
-    setAttendance(prev => [...newRecords, ...prev]);
+
+    const finalAttendance = [...trulyNew, ...updatedPrev];
+    setAttendance(finalAttendance);
 
     // Update students average attendance percentage
-    attendanceList.forEach(rec => {
-      const studentHistory = [...attendance, ...newRecords].filter(h => h.studentId === rec.studentId);
+    listWithSession.forEach(rec => {
+      const studentHistory = finalAttendance.filter(h => h.studentId === rec.studentId);
       const presents = studentHistory.filter(h => h.status === 'Present' || h.status === 'Half Day').length;
       const pct = studentHistory.length > 0 ? (presents / studentHistory.length) * 100 : 100;
 
@@ -1131,7 +1171,7 @@ export const AppProvider = ({ children }) => {
       }
     });
 
-    addAuditLog(currentUser.name, currentUser.role, `Recorded attendance for ${attendanceList.length} students`);
+    addAuditLog(currentUser.name, currentUser.role, `Recorded attendance for ${attendanceList.length} students (${listWithSession[0]?.session || 'Morning'})`);
   };
 
   const uploadMarks = (marksList) => {
@@ -1221,6 +1261,21 @@ export const AppProvider = ({ children }) => {
     addAuditLog(currentUser.name, currentUser.role, `Deleted Circular ID ${id}`);
   };
 
+  const deleteHomework = (id) => {
+    setHomework(prev => prev.filter(h => h.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Homework ID ${id}`);
+  };
+
+  const deleteNotes = (id) => {
+    setNotes(prev => prev.filter(n => n.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Study Notes ID ${id}`);
+  };
+
+  const deleteLiveClass = (id) => {
+    setLiveClasses(prev => prev.filter(lc => lc.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Live Class ID ${id}`);
+  };
+
   const createLiveClass = (classData) => {
     const newClass = {
       id: `lc_${Date.now()}`,
@@ -1265,12 +1320,12 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
-  const saveTimetable = (className, dayName, slotsArray) => {
+  const saveTimetable = (className, sectionName, dayName, slotsArray) => {
     setTimetables(prev => {
-      const filtered = prev.filter(t => !(t.class === className && t.day === dayName));
-      return [...filtered, { class: className, day: dayName, slots: slotsArray }];
+      const filtered = prev.filter(t => !(t.class === className && (t.section || 'A') === sectionName && t.day === dayName));
+      return [...filtered, { class: className, section: sectionName, day: dayName, slots: slotsArray }];
     });
-    addAuditLog(currentUser.name, currentUser.role, `Updated Timetable for ${className} on ${dayName}`);
+    addAuditLog(currentUser.name, currentUser.role, `Updated Timetable for ${className} Section ${sectionName} on ${dayName}`);
   };
 
   const saveClassFee = (className, yearName, tuitionFeeVal, labFeeVal, busFeeVal, booksFeeVal) => {
@@ -1580,10 +1635,13 @@ export const AppProvider = ({ children }) => {
       createHomework,
       submitHomework,
       evaluateHomework,
+      deleteHomework,
       createNotes,
+      deleteNotes,
       createCircular,
       deleteCircular,
       createLiveClass,
+      deleteLiveClass,
       createSupportTicket,
       replySupportTicket,
       toggleSchoolStatus,

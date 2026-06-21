@@ -39,6 +39,17 @@ const parseSlot = (slot) => {
 
 const getSubjectStyle = (subject) => {
   const cleanSub = (subject || '').toUpperCase().trim();
+  
+  if (cleanSub.includes('FREE PERIOD') || cleanSub === '') {
+    return {
+      bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
+      text: 'text-slate-500 dark:text-slate-400',
+      tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+      accent: 'border-l-4 border-l-slate-400'
+    };
+  }
+
+  // Predefined primary mappings for key subjects
   if (cleanSub.includes('PHYSICS')) {
     return {
       bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
@@ -47,7 +58,31 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-blue-500'
     };
   }
-  if (cleanSub.includes('MATH')) {
+  if (cleanSub.includes('CHEMISTRY')) {
+    return {
+      bg: 'bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50',
+      text: 'text-orange-700 dark:text-orange-350',
+      tag: 'bg-orange-100 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300',
+      accent: 'border-l-4 border-l-orange-500'
+    };
+  }
+  if (cleanSub.includes('BIOLOGY')) {
+    return {
+      bg: 'bg-green-50 dark:bg-green-950/30 border-green-100 dark:border-green-900/50',
+      text: 'text-green-700 dark:text-green-350',
+      tag: 'bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-300',
+      accent: 'border-l-4 border-l-green-500'
+    };
+  }
+  if (cleanSub.includes('SCIENCE') || cleanSub.includes('EVS')) {
+    return {
+      bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50',
+      text: 'text-teal-700 dark:text-teal-350',
+      tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-350',
+      accent: 'border-l-4 border-l-teal-500'
+    };
+  }
+  if (cleanSub.includes('MATH') || cleanSub.includes('ALGEBRA')) {
     return {
       bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
       text: 'text-purple-700 dark:text-purple-350',
@@ -63,7 +98,39 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-amber-500'
     };
   }
-  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK') || cleanSub.includes('COMPUTER')) {
+  if (cleanSub.includes('HINDI')) {
+    return {
+      bg: 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50',
+      text: 'text-rose-700 dark:text-rose-350',
+      tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300',
+      accent: 'border-l-4 border-l-rose-500'
+    };
+  }
+  if (cleanSub.includes('TELUGU')) {
+    return {
+      bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50',
+      text: 'text-indigo-700 dark:text-indigo-350',
+      tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300',
+      accent: 'border-l-4 border-l-indigo-500'
+    };
+  }
+  if (cleanSub.includes('SANSKRIT') || cleanSub.includes('SOCIAL') || cleanSub.includes('CIVICS') || cleanSub.includes('HISTORY') || cleanSub.includes('GEOGRAPHY')) {
+    return {
+      bg: 'bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/50',
+      text: 'text-violet-700 dark:text-violet-350',
+      tag: 'bg-violet-100 dark:bg-violet-900/60 text-violet-800 dark:text-violet-300',
+      accent: 'border-l-4 border-l-violet-500'
+    };
+  }
+  if (cleanSub.includes('COMPUTER') || cleanSub.includes('IT') || cleanSub.includes('CODING')) {
+    return {
+      bg: 'bg-cyan-50 dark:bg-cyan-950/30 border-cyan-100 dark:border-cyan-900/50',
+      text: 'text-cyan-700 dark:text-cyan-350',
+      tag: 'bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-300',
+      accent: 'border-l-4 border-l-cyan-500'
+    };
+  }
+  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK')) {
     return {
       bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50',
       text: 'text-emerald-700 dark:text-emerald-350',
@@ -71,11 +138,46 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-emerald-500'
     };
   }
+  if (cleanSub.includes('ART') || cleanSub.includes('MUSIC') || cleanSub.includes('DRAWING') || cleanSub.includes('CRAFT')) {
+    return {
+      bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30 border-fuchsia-100 dark:border-fuchsia-900/50',
+      text: 'text-fuchsia-700 dark:text-fuchsia-350',
+      tag: 'bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-300',
+      accent: 'border-l-4 border-l-fuchsia-500'
+    };
+  }
+  if (cleanSub.includes('SPORTS') || cleanSub.includes('PHYSICAL') || cleanSub.includes('PE') || cleanSub.includes('GAMES') || cleanSub.includes('PLAY')) {
+    return {
+      bg: 'bg-lime-50 dark:bg-lime-950/30 border-lime-100 dark:border-lime-900/50',
+      text: 'text-lime-700 dark:text-lime-350',
+      tag: 'bg-lime-100 dark:bg-lime-900/60 text-lime-800 dark:text-lime-300',
+      accent: 'border-l-4 border-l-lime-500'
+    };
+  }
+
+  // Hash-based dynamic fallback colors to guarantee colorful display for any class subjects
+  const colors = [
+    { color: 'blue', border: 'border-blue-100 dark:border-blue-900/50', bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-700 dark:text-blue-350', tag: 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300', accent: 'border-l-4 border-l-blue-500' },
+    { color: 'purple', border: 'border-purple-100 dark:border-purple-900/50', bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-700 dark:text-purple-350', tag: 'bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300', accent: 'border-l-4 border-l-purple-500' },
+    { color: 'amber', border: 'border-amber-100 dark:border-amber-900/50', bg: 'bg-amber-50 dark:bg-amber-950/30', text: 'text-amber-700 dark:text-amber-350', tag: 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300', accent: 'border-l-4 border-l-amber-500' },
+    { color: 'emerald', border: 'border-emerald-100 dark:border-emerald-900/50', bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-700 dark:text-emerald-350', tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300', accent: 'border-l-4 border-l-emerald-500' },
+    { color: 'pink', border: 'border-pink-100 dark:border-pink-900/50', bg: 'bg-pink-50 dark:bg-pink-950/30', text: 'text-pink-700 dark:text-pink-350', tag: 'bg-pink-100 dark:bg-pink-900/60 text-pink-800 dark:text-pink-300', accent: 'border-l-4 border-l-pink-500' },
+    { color: 'indigo', border: 'border-indigo-100 dark:border-indigo-900/50', bg: 'bg-indigo-50 dark:bg-indigo-950/30', text: 'text-indigo-700 dark:text-indigo-350', tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300', accent: 'border-l-4 border-l-indigo-500' },
+    { color: 'teal', border: 'border-teal-100 dark:border-teal-900/50', bg: 'bg-teal-50 dark:bg-teal-950/30', text: 'text-teal-700 dark:text-teal-350', tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300', accent: 'border-l-4 border-l-teal-500' },
+    { color: 'rose', border: 'border-rose-100 dark:border-rose-900/50', bg: 'bg-rose-50 dark:bg-rose-950/30', text: 'text-rose-700 dark:text-rose-350', tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300', accent: 'border-l-4 border-l-rose-500' }
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < cleanSub.length; i++) {
+    hash = cleanSub.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  const picked = colors[index];
   return {
-    bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
-    text: 'text-slate-500 dark:text-slate-400',
-    tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
-    accent: 'border-l-4 border-l-slate-400'
+    bg: `${picked.bg} ${picked.border}`,
+    text: picked.text,
+    tag: picked.tag,
+    accent: picked.accent
   };
 };
 
@@ -146,7 +248,7 @@ export default function SuperAdminPortal() {
   // Admin states
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminEditId, setAdminEditId] = useState(null);
-  const [adminForm, setAdminForm] = useState({ name: '', email: '', password: '' });
+  const [adminForm, setAdminForm] = useState({ name: '', email: '', password: '', photo: '' });
 
   // Teacher states
   const [showTeacherForm, setShowTeacherForm] = useState(false);
@@ -238,6 +340,7 @@ export default function SuperAdminPortal() {
 
   // Timetables states
   const [timetableClass, setTimetableClass] = useState('Class 10');
+  const [timetableSection, setTimetableSection] = useState('A');
   const [timetableDay, setTimetableDay] = useState('Monday');
   const [periodsCount, setPeriodsCount] = useState(4);
   const [period1Sub, setPeriod1Sub] = useState('PHYSICS');
@@ -284,7 +387,7 @@ export default function SuperAdminPortal() {
 
   // Handle timetable auto loading
   useEffect(() => {
-    const matched = timetables ? timetables.find(t => t.class === timetableClass && t.day === timetableDay) : null;
+    const matched = timetables ? timetables.find(t => t.class === timetableClass && (t.section || 'A') === timetableSection && t.day === timetableDay) : null;
     
     // Set default values for all 8 periods
     const defaultSubs = (timetableDay === 'Saturday' || timetableDay === 'Sunday')
@@ -311,7 +414,7 @@ export default function SuperAdminPortal() {
       if (num === 7) { setPeriod7Sub(sub); setPeriod7Time(time); }
       if (num === 8) { setPeriod8Sub(sub); setPeriod8Time(time); }
     };
-
+ 
     if (matched && matched.slots && matched.slots.length > 0) {
       setPeriodsCount(matched.slots.length);
       for (let i = 1; i <= 8; i++) {
@@ -329,7 +432,7 @@ export default function SuperAdminPortal() {
         setPeriodState(i, defaultSubs[i - 1] || 'FREE PERIOD', defaultTimes[i - 1]);
       }
     }
-  }, [timetableClass, timetableDay, timetables]);
+  }, [timetableClass, timetableSection, timetableDay, timetables]);
 
   // Handle fee auto loading
   useEffect(() => {
@@ -359,8 +462,8 @@ export default function SuperAdminPortal() {
     if (periodsCount >= 7) slots.push(`${period7Sub} (${period7Time})`);
     if (periodsCount >= 8) slots.push(`${period8Sub} (${period8Time})`);
     
-    saveTimetable(timetableClass, timetableDay, slots);
-    alert(`Timetable saved with ${periodsCount} periods for ${timetableClass} on ${timetableDay}.`);
+    saveTimetable(timetableClass, timetableSection, timetableDay, slots);
+    alert(`Timetable saved with ${periodsCount} periods for ${timetableClass} Section ${timetableSection} on ${timetableDay}.`);
   };
 
   const handleFeeSubmit = (e) => {
@@ -438,7 +541,7 @@ export default function SuperAdminPortal() {
       }
       alert('Admin created successfully.');
     }
-    setAdminForm({ name: '', email: '', password: '' });
+    setAdminForm({ name: '', email: '', password: '', photo: '' });
     setAdminEditId(null);
     setShowAdminForm(false);
   };
@@ -1439,9 +1542,8 @@ export default function SuperAdminPortal() {
       {activeTab === 'Admins' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="font-extrabold text-lg font-montserrat">School Administrator Accounts</h3>
-            <button 
-              onClick={() => { setShowAdminForm(!showAdminForm); setAdminEditId(null); setAdminForm({ name: '', email: '', password: '' }); }}
+                <button 
+              onClick={() => { setShowAdminForm(!showAdminForm); setAdminEditId(null); setAdminForm({ name: '', email: '', password: '', photo: '' }); }}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
             >
               {showAdminForm ? <X size={14} /> : <Plus size={14} />} {showAdminForm ? 'Close panel' : 'Create Admin Account'}
@@ -1453,7 +1555,7 @@ export default function SuperAdminPortal() {
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <Lock size={12} /> {adminEditId ? 'Edit Admin Credentials' : 'New Admin Registry'}
               </h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input 
                   type="text" required placeholder="Administrator Name" value={adminForm.name}
                   onChange={(e) => setAdminForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1482,6 +1584,53 @@ export default function SuperAdminPortal() {
                   {showAdminPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Admin Profile Photo</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full border bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center overflow-hidden shrink-0">
+                      {adminForm.photo ? (
+                        <img src={adminForm.photo} alt="Admin Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={20} className="text-slate-400" />
+                      )}
+                    </div>
+                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800 text-[11px] font-bold text-slate-655 dark:text-slate-300 transition-all">
+                      Choose Photo File
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setCropImageSrc(ev.target.result);
+                            setCropTarget('admin');
+                          };
+                          reader.readAsDataURL(file);
+                          e.target.value = '';
+                        }} 
+                      />
+                    </label>
+                  </div>
+                  {adminForm.photo && adminForm.photo.startsWith('data:') ? (
+                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
+                      ✅ Photo uploaded (cropped)
+                      <button type="button" onClick={() => setAdminForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      placeholder="— or paste photo link URL —" 
+                      value={adminForm.photo} 
+                      onChange={(e) => setAdminForm(prev => ({ ...prev, photo: e.target.value }))} 
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                    />
+                  )}
+                </div>
+              </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl">
                 {adminEditId ? 'Update Credentials' : 'Confirm Registration'}
               </button>
@@ -1504,7 +1653,12 @@ export default function SuperAdminPortal() {
                   {admins.map((adm) => (
                     <tr key={adm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <User size={14} className="text-blue-500" /> {adm.name}
+                        {adm.photo ? (
+                          <img src={adm.photo} alt={adm.name} className="w-5 h-5 object-cover rounded-full border shadow-sm shrink-0" />
+                        ) : (
+                          <User size={14} className="text-blue-500" />
+                        )}
+                        {adm.name}
                       </td>
                       <td className="p-4 font-mono">{adm.email}</td>
                       <td className="p-4 font-mono text-slate-450">
@@ -1534,7 +1688,7 @@ export default function SuperAdminPortal() {
                         <button 
                           onClick={() => {
                             setAdminEditId(adm.id);
-                            setAdminForm({ name: adm.name, email: adm.email, password: adm.password });
+                            setAdminForm({ name: adm.name, email: adm.email, password: adm.password, photo: adm.photo || '' });
                             setShowAdminForm(true);
                           }}
                           className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition"
@@ -1577,7 +1731,7 @@ export default function SuperAdminPortal() {
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <UserCheck size={12} /> {teacherEditId ? 'Edit Faculty Account' : 'New Teacher Account Registry'}
               </h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input 
                   type="text" required placeholder="Teacher Name" value={teacherForm.name}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1590,7 +1744,7 @@ export default function SuperAdminPortal() {
                   className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <select 
                   value={teacherForm.subject}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, subject: e.target.value }))}
@@ -1611,7 +1765,7 @@ export default function SuperAdminPortal() {
                   className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <input 
                   type="text" required placeholder="Designation (e.g. Senior Teacher)" value={teacherForm.designation}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, designation: e.target.value }))}
@@ -1628,7 +1782,7 @@ export default function SuperAdminPortal() {
                   className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input 
                   type="email" required placeholder="Email Address" value={teacherForm.email}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
@@ -1862,7 +2016,7 @@ export default function SuperAdminPortal() {
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Sparkles size={12} className="text-blue-500" /> {studentEditId ? 'Edit Student Profile' : 'New Student Enrollment Entry'}
               </h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input 
                   type="text" required placeholder="Student Full Name" value={studentForm.name}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1875,7 +2029,7 @@ export default function SuperAdminPortal() {
                   className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <input 
                   type="tel" required placeholder="Mobile Number" value={studentForm.phone}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, phone: e.target.value }))}
@@ -1897,7 +2051,7 @@ export default function SuperAdminPortal() {
                   <option value="B">Section B</option>
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input 
                   type="email" required placeholder="Student Email Address" value={studentForm.email}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
@@ -2264,15 +2418,29 @@ export default function SuperAdminPortal() {
               <form onSubmit={handleTimetableSubmit} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 text-left">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">Set Class Period Slots</h4>
                 
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold block mb-1">Select Grade / Class</label>
-                  <select 
-                    value={timetableClass} 
-                    onChange={(e) => setTimetableClass(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs"
-                  >
-                    {classesList.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Select Grade / Class</label>
+                    <select 
+                      value={timetableClass} 
+                      onChange={(e) => setTimetableClass(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs"
+                    >
+                      {classesList.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Select Section</label>
+                    <select 
+                      value={timetableSection} 
+                      onChange={(e) => setTimetableSection(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs"
+                    >
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
@@ -2732,13 +2900,13 @@ export default function SuperAdminPortal() {
                     <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">Interactive Class Timetable Grid</h4>
                     <p className="text-[9px] text-slate-400 mt-0.5">Real-time dynamic matrix preview for the selected grade level</p>
                   </div>
-                  <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{timetableClass} Preview</span>
+                  <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{timetableClass} - Sec {timetableSection} Preview</span>
                 </div>
                 
                 <div className="p-4 overflow-x-auto">
                   {(() => {
                     const maxPeriods = timetables 
-                      ? Math.max(4, ...timetables.filter(t => t.class === timetableClass).map(t => t.slots ? t.slots.length : 0)) 
+                      ? Math.max(4, ...timetables.filter(t => t.class === timetableClass && (t.section || 'A') === timetableSection).map(t => t.slots ? t.slots.length : 0)) 
                       : 4;
                     return (
                       <table className="w-full min-w-[600px] border-collapse">
@@ -2754,7 +2922,7 @@ export default function SuperAdminPortal() {
                           {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                             .filter(d => {
                               if (d === 'Saturday' || d === 'Sunday') {
-                                return timetables && timetables.some(t => t.class === timetableClass && t.day === d && t.slots && t.slots.some(slot => {
+                                return timetables && timetables.some(t => t.class === timetableClass && (t.section || 'A') === timetableSection && t.day === d && t.slots && t.slots.some(slot => {
                                   const parsed = parseSlot(slot);
                                   return parsed.subject && parsed.subject !== 'FREE PERIOD' && parsed.subject !== '';
                                 }));
@@ -2762,7 +2930,7 @@ export default function SuperAdminPortal() {
                               return true;
                             })
                             .map(d => {
-                            const matched = timetables ? timetables.find(t => t.class === timetableClass && t.day === d) : null;
+                            const matched = timetables ? timetables.find(t => t.class === timetableClass && (t.section || 'A') === timetableSection && t.day === d) : null;
                             
                             return (
                               <tr key={d} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
@@ -5437,6 +5605,8 @@ function SubjectsManagerPanel({ subjects, addSubject, editSubject, deleteSubject
               setStudentForm(prev => ({ ...prev, photo: croppedData }));
             } else if (cropTarget === 'teacher') {
               setTeacherForm(prev => ({ ...prev, photo: croppedData }));
+            } else if (cropTarget === 'admin') {
+              setAdminForm(prev => ({ ...prev, photo: croppedData }));
             }
             setCropImageSrc(null);
             setCropTarget(null);
@@ -5465,7 +5635,6 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
 
   useEffect(() => {
     const img = new Image();
-    img.src = src;
     img.onload = () => {
       imageRef.current = img;
       setZoom(1);
@@ -5473,6 +5642,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       setOffsetY(0);
       setImageLoaded(c => c + 1);
     };
+    img.src = src;
   }, [src]);
 
   useEffect(() => {

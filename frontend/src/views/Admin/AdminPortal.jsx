@@ -1873,7 +1873,6 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
 
   useEffect(() => {
     const img = new Image();
-    img.src = src;
     img.onload = () => {
       imageRef.current = img;
       setZoom(1);
@@ -1881,6 +1880,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
       setOffsetY(0);
       setImageLoaded(c => c + 1);
     };
+    img.src = src;
   }, [src]);
 
   useEffect(() => {

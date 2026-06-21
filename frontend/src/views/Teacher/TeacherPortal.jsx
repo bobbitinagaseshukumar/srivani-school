@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText } from 'lucide-react';
+import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText, Trash2 } from 'lucide-react';
 
 const parseSlot = (slot) => {
   if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
@@ -21,6 +21,17 @@ const parseSlot = (slot) => {
 
 const getSubjectStyle = (subject) => {
   const cleanSub = (subject || '').toUpperCase().trim();
+  
+  if (cleanSub.includes('FREE PERIOD') || cleanSub === '') {
+    return {
+      bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
+      text: 'text-slate-500 dark:text-slate-400',
+      tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+      accent: 'border-l-4 border-l-slate-400'
+    };
+  }
+
+  // Predefined primary mappings for key subjects
   if (cleanSub.includes('PHYSICS')) {
     return {
       bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
@@ -29,7 +40,31 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-blue-500'
     };
   }
-  if (cleanSub.includes('MATH')) {
+  if (cleanSub.includes('CHEMISTRY')) {
+    return {
+      bg: 'bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50',
+      text: 'text-orange-700 dark:text-orange-350',
+      tag: 'bg-orange-100 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300',
+      accent: 'border-l-4 border-l-orange-500'
+    };
+  }
+  if (cleanSub.includes('BIOLOGY')) {
+    return {
+      bg: 'bg-green-50 dark:bg-green-950/30 border-green-100 dark:border-green-900/50',
+      text: 'text-green-700 dark:text-green-350',
+      tag: 'bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-300',
+      accent: 'border-l-4 border-l-green-500'
+    };
+  }
+  if (cleanSub.includes('SCIENCE') || cleanSub.includes('EVS')) {
+    return {
+      bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50',
+      text: 'text-teal-700 dark:text-teal-350',
+      tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-350',
+      accent: 'border-l-4 border-l-teal-500'
+    };
+  }
+  if (cleanSub.includes('MATH') || cleanSub.includes('ALGEBRA')) {
     return {
       bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
       text: 'text-purple-700 dark:text-purple-350',
@@ -45,26 +80,94 @@ const getSubjectStyle = (subject) => {
       accent: 'border-l-4 border-l-amber-500'
     };
   }
-  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK') || cleanSub.includes('COMPUTER')) {
+  if (cleanSub.includes('HINDI')) {
     return {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50',
+      bg: 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50',
+      text: 'text-rose-700 dark:text-rose-350',
+      tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300',
+      accent: 'border-l-4 border-l-rose-500'
+    };
+  }
+  if (cleanSub.includes('TELUGU')) {
+    return {
+      bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50',
+      text: 'text-indigo-700 dark:text-indigo-350',
+      tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300',
+      accent: 'border-l-4 border-l-indigo-500'
+    };
+  }
+  if (cleanSub.includes('SANSKRIT') || cleanSub.includes('SOCIAL') || cleanSub.includes('CIVICS') || cleanSub.includes('HISTORY') || cleanSub.includes('GEOGRAPHY')) {
+    return {
+      bg: 'bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/50',
+      text: 'text-violet-700 dark:text-violet-350',
+      tag: 'bg-violet-100 dark:bg-violet-900/60 text-violet-800 dark:text-violet-300',
+      accent: 'border-l-4 border-l-violet-500'
+    };
+  }
+  if (cleanSub.includes('COMPUTER') || cleanSub.includes('IT') || cleanSub.includes('CODING')) {
+    return {
+      bg: 'bg-cyan-50 dark:bg-cyan-950/30 border-cyan-100 dark:border-cyan-900/50',
+      text: 'text-cyan-700 dark:text-cyan-350',
+      tag: 'bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-300',
+      accent: 'border-l-4 border-l-cyan-500'
+    };
+  }
+  if (cleanSub.includes('GENERALKNOWLEDGE') || cleanSub.includes('GK')) {
+    return {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-950/50',
       text: 'text-emerald-700 dark:text-emerald-350',
       tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300',
       accent: 'border-l-4 border-l-emerald-500'
     };
   }
+  if (cleanSub.includes('ART') || cleanSub.includes('MUSIC') || cleanSub.includes('DRAWING') || cleanSub.includes('CRAFT')) {
+    return {
+      bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30 border-fuchsia-100 dark:border-fuchsia-900/50',
+      text: 'text-fuchsia-700 dark:text-fuchsia-350',
+      tag: 'bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-300',
+      accent: 'border-l-4 border-l-fuchsia-500'
+    };
+  }
+  if (cleanSub.includes('SPORTS') || cleanSub.includes('PHYSICAL') || cleanSub.includes('PE') || cleanSub.includes('GAMES') || cleanSub.includes('PLAY')) {
+    return {
+      bg: 'bg-lime-50 dark:bg-lime-950/30 border-lime-100 dark:border-lime-900/50',
+      text: 'text-lime-700 dark:text-lime-350',
+      tag: 'bg-lime-100 dark:bg-lime-900/60 text-lime-800 dark:text-lime-300',
+      accent: 'border-l-4 border-l-lime-500'
+    };
+  }
+
+  // Hash-based dynamic fallback colors to guarantee colorful display for any class subjects
+  const colors = [
+    { color: 'blue', border: 'border-blue-100 dark:border-blue-900/50', bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-700 dark:text-blue-350', tag: 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300', accent: 'border-l-4 border-l-blue-500' },
+    { color: 'purple', border: 'border-purple-100 dark:border-purple-900/50', bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-700 dark:text-purple-350', tag: 'bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300', accent: 'border-l-4 border-l-purple-500' },
+    { color: 'amber', border: 'border-amber-100 dark:border-amber-900/50', bg: 'bg-amber-50 dark:bg-amber-950/30', text: 'text-amber-700 dark:text-amber-350', tag: 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300', accent: 'border-l-4 border-l-amber-500' },
+    { color: 'emerald', border: 'border-emerald-100 dark:border-emerald-900/50', bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-700 dark:text-emerald-350', tag: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300', accent: 'border-l-4 border-l-emerald-500' },
+    { color: 'pink', border: 'border-pink-100 dark:border-pink-900/50', bg: 'bg-pink-50 dark:bg-pink-950/30', text: 'text-pink-700 dark:text-pink-350', tag: 'bg-pink-100 dark:bg-pink-900/60 text-pink-800 dark:text-pink-300', accent: 'border-l-4 border-l-pink-500' },
+    { color: 'indigo', border: 'border-indigo-100 dark:border-indigo-900/50', bg: 'bg-indigo-50 dark:bg-indigo-950/30', text: 'text-indigo-700 dark:text-indigo-350', tag: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-350', accent: 'border-l-4 border-l-indigo-500' },
+    { color: 'teal', border: 'border-teal-100 dark:border-teal-900/50', bg: 'bg-teal-50 dark:bg-teal-950/30', text: 'text-teal-700 dark:text-teal-350', tag: 'bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-350', accent: 'border-l-4 border-l-teal-500' },
+    { color: 'rose', border: 'border-rose-100 dark:border-rose-900/50', bg: 'bg-rose-50 dark:bg-rose-950/30', text: 'text-rose-700 dark:text-rose-350', tag: 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-350', accent: 'border-l-4 border-l-rose-500' }
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < cleanSub.length; i++) {
+    hash = cleanSub.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  const picked = colors[index];
   return {
-    bg: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800',
-    text: 'text-slate-500 dark:text-slate-400',
-    tag: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
-    accent: 'border-l-4 border-l-slate-400'
+    bg: `${picked.bg} ${picked.border}`,
+    text: picked.text,
+    tag: picked.tag,
+    accent: picked.accent
   };
 };
 
 export default function TeacherPortal() {
   const { teachers, students, marks, homework, notes, liveClasses, circulars,
     attendance, notifications, markNotificationRead, currentUser, logoutUser, subjects, timetables,
-    markAttendance, uploadMarks, createHomework, evaluateHomework, createNotes, createLiveClass, createCircular,
+    markAttendance, uploadMarks, createHomework, evaluateHomework, deleteHomework, createNotes, deleteNotes,
+    createLiveClass, deleteLiveClass, createCircular, deleteCircular,
     leaveRequests, submitLeaveRequest } = useContext(AppContext);
 
   // Find the logged-in teacher's profile matching currentUser.id and retrieve their assigned subject.
@@ -94,6 +197,7 @@ export default function TeacherPortal() {
   const [selectedClass, setSelectedClass] = useState('Class 10');
   const [selectedSection, setSelectedSection] = useState('A');
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attendanceSession, setAttendanceSession] = useState('Morning');
 
   // Attendance grid tracking state (studentId -> status)
   const [attendanceSheet, setAttendanceSheet] = useState({});
@@ -159,10 +263,20 @@ export default function TeacherPortal() {
   const handleInitializeAttendance = () => {
     const sheet = {};
     activeStudents.forEach(s => {
-      sheet[s.id] = 'Present';
+      const existing = (attendance || []).find(
+        h => h.studentId === s.id && 
+             h.date === attendanceDate && 
+             (h.session || 'Morning') === (attendanceSession || 'Morning')
+      );
+      sheet[s.id] = existing ? existing.status : 'Present';
     });
     setAttendanceSheet(sheet);
   };
+
+  // Auto-load attendance sheet when class, section, date, session, or students list loads
+  useEffect(() => {
+    handleInitializeAttendance();
+  }, [selectedClass, selectedSection, attendanceDate, attendanceSession, students]);
 
   const handleSaveAttendance = () => {
     const logs = Object.keys(attendanceSheet).map(sId => ({
@@ -170,10 +284,11 @@ export default function TeacherPortal() {
       date: attendanceDate,
       status: attendanceSheet[sId],
       class: selectedClass,
-      section: selectedSection
+      section: selectedSection,
+      session: attendanceSession
     }));
     markAttendance(logs);
-    alert(`Attendance marked for ${logs.length} students in ${selectedClass}-${selectedSection}.`);
+    alert(`Attendance marked for ${logs.length} students in ${selectedClass}-${selectedSection} for ${attendanceSession} session.`);
   };
 
   const handleSaveMarks = () => {
@@ -398,8 +513,17 @@ export default function TeacherPortal() {
                 type="date" 
                 value={attendanceDate}
                 onChange={(e) => setAttendanceDate(e.target.value)}
-                className="px-3 py-1 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
               />
+
+              <select 
+                value={attendanceSession} 
+                onChange={(e) => setAttendanceSession(e.target.value)}
+                className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="Morning">Morning Session</option>
+                <option value="Afternoon">Afternoon Session</option>
+              </select>
 
               <button
                 onClick={handleInitializeAttendance}
@@ -662,7 +786,20 @@ export default function TeacherPortal() {
                       <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">{getSubjectName(hw.subject)} • {hw.class}</span>
                       <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{hw.title}</h4>
                     </div>
-                    <span className="text-[10px] text-red-500 font-semibold">Due: {hw.dueDate}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-red-500 font-semibold">Due: {hw.dueDate}</span>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete homework "${hw.title}"?`)) {
+                            deleteHomework(hw.id);
+                          }
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                        title="Delete Homework"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-light">{hw.description}</p>
@@ -795,9 +932,22 @@ export default function TeacherPortal() {
                   <div>
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{getSubjectName(item.subject)} • {item.class}</span>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                        item.status === 'Live' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'bg-slate-100 text-slate-500 dark:bg-slate-900'
-                      }`}>{item.status}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                          item.status === 'Live' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'bg-slate-100 text-slate-500 dark:bg-slate-900'
+                        }`}>{item.status}</span>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete live class "${item.title}"?`)) {
+                              deleteLiveClass(item.id);
+                            }
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                          title="Delete Live Class"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-3">{item.title}</h4>
                     <p className="text-[10px] text-slate-450 mt-1">Time: {item.startTime} ({item.duration})</p>
@@ -916,7 +1066,20 @@ export default function TeacherPortal() {
                   <div>
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded">{getSubjectName(note.subject)} • {note.class}</span>
-                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{note.type}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{note.type}</span>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete notes "${note.title}"?`)) {
+                              deleteNotes(note.id);
+                            }
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                          title="Delete Study Notes"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-3">{note.title}</h4>
                     <p className="text-[10px] text-slate-450 mt-1">{note.chapter}</p>
@@ -995,7 +1158,22 @@ export default function TeacherPortal() {
                 <div key={notice.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-md space-y-2">
                   <div className="flex justify-between items-start">
                     <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">{notice.targetGroup}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">{notice.date}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 font-mono">{notice.date}</span>
+                      {notice.postedBy === currentUser.name && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete notice "${notice.title}"?`)) {
+                              deleteCircular(notice.id);
+                            }
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                          title="Delete Notice"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{notice.title}</h4>
                   <p className="text-xs text-slate-655 dark:text-slate-355 leading-relaxed font-light">{notice.content}</p>
