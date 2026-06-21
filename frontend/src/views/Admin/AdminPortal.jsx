@@ -21,20 +21,16 @@ export default function AdminPortal() {
     facilities, addFacility, editFacility, deleteFacility,
     addStudent, addParent,
     leaveRequests, updateLeaveStatus,
-    admissions, updateAdmissionFields, starredFormFields, toggleAdmissionFieldStar, approveAdmission, rejectAdmission,
-    galleryItems
+    admissions, updateAdmissionFields, starredFormFields, toggleAdmissionFieldStar, approveAdmission, rejectAdmission
   } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('Dashboard');
-  const [showGallerySelector, setShowGallerySelector] = useState(false);
   const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
   const [editingAdmission, setEditingAdmission] = useState(null);
   const [leaveFilter, setLeaveFilter] = useState('Pending');
   const [admissionFilter, setAdmissionFilter] = useState('Pending');
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [showEnrollPassword, setShowEnrollPassword] = useState(false);
-
-  const photoGalleryItems = (galleryItems || []).filter(item => item.type === 'image');
 
   const contentRef = React.useRef(null);
 
@@ -474,41 +470,6 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                {/* Gallery Selector */}
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowGallerySelector(!showGallerySelector)}
-                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    📁 Select from Gallery folder
-                  </button>
-                  {showGallerySelector && (
-                    <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900/60 border rounded-xl space-y-2">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Choose from Gallery Photos</p>
-                      {photoGalleryItems.length === 0 ? (
-                        <p className="text-[11px] text-slate-550 dark:text-slate-400">No photos uploaded in gallery yet. You can upload photos in the Gallery tab first.</p>
-                      ) : (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 scrollbar-thin">
-                          {photoGalleryItems.map(item => (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={() => {
-                                setEnrollForm(prev => ({ ...prev, photo: item.url }));
-                                setShowGallerySelector(false);
-                              }}
-                              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${enrollForm.photo === item.url ? 'border-blue-500 scale-105' : 'border-slate-200 dark:border-slate-800'}`}
-                              title={item.title}
-                            >
-                              <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
 
               <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 pt-2">Parent Information</h3>
