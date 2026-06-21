@@ -137,7 +137,7 @@ const initialAcademicCalendar = [];
 
 const initialAcademicPrograms = [];
 
-const DATA_VERSION = '6';
+const DATA_VERSION = '7';
 
 const readStoredValue = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
