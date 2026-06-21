@@ -72,10 +72,18 @@ export default function App() {
     }
   };
 
-  const handleToggleMute = () => {
+  const handleToggleMute = (e) => {
+    if (e) e.stopPropagation();
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setIsMuted(nextMuted);
+      if (!nextMuted) {
+        videoRef.current.volume = 1.0;
+        if (videoRef.current.paused) {
+          videoRef.current.play().catch(err => console.log("Play failed on unmute:", err));
+        }
+      }
     }
   };
 
@@ -83,12 +91,7 @@ export default function App() {
     setMounted(true);
   }, []);
 
-  // Imperatively sync video muted state to avoid React lag/diffing bugs with muted attribute
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
+  // Muted state synced imperatively inside user event handlers to prevent browser security blocking
 
   // Handle video playback and autoplay unmuted fallback on showIntro
   useEffect(() => {
@@ -367,19 +370,28 @@ export default function App() {
             autoPlay
             playsInline
             webkit-playsinline=""
-            muted={isMuted}
+            defaultMuted={true}
             preload="auto"
             onEnded={handleCloseIntro}
             onError={handleCloseIntro}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-          {/* Skip Button - fixed at bottom center */}
-          <div style={{ position: 'absolute', bottom: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
+          {/* Skip & Volume Controls - fixed at bottom center */}
+          <div style={{ position: 'absolute', bottom: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <button
+              onClick={handleToggleMute}
+              className="px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900/80 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg transition-all border border-white/10 flex items-center gap-1.5 focus:outline-none cursor-pointer hover:scale-105"
+              style={{ backdropFilter: 'blur(12px)', transition: 'all 0.2s ease-in-out' }}
+            >
+              {isMuted ? <VolumeX size={15} className="text-red-400" /> : <Volume2 size={15} className="text-emerald-400" />}
+              {isMuted ? 'Unmute' : 'Mute'}
+            </button>
+
             <button
               onClick={handleCloseIntro}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer"
-              style={{ backdropFilter: 'blur(12px)', background: 'linear-gradient(to right, #2563eb, #4f46e5)' }}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer hover:scale-105"
+              style={{ backdropFilter: 'blur(12px)', background: 'linear-gradient(to right, #2563eb, #4f46e5)', transition: 'all 0.2s ease-in-out' }}
             >
               Skip ➔
             </button>
