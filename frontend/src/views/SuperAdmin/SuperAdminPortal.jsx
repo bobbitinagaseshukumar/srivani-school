@@ -149,12 +149,12 @@ export default function SuperAdminPortal() {
   // Teacher states
   const [showTeacherForm, setShowTeacherForm] = useState(false);
   const [teacherEditId, setTeacherEditId] = useState(null);
-  const [teacherForm, setTeacherForm] = useState({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' });
+  const [teacherForm, setTeacherForm] = useState({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: '' });
 
   // Student states
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [studentEditId, setStudentEditId] = useState(null);
-  const [studentForm, setStudentForm] = useState({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80' });
+  const [studentForm, setStudentForm] = useState({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: '' });
   const [studentSearch, setStudentSearch] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('All');
   const [duplicateError, setDuplicateError] = useState('');
@@ -460,7 +460,7 @@ export default function SuperAdminPortal() {
       }
       alert('Teacher created successfully.');
     }
-    setTeacherForm({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' });
+    setTeacherForm({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: '' });
     setTeacherEditId(null);
     setShowTeacherForm(false);
   };
@@ -483,7 +483,7 @@ export default function SuperAdminPortal() {
       const res = addStudent(studentForm);
       if (res.success) {
         alert('Student registered successfully.');
-        setStudentForm({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80' });
+        setStudentForm({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: '' });
         setShowStudentForm(false);
       } else {
         setDuplicateError(res.message);
@@ -1509,7 +1509,7 @@ export default function SuperAdminPortal() {
           <div className="flex justify-between items-center">
             <h3 className="font-extrabold text-lg font-montserrat">Faculty & Teacher Registrations</h3>
             <button 
-              onClick={() => { setShowTeacherForm(!showTeacherForm); setTeacherEditId(null); setTeacherForm({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }); }}
+              onClick={() => { setShowTeacherForm(!showTeacherForm); setTeacherEditId(null); setTeacherForm({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: '' }); }}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
             >
               {showTeacherForm ? <X size={14} /> : <Plus size={14} />} {showTeacherForm ? 'Close panel' : 'Register New Faculty'}
@@ -1733,7 +1733,14 @@ export default function SuperAdminPortal() {
                 <FileSpreadsheet size={14} /> {showBulkImport ? 'Hide excel tool' : 'Paste spreadsheet data'}
               </button>
               <button 
-                onClick={() => { setShowStudentForm(!showStudentForm); setStudentEditId(null); setDuplicateError(''); }}
+                onClick={() => { 
+                  if (!showStudentForm) {
+                    setStudentForm({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: '' });
+                  }
+                  setShowStudentForm(!showStudentForm); 
+                  setStudentEditId(null); 
+                  setDuplicateError(''); 
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
               >
                 {showStudentForm ? <X size={14} /> : <Plus size={14} />} {showStudentForm ? 'Close form' : 'Enroll Student'}

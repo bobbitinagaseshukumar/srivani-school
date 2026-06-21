@@ -221,7 +221,7 @@ export default function AdminPortal() {
       parentName: enrollForm.parentName,
       parentPhone: enrollForm.parentPhone,
       emergencyContact: enrollForm.parentPhone,
-      photo: enrollForm.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      photo: enrollForm.photo || '',
       password: enrollForm.password
     });
     if (!studentResult.success) {
@@ -299,7 +299,17 @@ export default function AdminPortal() {
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (item.id === 'EnrollStudent') {
+                    setEnrollForm({
+                      name: '', registerNo: '', class: 'Class 10', section: 'A', password: '',
+                      phone: '', email: '', address: '',
+                      parentName: '', parentPhone: '', parentEmail: '',
+                      photo: ''
+                    });
+                  }
+                }}
                 className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all ${
                   activeTab === item.id 
                     ? 'bg-blue-600 text-white shadow font-bold' 
