@@ -1434,6 +1434,8 @@ export const AppProvider = ({ children }) => {
   const addInfraItem = (item) => { const newItem = { id: `infra_${Date.now()}`, ...item }; setHomepageInfra(prev => [...prev, newItem]); addAuditLog(currentUser.name, currentUser.role, `Added homepage infra item: ${newItem.title}`); };
   const deleteInfraItem = (id) => { setHomepageInfra(prev => prev.filter(item => item.id !== id)); addAuditLog(currentUser.name, currentUser.role, `Deleted homepage infra item: ${id}`); };
   const updateHomepageStat = (id, u) => { setHomepageStats(prev => prev.map(s => s.id === id ? { ...s, ...u } : s)); addAuditLog(currentUser.name, currentUser.role, `Updated homepage stat: ${id}`); };
+  const addHomepageStat = (stat) => { const newStat = { id: `stat_${Date.now()}`, icon: '🏆', ...stat }; setHomepageStats(prev => [...prev, newStat]); addAuditLog(currentUser.name, currentUser.role, `Added homepage stat: ${newStat.label}`); };
+  const deleteHomepageStat = (id) => { setHomepageStats(prev => prev.filter(s => s.id !== id)); addAuditLog(currentUser.name, currentUser.role, `Deleted homepage stat ID: ${id}`); };
 
   // ── Grading Management ──
   const updateGradingProcess = (title, description) => { setGradingProcess({ title, description }); addAuditLog(currentUser.name, currentUser.role, 'Updated grading process'); };
@@ -1573,7 +1575,7 @@ export const AppProvider = ({ children }) => {
       admissions, submitAdmission, approveAdmission, rejectAdmission,
       facilities, addFacility, editFacility, deleteFacility,
       homepageInfra, updateInfraItem, addInfraItem, deleteInfraItem,
-      homepageStats, updateHomepageStat,
+      homepageStats, updateHomepageStat, addHomepageStat, deleteHomepageStat,
       gradingProcess, updateGradingProcess,
       gradingScheme, updateGradingScheme,
       departments, addDepartment, editDepartment, deleteDepartment,

@@ -120,7 +120,7 @@ export default function SuperAdminPortal() {
     admissions, submitAdmission, approveAdmission, rejectAdmission,
     facilities, addFacility, editFacility, deleteFacility,
     homepageInfra, updateInfraItem, addInfraItem, deleteInfraItem,
-    homepageStats, updateHomepageStat,
+    homepageStats, updateHomepageStat, addHomepageStat, deleteHomepageStat,
     gradingProcess, updateGradingProcess,
     gradingScheme, updateGradingScheme,
     departments, addDepartment, editDepartment, deleteDepartment,
@@ -211,7 +211,9 @@ export default function SuperAdminPortal() {
   const [showInfraAddForm, setShowInfraAddForm] = useState(false);
   const [infraAddForm, setInfraAddForm] = useState({ title: '', description: '', image: '' });
   const [editingStatId, setEditingStatId] = useState(null);
-  const [statEditForm, setStatEditForm] = useState({ label: '', value: '' });
+  const [statEditForm, setStatEditForm] = useState({ label: '', value: '', icon: '' });
+  const [showStatAddForm, setShowStatAddForm] = useState(false);
+  const [statAddForm, setStatAddForm] = useState({ label: '', value: '', icon: '🏆' });
 
   // Gallery category manager states
   const [showGalCatForm, setShowGalCatForm] = useState(false);
@@ -3930,23 +3932,97 @@ export default function SuperAdminPortal() {
 
           {/* Statistics section */}
           <div className="space-y-4 border-t pt-6">
-            <div>
-              <h3 className="font-extrabold text-lg font-montserrat">Homepage Counter Statistics</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-light mt-0.5">Edit counter statistic numbers displayed on the homepage network (e.g. 500+ Students, 50+ Educators, etc.)</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-lg font-montserrat">Homepage Counter Statistics</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-light mt-0.5">Add, edit and manage counter statistic numbers displayed on the homepage network (e.g. 500+ Students, 50+ Educators, etc.)</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowStatAddForm(!showStatAddForm);
+                  setStatAddForm({ label: '', value: '', icon: '🏆' });
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow"
+              >
+                {showStatAddForm ? <X size={12} /> : <Plus size={12} />} {showStatAddForm ? 'Close form' : 'Add Stat'}
+              </button>
             </div>
+
+            {showStatAddForm && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!statAddForm.value || !statAddForm.label) return;
+                  addHomepageStat(statAddForm);
+                  alert('Homepage counter statistic added successfully.');
+                  setShowStatAddForm(false);
+                  setStatAddForm({ value: '', label: '', icon: '🏆' });
+                }}
+                className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-xl text-left"
+              >
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-450">Add New Counter Statistic</h4>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Value (e.g. 500+)</label>
+                      <input
+                        type="text" required placeholder="e.g. 500+"
+                        value={statAddForm.value}
+                        onChange={(e) => setStatAddForm(prev => ({ ...prev, value: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Icon Emoji (e.g. 🎓)</label>
+                      <input
+                        type="text" required placeholder="e.g. 🎓"
+                        value={statAddForm.icon}
+                        onChange={(e) => setStatAddForm(prev => ({ ...prev, icon: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Label Text</label>
+                    <input
+                      type="text" required placeholder="e.g. Students Enrolled"
+                      value={statAddForm.label}
+                      onChange={(e) => setStatAddForm(prev => ({ ...prev, label: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl">
+                    Add Stat
+                  </button>
+                </div>
+              </form>
+            )}
+
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {(homepageStats || []).map((stat) => (
                 <div key={stat.id} className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                   {editingStatId === stat.id ? (
                     <div className="space-y-3">
-                      <div>
-                        <label className="text-[9px] text-slate-400 font-bold uppercase block mb-1">Value (e.g. 500+)</label>
-                        <input
-                          type="text"
-                          value={statEditForm.value}
-                          onChange={(e) => setStatEditForm(prev => ({ ...prev, value: e.target.value }))}
-                          className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] text-slate-400 font-bold uppercase block mb-1">Value</label>
+                          <input
+                            type="text"
+                            value={statEditForm.value}
+                            onChange={(e) => setStatEditForm(prev => ({ ...prev, value: e.target.value }))}
+                            className="w-full px-3 py-1.5 border rounded-xl bg-white dark:bg-slate-950 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] text-slate-400 font-bold uppercase block mb-1">Icon Emoji</label>
+                          <input
+                            type="text"
+                            value={statEditForm.icon || ''}
+                            onChange={(e) => setStatEditForm(prev => ({ ...prev, icon: e.target.value }))}
+                            className="w-full px-3 py-1.5 border rounded-xl bg-white dark:bg-slate-950 text-xs focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="text-[9px] text-slate-400 font-bold uppercase block mb-1">Label Text</label>
@@ -3954,7 +4030,7 @@ export default function SuperAdminPortal() {
                           type="text"
                           value={statEditForm.label}
                           onChange={(e) => setStatEditForm(prev => ({ ...prev, label: e.target.value }))}
-                          className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-950 text-xs focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -3979,18 +4055,36 @@ export default function SuperAdminPortal() {
                   ) : (
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="text-2xl font-black text-blue-600 dark:text-blue-400">{stat.value}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{stat.icon || '🏆'}</span>
+                          <h4 className="text-2xl font-black text-blue-600 dark:text-blue-400">{stat.value}</h4>
+                        </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{stat.label}</p>
                       </div>
-                      <button
-                        onClick={() => {
-                          setEditingStatId(stat.id);
-                          setStatEditForm({ label: stat.label, value: stat.value });
-                        }}
-                        className="p-1 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded"
-                      >
-                        <Edit size={14} />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingStatId(stat.id);
+                            setStatEditForm({ label: stat.label, value: stat.value, icon: stat.icon || '🏆' });
+                          }}
+                          className="p-1 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded"
+                          title="Edit Stat"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete stat "${stat.label}"?`)) {
+                              deleteHomepageStat(stat.id);
+                              alert('Stat deleted successfully.');
+                            }
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded"
+                          title="Delete Stat"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

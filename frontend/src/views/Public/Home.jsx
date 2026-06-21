@@ -17,13 +17,17 @@ export default function Home({ onNavigate }) {
     return () => clearInterval(interval);
   }, [activeTestimonials.length]);
 
-  const iconMap = { '🎓': Users, '👨🏫': GraduationCap, '🏫': BookOpen, '🏆': Award };
-  const stats = (homepageStats || []).map((s, idx) => ({
-    label: s.label,
-    count: s.value,
-    icon: [Users, GraduationCap, Award, BookOpen][idx] || Award,
-    color: ['from-blue-500 to-indigo-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-600', 'from-fuchsia-500 to-pink-600'][idx] || 'from-blue-500 to-indigo-600'
-  }));
+  const iconMap = { '🎓': Users, '👨‍🏫': GraduationCap, '🏫': BookOpen, '🏆': Award };
+  const stats = (homepageStats || []).map((s, idx) => {
+    const resolvedIcon = iconMap[s.icon] || [Users, GraduationCap, Award, BookOpen][idx % 4] || Award;
+    return {
+      label: s.label,
+      count: s.value,
+      icon: resolvedIcon,
+      emoji: s.icon && !iconMap[s.icon] ? s.icon : null,
+      color: ['from-blue-500 to-indigo-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-600', 'from-fuchsia-500 to-pink-600'][idx % 4]
+    };
+  });
 
   const facilities = (homepageInfra || []).map(item => ({
     title: item.title,
@@ -142,7 +146,11 @@ export default function Home({ onNavigate }) {
                   className="glassmorphism p-4 sm:p-6 rounded-2xl shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-left group animate-bounce-in card-3d"
                 >
                   <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center text-white mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
-                    <stat.icon size={20} />
+                    {stat.emoji ? (
+                      <span className="text-xl sm:text-2xl">{stat.emoji}</span>
+                    ) : (
+                      <stat.icon size={20} />
+                    )}
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-extrabold font-montserrat">{stat.count}</h3>
                   <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{stat.label}</p>
