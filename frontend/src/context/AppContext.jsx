@@ -731,20 +731,22 @@ export const AppProvider = ({ children }) => {
     let userId = '';
     let resolvedRole = role;
 
+    const normalizedInput = emailOrId ? emailOrId.trim().toLowerCase() : '';
+
     // Direct override for Super Admin credentials to authenticate from any portal selection
-    if (emailOrId === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
+    if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
       name = 'Super Administrator';
       userId = 'SA001';
       success = true;
       resolvedRole = 'SuperAdmin';
     } else if (role === 'SuperAdmin') {
-      if (emailOrId === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
+      if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
         name = 'Super Administrator';
         userId = 'SA001';
         success = true;
       }
     } else if (role === 'Admin') {
-      const match = admins.find(a => a.email === emailOrId && a.status === 'Active');
+      const match = admins.find(a => a.email && a.email.trim().toLowerCase() === normalizedInput && a.status === 'Active');
       const expectedPassword = (match && match.password) || 'admin123';
       if (match && password === expectedPassword) {
         name = match.name;
@@ -752,7 +754,10 @@ export const AppProvider = ({ children }) => {
         success = true;
       }
     } else if (role === 'Teacher') {
-      const match = teachers.find(t => t.id === emailOrId || t.email === emailOrId);
+      const match = teachers.find(t => 
+        (t.id && t.id.trim().toLowerCase() === normalizedInput) || 
+        (t.email && t.email.trim().toLowerCase() === normalizedInput)
+      );
       const expectedPassword = (match && match.password) || 'teacher123';
       if (match && password === expectedPassword) {
         name = match.name;
@@ -760,7 +765,11 @@ export const AppProvider = ({ children }) => {
         success = true;
       }
     } else if (role === 'Student') {
-      const match = students.find(s => s.id === emailOrId || s.registerNo === emailOrId || s.email === emailOrId);
+      const match = students.find(s => 
+        (s.id && s.id.trim().toLowerCase() === normalizedInput) || 
+        (s.registerNo && s.registerNo.trim().toLowerCase() === normalizedInput) || 
+        (s.email && s.email.trim().toLowerCase() === normalizedInput)
+      );
       const expectedPassword = (match && match.password) || 'student123';
       if (match && password === expectedPassword) {
         name = match.name;
@@ -768,7 +777,10 @@ export const AppProvider = ({ children }) => {
         success = true;
       }
     } else if (role === 'Parent') {
-      const match = parents.find(p => p.id === emailOrId || p.email === emailOrId);
+      const match = parents.find(p => 
+        (p.id && p.id.trim().toLowerCase() === normalizedInput) || 
+        (p.email && p.email.trim().toLowerCase() === normalizedInput)
+      );
       const expectedPassword = (match && match.password) || 'parent123';
       if (match && password === expectedPassword) {
         name = match.name;
@@ -778,7 +790,7 @@ export const AppProvider = ({ children }) => {
     }
 
     if (success) {
-      const userObj = { role: resolvedRole, name, id: userId, emailOrId };
+      const userObj = { role: resolvedRole, name, id: userId, emailOrId: normalizedInput };
       setCurrentUser(userObj);
       addAuditLog(name, resolvedRole, 'Successfully logged into portal');
       addNotification('Security Alert', `New login session established for ${name}`, 'Security');
@@ -820,12 +832,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const addStudent = (studentData) => {
-    const isDuplicate = students.some(s => s.registerNo.trim().toUpperCase() === studentData.registerNo.trim().toUpperCase());
+    const cleanedReg = studentData.registerNo ? studentData.registerNo.trim() : '';
+    const isDuplicate = students.some(s => s.registerNo && s.registerNo.trim().toUpperCase() === cleanedReg.toUpperCase());
     if (isDuplicate) {
       return { success: false, message: `Register Number "${studentData.registerNo}" already exists in database.` };
     }
     const newStudent = {
       ...studentData,
+      registerNo: cleanedReg,
+      email: studentData.email ? studentData.email.trim().toLowerCase() : '',
       id: `S${1001 + students.length}`,
       attendancePct: 100.0,
       activeStatus: 'Active',
@@ -838,7 +853,10 @@ export const AppProvider = ({ children }) => {
   };
 
   const editStudent = (id, updatedData) => {
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...updatedData } : s));
+    const cleanedData = { ...updatedData };
+    if (cleanedData.registerNo) cleanedData.registerNo = cleanedData.registerNo.trim();
+    if (cleanedData.email) cleanedData.email = cleanedData.email.trim().toLowerCase();
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...cleanedData } : s));
     addAuditLog(currentUser.name, currentUser.role, `Updated Student ID ${id}`);
   };
 
@@ -850,6 +868,7 @@ export const AppProvider = ({ children }) => {
   const addParent = (parentData) => {
     const newParent = {
       ...parentData,
+      email: parentData.email ? parentData.email.trim().toLowerCase() : '',
       id: `P${1001 + parents.length}`,
       schoolId: 'school-1'
     };
@@ -860,7 +879,9 @@ export const AppProvider = ({ children }) => {
   };
 
   const editParent = (id, updatedData) => {
-    setParents(prev => prev.map(p => p.id === id ? { ...p, ...updatedData } : p));
+    const cleanedData = { ...updatedData };
+    if (cleanedData.email) cleanedData.email = cleanedData.email.trim().toLowerCase();
+    setParents(prev => prev.map(p => p.id === id ? { ...p, ...cleanedData } : p));
     addAuditLog(currentUser.name, currentUser.role, `Updated Parent ID ${id}`);
   };
 
@@ -870,12 +891,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const addTeacher = (teacherData) => {
-    const isDuplicate = teachers.some(t => t.id.trim().toUpperCase() === teacherData.id.trim().toUpperCase());
+    const cleanedId = teacherData.id ? teacherData.id.trim() : '';
+    const isDuplicate = teachers.some(t => t.id && t.id.trim().toUpperCase() === cleanedId.toUpperCase());
     if (isDuplicate) {
       return { success: false, message: `Employee ID "${teacherData.id}" already exists in database.` };
     }
     const newTeacher = {
       ...teacherData,
+      id: cleanedId,
+      email: teacherData.email ? teacherData.email.trim().toLowerCase() : '',
       joiningDate: new Date().toISOString().split('T')[0],
       schoolId: 'school-1'
     };
@@ -885,7 +909,10 @@ export const AppProvider = ({ children }) => {
   };
 
   const editTeacher = (id, updatedData) => {
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, ...updatedData } : t));
+    const cleanedData = { ...updatedData };
+    if (cleanedData.id) cleanedData.id = cleanedData.id.trim();
+    if (cleanedData.email) cleanedData.email = cleanedData.email.trim().toLowerCase();
+    setTeachers(prev => prev.map(t => t.id === id ? { ...t, ...cleanedData } : t));
     addAuditLog(currentUser.name, currentUser.role, `Updated Teacher ID ${id}`);
   };
 
@@ -900,12 +927,14 @@ export const AppProvider = ({ children }) => {
   };
 
   const addAdmin = (adminData) => {
-    const isDuplicate = admins.some(a => a.email.trim().toLowerCase() === adminData.email.trim().toLowerCase());
+    const cleanedEmail = adminData.email ? adminData.email.trim().toLowerCase() : '';
+    const isDuplicate = admins.some(a => a.email && a.email.trim().toLowerCase() === cleanedEmail);
     if (isDuplicate) {
       return { success: false, message: `Admin Email "${adminData.email}" already exists.` };
     }
     const newAdmin = {
       ...adminData,
+      email: cleanedEmail,
       id: `ADM${String(admins.length + 1).padStart(2, '0')}`,
       status: 'Active'
     };
@@ -915,7 +944,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const editAdmin = (id, updatedData) => {
-    setAdmins(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+    const cleanedData = { ...updatedData };
+    if (cleanedData.email) {
+      cleanedData.email = cleanedData.email.trim().toLowerCase();
+    }
+    setAdmins(prev => prev.map(a => a.id === id ? { ...a, ...cleanedData } : a));
     addAuditLog(currentUser.name, currentUser.role, `Updated Admin ID ${id}`);
   };
 
