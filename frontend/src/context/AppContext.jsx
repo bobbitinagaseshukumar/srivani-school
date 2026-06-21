@@ -16,10 +16,7 @@ const initialStudents = [];
 
 const initialParents = [];
 
-const initialExams = [
-  { id: 'ex1', name: 'Physics Unit Test 1', examType: 'Unit Test', class: 'Class 10', subject: 'PHYSICS', date: '2026-06-18' },
-  { id: 'ex2', name: 'Mathematics Monthly Test', examType: 'Monthly Test', class: 'Class 10', subject: 'MATHEMATICS', date: '2026-06-20' }
-];
+const initialExams = [];
 
 const initialAttendance = [];
 
@@ -29,18 +26,11 @@ const initialHomework = [];
 
 const initialNotes = [];
 
-const initialCirculars = [
-  { id: 'c1', title: 'Annual Cultural Festival registrations open', content: 'We are pleased to announce that registration for the annual cultural festival "Aurora 2026" is now open. Events include Solo Singing, Group Dance, Drama, Debate, and Painting. Please contact the music/arts room for registration. Deadline is June 20th.', targetGroup: 'All', date: '2026-06-10', postedBy: 'Admin' },
-  { id: 'c2', title: 'Upcoming Parent-Teacher Meet (Class 10)', content: 'The parent-teacher meeting for Class 10 is scheduled for this Friday from 2:00 PM to 5:00 PM. Parents can discuss midterm test performance and student conduct with subject teachers. Attendance is mandatory.', targetGroup: 'Parents', date: '2026-06-12', postedBy: 'T101' }
-];
+const initialCirculars = [];
 
 const initialLiveClasses = [];
 
-const initialLibraryBooks = [
-  { id: 'b1', title: 'A Brief History of Time', author: 'Stephen Hawking', category: 'Science', rackNo: 'A-3', copies: 5, available: 3 },
-  { id: 'b2', title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', category: 'Computer Science', rackNo: 'D-5', copies: 3, available: 3 },
-  { id: 'b3', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', category: 'Literature', rackNo: 'L-2', copies: 6, available: 4 }
-];
+const initialLibraryBooks = [];
 
 const initialHostels = [];
 
@@ -50,24 +40,11 @@ const initialAuditLogs = [];
 
 const initialSupportTickets = [];
 
-const initialTestimonials = [
-  { id: 'tmn1', text: 'Sri Vani Vidyanikethan has given my child an incredible foundation. The teachers are caring, the environment is excellent, and the results speak for themselves!', author: 'Lakshmi Devi', role: 'Parent, Class 5 Student', active: true },
-  { id: 'tmn2', text: 'I studied here from Class 1 to 10. The school shaped my confidence, discipline, and love for learning. I am forever grateful!', author: 'Ravi Kumar', role: 'Alumni, Class of 2022', active: true },
-  { id: 'tmn3', text: 'As a teacher here for 8 years, I can confidently say this school puts students first in every decision. A truly wonderful institution.', author: 'Smt. Anitha Reddy', role: 'Senior Faculty, Mathematics', active: true }
-];
+const initialTestimonials = [];
 
 const initialEnquiries = [];
 
-const initialGalleryItems = [
-  { id: 'g1', title: 'Annual Day 2025 Performance', category: 'Annual Day', type: 'image', url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80', date: '2025-12-15', description: 'Students performed a grand cultural show on Annual Day.' },
-  { id: 'g2', title: 'Track & Field Athletics Meet', category: 'Sports', type: 'image', url: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&auto=format&fit=crop&q=80', date: '2026-01-20', description: 'Inter-school athletics competition held at our sports ground.' },
-  { id: 'g3', title: 'Mahatma Gandhi Jayanthi', category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80', date: '2025-10-02', description: 'Students paid tribute to the Father of the Nation.' },
-  { id: 'g4', title: "Children's Day Celebration", category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&auto=format&fit=crop&q=80', date: '2025-11-14', description: "Fun-filled activities and competitions for Children's Day." },
-  { id: 'g5', title: 'Science Exhibition Projects', category: 'Science Exhibition', type: 'image', url: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&auto=format&fit=crop&q=80', date: '2026-02-10', description: 'Students showcased innovative science projects.' },
-  { id: 'g6', title: 'Basketball Final Championship', category: 'Sports', type: 'image', url: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80', date: '2026-03-05', description: 'Exciting basketball final between top teams.' },
-  { id: 'g7', title: 'Republic Day Flag Hoisting', category: 'Special Events', type: 'image', url: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800&auto=format&fit=crop&q=80', date: '2026-01-26', description: 'Flag hoisting ceremony with March Past on Republic Day.' },
-  { id: 'g8', title: 'Cultural Dance Performance', category: 'Cultural Programs', type: 'image', url: 'https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?w=800&auto=format&fit=crop&q=80', date: '2025-12-20', description: 'Classical and folk dance performances by our talented students.' }
-];
+const initialGalleryItems = [];
 
 const initialSubjects = [
   { id: 'sub1', code: 'TELUGU',          name: 'Telugu',           department: 'Languages' },
@@ -97,30 +74,11 @@ const initialAdmissionBanner = {
 
 const initialAdmissions = [];
 
-const initialFacilities = [
-  { id: 'fac1', title: 'Smart Classrooms', description: 'Air-conditioned classrooms with interactive smart boards, projectors, and high-speed Wi-Fi for digital learning.', icon: '🖥️' },
-  { id: 'fac2', title: 'Science Laboratories', description: 'Fully equipped Physics, Chemistry, and Biology labs with modern instruments for hands-on experiments.', icon: '🔬' },
-  { id: 'fac3', title: 'Computer Lab', description: 'State-of-the-art computer lab with 40+ systems, coding curriculum, and internet access for research projects.', icon: '💻' },
-  { id: 'fac4', title: 'Library & Reading Room', description: 'A vast collection of 10,000+ books, journals, and digital resources with a quiet reading area.', icon: '📚' },
-  { id: 'fac5', title: 'Sports Complex', description: 'Olympic-grade facilities including basketball court, cricket ground, volleyball court, and indoor games room.', icon: '🏅' },
-  { id: 'fac6', title: 'Transportation', description: 'Safe and GPS-tracked school buses covering all major routes in Nandyal and surrounding villages.', icon: '🚌' },
-  { id: 'fac7', title: 'Auditorium', description: 'A 500-seat auditorium with professional sound system and lighting for events and assemblies.', icon: '🎭' },
-  { id: 'fac8', title: 'Medical Room', description: 'On-campus first-aid and medical room with trained nurse for student health emergencies.', icon: '🏥' }
-];
+const initialFacilities = [];
 
-const initialHomepageInfra = [
-  { id: 'infra1', title: 'Smart Digital Classrooms', description: 'Interactive smart boards, projectors, and air-conditioned rooms for immersive learning experiences.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
-  { id: 'infra2', title: 'Advanced Science Labs', description: 'Fully equipped Physics, Chemistry, and Biology laboratories with modern instruments and safety gear.', image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
-  { id: 'infra3', title: 'Olympic-Grade Sports Complex', description: 'Basketball courts, cricket ground, athletics track, and indoor games facility for holistic student development.', image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80' },
-  { id: 'infra4', title: 'Central Library & Resource Center', description: 'Over 10,000 books, digital research stations, and a serene reading hall open to all students.', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80' }
-];
+const initialHomepageInfra = [];
 
-const initialHomepageStats = [
-  { id: 'stat1', value: '500+', label: 'Students Enrolled', icon: '🎓' },
-  { id: 'stat2', value: '50+', label: 'Expert Educators', icon: '👨‍🏫' },
-  { id: 'stat3', value: '1', label: 'School Branch', icon: '🏫' },
-  { id: 'stat4', value: '15+', label: 'Years of Excellence', icon: '🏆' }
-];
+const initialHomepageStats = [];
 
 const initialGradingProcess = {
   title: 'Resulting & Grading Process',
@@ -159,69 +117,11 @@ const initialStarredFormFields = {
 
 const initialWhatsappLogs = [];
 
-const initialAcademicCalendar = [
-  { id: 'cal1', date: 'Jun 12, 2026', title: 'School Reopening — Academic Year 2026-27', type: 'Academic' },
-  { id: 'cal2', date: 'Jun 29, 2026', title: 'Unit Test I', type: 'Examination' },
-  { id: 'cal3', date: 'Aug 15, 2026', title: 'Independence Day Celebration', type: 'Holiday' },
-  { id: 'cal4', date: 'Sep 05, 2026', title: "Teachers' Day", type: 'Holiday' },
-  { id: 'cal5', date: 'Oct 02, 2026', title: 'Gandhi Jayanthi (School Closed)', type: 'Holiday' },
-  { id: 'cal6', date: 'Oct 12-18, 2026', title: 'Half-Yearly Examinations', type: 'Examination' },
-  { id: 'cal7', date: 'Nov 01, 2026', title: 'Andhra Pradesh Formation Day', type: 'Holiday' },
-  { id: 'cal8', date: 'Nov 14, 2026', "title": "Children's Day Celebrations", type: 'Academic' },
-  { id: 'cal9', date: 'Dec 25, 2026', title: 'Christmas & Winter Break Begins', type: 'Holiday' },
-  { id: 'cal10', date: 'Jan 01, 2027', title: 'New Year / School Reopens', type: 'Academic' },
-  { id: 'cal11', date: 'Jan 26, 2027', title: 'Republic Day Celebration', type: 'Holiday' },
-  { id: 'cal12', date: 'Feb 15-27, 2027', title: 'Annual Examinations', type: 'Examination' },
-  { id: 'cal13', date: 'Mar 20, 2027', title: 'Annual Day & Prize Distribution', type: 'Academic' },
-  { id: 'cal14', date: 'Apr 05, 2027', title: 'Results Declaration & Summer Vacation Begins', type: 'Academic' }
-];
+const initialAcademicCalendar = [];
 
-const initialAcademicPrograms = [
-  {
-    id: 'prog1',
-    grade: 'Pre-Primary — Playclass',
-    focus: 'Early Childhood Foundation',
-    desc: 'Activity-based learning with songs, rhymes, and sensory play to develop motor skills, language, and curiosity in young children aged 2.5–3.5 years.',
-    subjects: ['Rhymes & Stories', 'Colours & Shapes', 'Number Fun', 'Drawing & Craft', 'Physical Play', 'EVS Basics']
-  },
-  {
-    id: 'prog2',
-    grade: 'Pre-Primary — LKG',
-    focus: 'Language & Number Readiness',
-    desc: 'Introduction to alphabets, numbers, and simple words through games and structured play for children aged 3.5–4.5 years.',
-    subjects: ['English Alphabets', 'Telugu Script Intro', 'Numbers 1-100', 'Drawing & Craft', 'General Awareness', 'Physical Education']
-  },
-  {
-    id: 'prog3',
-    grade: 'Pre-Primary — UKG',
-    focus: 'School Readiness Programme',
-    desc: 'Bridges pre-school to primary with reading readiness, writing practice, and basic arithmetic for children aged 4.5–5.5 years.',
-    subjects: ['English Reading', 'Telugu', 'Mathematics', 'EVS', 'Art & Craft', 'Physical Education']
-  },
-  {
-    id: 'prog4',
-    grade: 'Primary — Classes 1 to 5',
-    focus: 'Foundational Academic Learning',
-    desc: 'Core subjects are taught with a focus on literacy, numeracy, and scientific curiosity. Integrated with value education and activity-based learning.',
-    subjects: ['English', 'Telugu', 'Hindi', 'Mathematics', 'Science', 'Social Studies', 'Art & Craft', 'Physical Education']
-  },
-  {
-    id: 'prog5',
-    grade: 'Upper Primary — Classes 6 to 8',
-    focus: 'Exploratory & Analytical Learning',
-    desc: 'Students explore deeper concepts in sciences, mathematics, and languages. Introduction to computer programming and critical thinking.',
-    subjects: ['English Literature', 'Telugu', 'Hindi', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Science']
-  },
-  {
-    id: 'prog6',
-    grade: 'Secondary — Classes 9 & 10',
-    focus: 'Board Examination Preparation',
-    desc: 'Rigorous preparation for SSC Board Examinations with lab practicals, model papers, and subject-specialist coaching.',
-    subjects: ['English', 'Telugu', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Social Studies', 'Computer Applications']
-  }
-];
+const initialAcademicPrograms = [];
 
-const DATA_VERSION = '4';
+const DATA_VERSION = '5';
 
 const readStoredValue = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
@@ -305,39 +205,15 @@ export const AppProvider = ({ children }) => {
   });
 
   const [timetables, setTimetables] = useState(() => {
-    return readStoredValue('school_timetables', [
-      { class: 'Class 10', day: 'Monday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'ENGLISH (11:30 AM - 12:15 PM)'] },
-      { class: 'Class 10', day: 'Tuesday', slots: ['GENERALKNOWLEDGE (09:30 AM - 10:15 AM)', 'PHYSICS (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 10', day: 'Wednesday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 10', day: 'Thursday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'GENERALKNOWLEDGE (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 10', day: 'Friday', slots: ['ENGLISH (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'GENERALKNOWLEDGE (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 9', day: 'Monday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 9', day: 'Tuesday', slots: ['PHYSICS (09:30 AM - 10:15 AM)', 'GENERALKNOWLEDGE (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 9', day: 'Wednesday', slots: ['GENERALKNOWLEDGE (09:30 AM - 10:15 AM)', 'PHYSICS (10:30 AM - 11:15 AM)', 'MATHEMATICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 9', day: 'Thursday', slots: ['MATHEMATICS (09:30 AM - 10:15 AM)', 'ENGLISH (10:30 AM - 11:15 AM)', 'PHYSICS (01:00 PM - 01:45 PM)'] },
-      { class: 'Class 9', day: 'Friday', slots: ['ENGLISH (09:30 AM - 10:15 AM)', 'MATHEMATICS (10:30 AM - 11:15 AM)', 'GENERALKNOWLEDGE (01:00 PM - 01:45 PM)'] }
-    ]);
+    return readStoredValue('school_timetables', []);
   });
 
   const [fees, setFees] = useState(() => {
-    return readStoredValue('school_fees', [
-      { class: 'Class 10', year: '2026', tuitionFee: 1800, labFee: 300, busFee: 250, booksFee: 180 },
-      { class: 'Class 9', year: '2026', tuitionFee: 1600, labFee: 250, busFee: 240, booksFee: 170 },
-      { class: 'Class 8', year: '2026', tuitionFee: 1500, labFee: 200, busFee: 230, booksFee: 160 },
-      { class: 'Class 7', year: '2026', tuitionFee: 1400, labFee: 150, busFee: 220, booksFee: 150 },
-      { class: 'Class 6', year: '2026', tuitionFee: 1300, labFee: 100, busFee: 210, booksFee: 140 }
-    ]);
+    return readStoredValue('school_fees', []);
   });
 
   const [tickerItems, setTickerItems] = useState(() => {
-    return readStoredValue('school_ticker_items', [
-      { id: 't1', title: "Standard Matrix Timetable Scheduler", desc: "Super Admins can now configure dynamic period hours up to 8 slots per class.", time: "Just Now", type: "Academic" },
-      { id: 't2', title: "Dynamic State Synchronization", desc: "Edits to student profiles, class listings, and fee variables propagate instantly across all portals.", time: "5 mins ago", type: "System" },
-      { id: 't3', title: "Olympic-Grade Sports Facilities active", desc: "Class allocations for indoor pool & training tracks are officially scheduled.", time: "1 hour ago", type: "Campus" },
-      { id: 't4', title: "Circular: Aurora 2026 Cultural registrations", desc: "Singing, drama, debate and painting signups are open in the music room.", time: "Today", type: "Circular" },
-      { id: 't5', title: "Interactive STEM Laboratory fully operational", desc: "3D printers and VR engineering blocks assigned for high school students.", time: "Yesterday", type: "Facilities" },
-      { id: 't6', title: "Principal's Welcome Address updated", desc: "Dasaratha Rami Reddy welcomes parents and details new interactive guidelines.", time: "Yesterday", type: "Principal" }
-    ]);
+    return readStoredValue('school_ticker_items', []);
   });
 
   const [schoolInfo, setSchoolInfo] = useState(() => {
@@ -437,11 +313,7 @@ export const AppProvider = ({ children }) => {
   const [leaveRequests, setLeaveRequests] = useState(() => readStoredValue('school_leave_requests', initialLeaveRequests));
   const [starredFormFields, setStarredFormFields] = useState(() => readStoredValue('school_starred_form_fields', initialStarredFormFields));
 
-  const [notifications, setNotifications] = useState([
-    { id: 'ntf1', title: 'New Homework assigned in Physics', message: 'Read electrostatics guide and submit Lab report.', read: false, time: '10 mins ago', type: 'Homework' },
-    { id: 'ntf2', title: 'Midterm Marks Published', message: 'Physics, Math, and Coding midterm marks are available now.', read: false, time: '1 hour ago', type: 'Exam' },
-    { id: 'ntf3', title: 'Alert: Bob Attendance Low', message: 'Bob attendance has fallen to 88%. Mandatory parents alert.', read: false, time: '2 hours ago', type: 'AttendanceAlert' }
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'light';
