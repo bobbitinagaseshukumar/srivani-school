@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
-    "build": "node -e \"require('child_process').execSync('next build', { stdio: 'inherit', env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=450' } })\"",
+    "build": "next build",
     "start": "next start"
   },
   "dependencies": {
