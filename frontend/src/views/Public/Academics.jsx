@@ -120,7 +120,7 @@ export default function Academics() {
                     { grade: 'C/F',range: '< 70%',   color: 'text-red-500' },
                   ]).map((g, i) => (
                     <div key={i} className="bg-slate-50 dark:bg-slate-900/60 p-2 rounded border border-slate-100 dark:border-slate-800 flex flex-col justify-center min-h-[56px]">
-                      <p className="font-extrabold text-sm" style={g.color && g.color.startsWith('#') ? { color: g.color } : {}} className={g.color && !g.color.startsWith('#') ? `font-extrabold text-sm ${g.color}` : "font-extrabold text-sm"}>{g.grade}</p>
+                      <p className={`font-extrabold text-sm ${g.color && !g.color.startsWith('#') ? g.color : ''}`} style={g.color && g.color.startsWith('#') ? { color: g.color } : {}}>{g.grade}</p>
                       <p className="text-[8px] text-slate-400 mt-0.5">{g.range.includes('%') ? g.range : `${g.range}%`}</p>
                       {g.description && <p className="text-[7px] text-slate-500 dark:text-slate-450 italic mt-0.5 truncate" title={g.description}>{g.description}</p>}
                     </div>

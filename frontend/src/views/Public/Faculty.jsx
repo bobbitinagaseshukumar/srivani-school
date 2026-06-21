@@ -10,17 +10,19 @@ export default function Faculty() {
   const [deptFilter, setDeptFilter] = useState('');
   const [expFilter, setExpFilter] = useState('');
 
+  const teachersList = teachers || [];
+
   // Extract unique departments for filter dropdown
-  const uniqueDepts = [...new Set(teachers.map(t => t.department))];
+  const uniqueDepts = [...new Set(teachersList.map(t => t.department).filter(Boolean))];
   // Use context subjects for subject filter — shows names, filters by code
   const subjectOptions = subjects && subjects.length > 0
     ? subjects
-    : teachers.map(t => ({ code: t.subject, name: t.subject }));
+    : teachersList.map(t => ({ code: t.subject, name: t.subject }));
 
   // Filtering logic
-  const filteredTeachers = teachers.filter(t => {
-    const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || 
-                          t.id.toLowerCase().includes(search.toLowerCase());
+  const filteredTeachers = teachersList.filter(t => {
+    const matchesSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) || 
+                          (t.id || '').toLowerCase().includes(search.toLowerCase());
     const matchesSubject = subjectFilter ? t.subject === subjectFilter : true;
     const matchesDept = deptFilter ? t.department === deptFilter : true;
     
@@ -148,7 +150,7 @@ export default function Faculty() {
                     <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{teacher.subject} Teacher ({teacher.department} Dept)</p>
                   </div>
 
-                  <div className="border-t border-slate-100 dark:border-slate-700/50 pt-3 text-[11px] text-slate-655 dark:text-slate-300 space-y-1.5">
+                  <div className="border-t border-slate-100 dark:border-slate-700/50 pt-3 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
                     <div className="flex items-center gap-1.5">
                       <BookOpen size={12} className="text-blue-500" />
                       <span><strong>Qual:</strong> {teacher.qualification}</span>
@@ -167,11 +169,11 @@ export default function Faculty() {
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] text-slate-505 dark:text-slate-400 leading-normal">
-                    <span className="font-bold flex items-center gap-1 text-slate-700 dark:text-slate-202 mb-0.5">
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
+                    <span className="font-bold flex items-center gap-1 text-slate-700 dark:text-slate-200 mb-0.5">
                       <Award size={10} className="text-amber-500" /> Key Accomplishments:
                     </span>
-                    Outstanding educator award winner. Authored multiple national publications.
+                    {teacher.accomplishments || teacher.achievements || 'Outstanding educator award winner. Authored multiple national publications.'}
                   </div>
                 </div>
               </div>

@@ -10,7 +10,7 @@ export default function Admissions() {
     studentName: '',
     dob: '',
     gender: '',
-    grade: 'Class 10',
+    grade: 'Playclass',
     parentName: '',
     parentEmail: '',
     parentPhone: '',
@@ -87,7 +87,7 @@ export default function Admissions() {
               <h3 className="font-bold text-lg text-indigo-950 dark:text-white flex items-center gap-1.5">
                 <FileText className="text-blue-600" size={20} /> Required Documents
               </h3>
-              <ul className="space-y-2 text-xs font-light text-slate-655 dark:text-slate-355">
+              <ul className="space-y-2 text-xs font-light text-slate-600 dark:text-slate-400">
                 {requirements.map((req, i) => (
                   <li key={i} className="flex gap-2 items-start">
                     <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={14} />
@@ -117,7 +117,7 @@ export default function Admissions() {
                       <th className="py-2.5 text-right">Total Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-light">
                     {fees && fees.map((f, i) => {
                       const busFVal = f.busFee !== undefined ? f.busFee : 250;
                       const booksFVal = f.booksFee !== undefined ? f.booksFee : 180;
@@ -125,10 +125,10 @@ export default function Admissions() {
                         <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                           <td className="py-3 font-semibold text-slate-900 dark:text-white">{f.class}</td>
                           <td className="py-3 font-mono">{f.year}</td>
-                          <td className="py-3 font-mono text-emerald-650 dark:text-emerald-400">₹{f.tuitionFee}</td>
-                          <td className="py-3 font-mono text-blue-650 dark:text-blue-400">₹{f.labFee}</td>
+                          <td className="py-3 font-mono text-emerald-600 dark:text-emerald-400">₹{f.tuitionFee}</td>
+                          <td className="py-3 font-mono text-blue-600 dark:text-blue-400">₹{f.labFee}</td>
                           <td className="py-3 font-mono text-indigo-650 dark:text-indigo-400">₹{busFVal}</td>
-                          <td className="py-3 font-mono text-amber-650 dark:text-amber-400">₹{booksFVal}</td>
+                          <td className="py-3 font-mono text-amber-600 dark:text-amber-400">₹{booksFVal}</td>
                           <td className="py-3 font-mono font-bold text-right text-slate-900 dark:text-white">
                             ₹{f.tuitionFee + f.labFee + busFVal + booksFVal}
                           </td>
@@ -158,7 +158,7 @@ export default function Admissions() {
               <button
                 onClick={() => {
                   setSubmitted(false);
-                  setFormData({ studentName: '', dob: '', gender: '', grade: 'Class 10', parentName: '', parentEmail: '', parentPhone: '', address: '', prevSchool: '', whatsappNumber: '' });
+                  setFormData({ studentName: '', dob: '', gender: '', grade: 'Playclass', parentName: '', parentEmail: '', parentPhone: '', address: '', prevSchool: '', whatsappNumber: '' });
                 }}
                 className="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-md"
               >
@@ -171,100 +171,134 @@ export default function Admissions() {
               <p className="text-xs text-slate-500 dark:text-slate-400 font-light">Submit basic student criteria. Admissions desk monitors applications in the admin dashboard panel.</p>
               <div className="w-16 h-0.5 bg-blue-600 rounded"></div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Full Name{renderStar('studentName')}</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.studentName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, studentName: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. John Doe"
-                  />
-                </div>
+              {/* Student Details */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-indigo-950 dark:text-blue-400">1. Student Details</h4>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Full Name{renderStar('studentName')}</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.studentName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, studentName: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. John Doe"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Date of Birth{renderStar('dob')}</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dob}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Date of Birth{renderStar('dob')}</label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.dob}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Target Admission Grade{renderStar('grade')}</label>
-                  <select
-                    value={formData.grade}
-                    onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="Playclass">Playclass</option>
-                    <option value="LKG">LKG</option>
-                    <option value="UKG">UKG</option>
-                    <option value="Class 1">Class 1</option>
-                    <option value="Class 2">Class 2</option>
-                    <option value="Class 3">Class 3</option>
-                    <option value="Class 4">Class 4</option>
-                    <option value="Class 5">Class 5</option>
-                    <option value="Class 6">Class 6</option>
-                    <option value="Class 7">Class 7</option>
-                    <option value="Class 8">Class 8</option>
-                    <option value="Class 9">Class 9</option>
-                    <option value="Class 10">Class 10</option>
-                  </select>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Gender{renderStar('gender')}</label>
+                    <select
+                      required
+                      value={formData.gender}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Target Admission Grade{renderStar('grade')}</label>
+                    <select
+                      value={formData.grade}
+                      onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Playclass">Playclass</option>
+                      <option value="LKG">LKG</option>
+                      <option value="UKG">UKG</option>
+                      <option value="Class 1">Class 1</option>
+                      <option value="Class 2">Class 2</option>
+                      <option value="Class 3">Class 3</option>
+                      <option value="Class 4">Class 4</option>
+                      <option value="Class 5">Class 5</option>
+                      <option value="Class 6">Class 6</option>
+                      <option value="Class 7">Class 7</option>
+                      <option value="Class 8">Class 8</option>
+                      <option value="Class 9">Class 9</option>
+                      <option value="Class 10">Class 10</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Previous School Name (If any){renderStar('prevSchool')}</label>
+                    <input
+                      type="text"
+                      value={formData.prevSchool}
+                      onChange={(e) => setFormData(prev => ({ ...prev, prevSchool: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. Little Angels School"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent / Guardian Name{renderStar('parentName')}</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.parentName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, parentName: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Parent Name"
-                  />
-                </div>
+              {/* Parent & Contact Details */}
+              <div className="space-y-4 pt-2">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-indigo-950 dark:text-blue-400">2. Parent &amp; Contact Details</h4>
+                <div className="grid md:grid-cols-4 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent / Guardian Name{renderStar('parentName')}</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.parentName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, parentName: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Parent Name"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Email Address{renderStar('parentEmail')}</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.parentEmail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, parentEmail: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. parent@example.com"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Email Address{renderStar('parentEmail')}</label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.parentEmail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, parentEmail: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. parent@example.com"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Phone Number{renderStar('parentPhone')}</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.parentPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, parentPhone: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+1 555-xxxx"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Phone Number{renderStar('parentPhone')}</label>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.parentPhone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, parentPhone: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. 98765 43210"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number{renderStar('whatsappNumber')}</label>
-                  <input
-                    type="tel"
-                    value={formData.whatsappNumber}
-                    onChange={(e) => setFormData(prev => ({ ...prev, whatsappNumber: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="WhatsApp number (optional)"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number{renderStar('whatsappNumber')}</label>
+                    <input
+                      type="tel"
+                      value={formData.whatsappNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="WhatsApp number (optional)"
+                    />
+                  </div>
                 </div>
               </div>
 
