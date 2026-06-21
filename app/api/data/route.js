@@ -8,6 +8,8 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+const FALLBACK_RENDER_URL = 'https://srivani-school-pedda-kottala.onrender.com/api/data';
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -17,6 +19,10 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not defined.');
+    }
+    
     await connectDB();
     
     // Find the state document (key: 'main')
@@ -35,19 +41,31 @@ export async function GET() {
       { headers: CORS_HEADERS }
     );
   } catch (error) {
-    console.error('❌ API GET error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500, headers: CORS_HEADERS }
-    );
+    console.warn('⚠️ API GET failed, attempting Render proxy fallback:', error.message);
+    try {
+      const proxyRes = await fetch(FALLBACK_RENDER_URL);
+      const json = await proxyRes.json();
+      return NextResponse.json(json, { headers: CORS_HEADERS });
+    } catch (proxyError) {
+      console.error('❌ Render proxy fallback also failed:', proxyError);
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500, headers: CORS_HEADERS }
+      );
+    }
   }
 }
 
 export async function POST(req) {
+  let body;
   try {
-    await connectDB();
+    body = await req.json();
     
-    const body = await req.json();
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not defined.');
+    }
+    
+    await connectDB();
     
     // Update or insert the state document with key 'main'
     const updatedState = await AppState.findOneAndUpdate(
@@ -61,10 +79,23 @@ export async function POST(req) {
       { headers: CORS_HEADERS }
     );
   } catch (error) {
-    console.error('❌ API POST error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500, headers: CORS_HEADERS }
-    );
+    console.warn('⚠️ API POST failed, attempting Render proxy fallback:', error.message);
+    try {
+      const proxyRes = await fetch(FALLBACK_RENDER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      const json = await proxyRes.json();
+      return NextResponse.json(json, { headers: CORS_HEADERS });
+    } catch (proxyError) {
+      console.error('❌ Render proxy fallback also failed:', proxyError);
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500, headers: CORS_HEADERS }
+      );
+    }
   }
 }
