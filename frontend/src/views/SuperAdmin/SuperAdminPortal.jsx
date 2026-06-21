@@ -1237,7 +1237,7 @@ export default function SuperAdminPortal() {
                       >
                         Save Changes
                       </button>
-                      {selectedAdmission.status === 'Pending' && (
+                      {(selectedAdmission.status === 'Pending' || selectedAdmission.status === 'Rejected') && (
                         <>
                           <button
                             type="button"

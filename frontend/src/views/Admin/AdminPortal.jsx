@@ -1473,7 +1473,7 @@ export default function AdminPortal() {
                         >
                           Save Changes
                         </button>
-                        {selectedAdmission.status === 'Pending' && (
+                        {(selectedAdmission.status === 'Pending' || selectedAdmission.status === 'Rejected') && (
                           <>
                             <button
                               type="button"
