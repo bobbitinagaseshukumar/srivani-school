@@ -7,69 +7,111 @@ import {
 } from 'lucide-react';
 
 const compressImageForCropper = (file, callback) => {
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const maxDim = 1000;
-      let width = img.width;
-      let height = img.height;
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
+    const rawResult = e.target.result;
+    if (!rawResult) { callback(null); return; }
+    try {
+      const img = new window.Image();
+      img.onload = () => {
+        try {
+          const maxDim = 1000;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.8));
+        } catch {
+          callback(rawResult);
         }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL('image/jpeg', 0.8));
-    };
-    img.onerror = () => {
-      callback(e.target.result);
-    };
-    img.src = e.target.result;
+      };
+      img.onerror = () => {
+        callback(rawResult);
+      };
+      img.src = rawResult;
+    } catch {
+      callback(rawResult);
+    }
   };
+  reader.onerror = () => { callback(null); };
   reader.readAsDataURL(file);
 };
 
 const compressImageDirectly = (file, callback) => {
+  if (!file || !file.type.startsWith('image/')) {
+    console.warn('compressImageDirectly: Invalid file or not an image');
+    return;
+  }
   const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const targetSize = 300;
-      let width = img.width;
-      let height = img.height;
-      let sourceX = 0;
-      let sourceY = 0;
-      let sourceWidth = width;
-      let sourceHeight = height;
+  reader.onload = (readerEvent) => {
+    const rawDataUrl = readerEvent.target.result;
+    if (!rawDataUrl) {
+      console.warn('compressImageDirectly: FileReader produced empty result');
+      return;
+    }
+    try {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const targetSize = 200;
+          let width = img.width;
+          let height = img.height;
+          let sourceX = 0;
+          let sourceY = 0;
+          let sourceWidth = width;
+          let sourceHeight = height;
 
-      if (width > height) {
-        sourceWidth = height;
-        sourceX = Math.round((width - height) / 2);
-      } else if (height > width) {
-        sourceHeight = width;
-        sourceY = Math.round((height - width) / 2);
-      }
+          if (width > height) {
+            sourceWidth = height;
+            sourceX = Math.round((width - height) / 2);
+          } else if (height > width) {
+            sourceHeight = width;
+            sourceY = Math.round((height - width) / 2);
+          }
 
-      const canvas = document.createElement('canvas');
-      canvas.width = targetSize;
-      canvas.height = targetSize;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetSize, targetSize);
-      callback(canvas.toDataURL('image/jpeg', 0.8));
-    };
-    img.onerror = () => {
-      callback(e.target.result);
-    };
-    img.src = e.target.result;
+          const canvas = document.createElement('canvas');
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetSize, targetSize);
+          const compressedUrl = canvas.toDataURL('image/jpeg', 0.6);
+          if (compressedUrl && compressedUrl.length > 50) {
+            callback(compressedUrl);
+          } else {
+            callback(rawDataUrl);
+          }
+        } catch (canvasErr) {
+          console.warn('compressImageDirectly: Canvas error, using raw data URL', canvasErr);
+          callback(rawDataUrl);
+        }
+      };
+      img.onerror = () => {
+        console.warn('compressImageDirectly: Image load failed, using raw data URL');
+        callback(rawDataUrl);
+      };
+      // Set src AFTER defining onload/onerror to avoid race conditions
+      img.src = rawDataUrl;
+    } catch (outerErr) {
+      console.warn('compressImageDirectly: Outer error, using raw data URL', outerErr);
+      callback(rawDataUrl);
+    }
+  };
+  reader.onerror = () => {
+    console.warn('compressImageDirectly: FileReader error');
   };
   reader.readAsDataURL(file);
 };
@@ -1969,7 +2011,7 @@ function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
   const [imageLoaded, setImageLoaded] = useState(0);
 
   useEffect(() => {
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => {
       imageRef.current = img;
       setZoom(1);
