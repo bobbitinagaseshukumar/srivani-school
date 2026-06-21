@@ -9,6 +9,38 @@ import {
 
 const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
 
+const compressImageForCropper = (file, callback) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 1000;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => {
+      callback(e.target.result);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
 const presetTimings = [
   '09:30 AM - 10:15 AM',
   '10:30 AM - 11:15 AM',
@@ -1604,12 +1636,10 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setCropImageSrc(ev.target.result);
+                          compressImageForCropper(file, (compressedUrl) => {
+                            setCropImageSrc(compressedUrl);
                             setCropTarget('admin');
-                          };
-                          reader.readAsDataURL(file);
+                          });
                           e.target.value = '';
                         }} 
                       />
@@ -1826,12 +1856,10 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setCropImageSrc(ev.target.result);
+                          compressImageForCropper(file, (compressedUrl) => {
+                            setCropImageSrc(compressedUrl);
                             setCropTarget('teacher');
-                          };
-                          reader.readAsDataURL(file);
+                          });
                           e.target.value = '';
                         }} 
                       />
@@ -2100,12 +2128,10 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setCropImageSrc(ev.target.result);
+                          compressImageForCropper(file, (compressedUrl) => {
+                            setCropImageSrc(compressedUrl);
                             setCropTarget('student');
-                          };
-                          reader.readAsDataURL(file);
+                          });
                           e.target.value = '';
                         }} 
                       />
@@ -4553,12 +4579,20 @@ function GalleryManagerPanel({ galleryItems, addGalleryItem, editGalleryItem, de
     const isVideo = file.type.startsWith('video/');
     setForm(f => ({ ...f, type: isVideo ? 'video' : 'image' }));
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setForm(f => ({ ...f, url: ev.target.result }));
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    
+    if (isVideo) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setForm(f => ({ ...f, url: ev.target.result }));
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      compressImageForCropper(file, (compressedUrl) => {
+        setForm(f => ({ ...f, url: compressedUrl }));
+        setUploading(false);
+      });
+    }
   };
 
   const handleSubmit = () => {

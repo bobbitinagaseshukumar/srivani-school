@@ -6,6 +6,38 @@ import {
   Edit2, Building2, X, UserPlus, User, ClipboardList, CheckSquare, Eye, EyeOff
 } from 'lucide-react';
 
+const compressImageForCropper = (file, callback) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 1000;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => {
+      callback(e.target.result);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
 const cleanPhoneForWhatsapp = (phoneStr) => {
   if (!phoneStr) return '';
   const digitsOnly = phoneStr.replace(/\D/g, '');
@@ -475,11 +507,9 @@ export default function AdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setCropImageSrc(ev.target.result);
-                          };
-                          reader.readAsDataURL(file);
+                          compressImageForCropper(file, (compressedUrl) => {
+                            setCropImageSrc(compressedUrl);
+                          });
                           e.target.value = '';
                         }} 
                       />
