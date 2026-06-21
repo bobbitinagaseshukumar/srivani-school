@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 
 export const AppContext = createContext();
 
@@ -330,6 +330,10 @@ export const AppProvider = ({ children }) => {
     return window.localStorage.getItem('school_theme') || 'light';
   });
 
+  const lastSyncedPayloadRef = useRef('');
+  const lastUpdatedAtRef = useRef(null);
+  const isUpdatingFromDBRef = useRef(false);
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Sync state from API on load
@@ -340,6 +344,59 @@ export const AppProvider = ({ children }) => {
         const json = await res.json();
         if (json.success && json.data) {
           const data = json.data;
+          
+          lastUpdatedAtRef.current = data.updatedAt;
+          
+          // Build payload object matching our states
+          const payload = {
+            schools: data.schools || [],
+            teachers: data.teachers || [],
+            students: data.students || [],
+            parents: data.parents || [],
+            admins: data.admins || [],
+            attendance: data.attendance || [],
+            marks: data.marks || [],
+            homework: data.homework || [],
+            notes: data.notes || [],
+            circulars: data.circulars || [],
+            liveClasses: data.liveClasses || [],
+            libraryBooks: data.libraryBooks || [],
+            hostels: data.hostels || [],
+            transportRoutes: data.transportRoutes || [],
+            timetables: data.timetables || [],
+            fees: data.fees || [],
+            tickerItems: data.tickerItems || [],
+            schoolInfo: data.schoolInfo || {},
+            managementCommittee: data.managementCommittee || [],
+            exams: data.exams || [],
+            classes: data.classes || [],
+            sections: data.sections || [],
+            auditLogs: data.auditLogs || [],
+            supportTickets: data.supportTickets || [],
+            galleryItems: data.galleryItems || [],
+            academicCalendar: data.academicCalendar || [],
+            academicPrograms: data.academicPrograms || [],
+            testimonials: data.testimonials || [],
+            enquiries: data.enquiries || [],
+            subjects: data.subjects || [],
+            admissionBanner: data.admissionBanner || {},
+            admissions: data.admissions || [],
+            facilities: data.facilities || [],
+            homepageInfra: data.homepageInfra || [],
+            homepageStats: data.homepageStats || [],
+            gradingProcess: data.gradingProcess || [],
+            gradingScheme: data.gradingScheme || [],
+            departments: data.departments || [],
+            galleryCategories: data.galleryCategories || [],
+            complaints: data.complaints || [],
+            whatsappLogs: data.whatsappLogs || [],
+            requiredDocuments: data.requiredDocuments || [],
+            leaveRequests: data.leaveRequests || [],
+            starredFormFields: data.starredFormFields || {}
+          };
+          
+          lastSyncedPayloadRef.current = JSON.stringify(payload);
+
           if (data.schools) setSchools(data.schools);
           if (data.teachers) setTeachers(data.teachers);
           if (data.students) setStudents(data.students);
@@ -404,63 +461,74 @@ export const AppProvider = ({ children }) => {
     if (!isLoaded) return;
 
     const syncState = async () => {
-      try {
-        const payload = {
-          schools,
-          teachers,
-          students,
-          parents,
-          admins,
-          attendance,
-          marks,
-          homework,
-          notes,
-          circulars,
-          liveClasses,
-          libraryBooks,
-          hostels,
-          transportRoutes,
-          timetables,
-          fees,
-          tickerItems,
-          schoolInfo,
-          managementCommittee,
-          exams,
-          classes,
-          sections,
-          auditLogs,
-          supportTickets,
-          galleryItems,
-          academicCalendar,
-          academicPrograms,
-          testimonials,
-          enquiries,
-          subjects,
-          admissionBanner,
-          admissions,
-          facilities,
-          homepageInfra,
-          homepageStats,
-          gradingProcess,
-          gradingScheme,
-          departments,
-          galleryCategories,
-          complaints,
-          whatsappLogs,
-          requiredDocuments,
-          leaveRequests,
-          starredFormFields
-        };
+      if (isUpdatingFromDBRef.current) return;
 
+      const payload = {
+        schools,
+        teachers,
+        students,
+        parents,
+        admins,
+        attendance,
+        marks,
+        homework,
+        notes,
+        circulars,
+        liveClasses,
+        libraryBooks,
+        hostels,
+        transportRoutes,
+        timetables,
+        fees,
+        tickerItems,
+        schoolInfo,
+        managementCommittee,
+        exams,
+        classes,
+        sections,
+        auditLogs,
+        supportTickets,
+        galleryItems,
+        academicCalendar,
+        academicPrograms,
+        testimonials,
+        enquiries,
+        subjects,
+        admissionBanner,
+        admissions,
+        facilities,
+        homepageInfra,
+        homepageStats,
+        gradingProcess,
+        gradingScheme,
+        departments,
+        galleryCategories,
+        complaints,
+        whatsappLogs,
+        requiredDocuments,
+        leaveRequests,
+        starredFormFields
+      };
+
+      const payloadStr = JSON.stringify(payload);
+      if (payloadStr === lastSyncedPayloadRef.current) {
+        // No changes since last sync/load. Skip write to avoid loops!
+        return;
+      }
+
+      try {
         const res = await fetch(`${API_BASE_URL}/api/data`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(payload)
+          body: payloadStr
         });
         const json = await res.json();
-        if (!json.success) {
+        if (json.success && json.data) {
+          lastSyncedPayloadRef.current = payloadStr;
+          lastUpdatedAtRef.current = json.data.updatedAt;
+        } else {
           console.error('❌ Failed to save state to MongoDB Atlas:', json.error);
         }
       } catch (err) {
@@ -520,6 +588,135 @@ export const AppProvider = ({ children }) => {
     leaveRequests,
     starredFormFields
   ]);
+
+  // Polling loop to fetch remote state updates from MongoDB Atlas
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const pollState = async () => {
+      if (isUpdatingFromDBRef.current) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/data`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const data = json.data;
+          
+          if (data.updatedAt && data.updatedAt !== lastUpdatedAtRef.current) {
+            console.log('🔄 Remote database changes detected, updating client states...');
+            
+            isUpdatingFromDBRef.current = true;
+            lastUpdatedAtRef.current = data.updatedAt;
+
+            const payload = {
+              schools: data.schools || [],
+              teachers: data.teachers || [],
+              students: data.students || [],
+              parents: data.parents || [],
+              admins: data.admins || [],
+              attendance: data.attendance || [],
+              marks: data.marks || [],
+              homework: data.homework || [],
+              notes: data.notes || [],
+              circulars: data.circulars || [],
+              liveClasses: data.liveClasses || [],
+              libraryBooks: data.libraryBooks || [],
+              hostels: data.hostels || [],
+              transportRoutes: data.transportRoutes || [],
+              timetables: data.timetables || [],
+              fees: data.fees || [],
+              tickerItems: data.tickerItems || [],
+              schoolInfo: data.schoolInfo || {},
+              managementCommittee: data.managementCommittee || [],
+              exams: data.exams || [],
+              classes: data.classes || [],
+              sections: data.sections || [],
+              auditLogs: data.auditLogs || [],
+              supportTickets: data.supportTickets || [],
+              galleryItems: data.galleryItems || [],
+              academicCalendar: data.academicCalendar || [],
+              academicPrograms: data.academicPrograms || [],
+              testimonials: data.testimonials || [],
+              enquiries: data.enquiries || [],
+              subjects: data.subjects || [],
+              admissionBanner: data.admissionBanner || {},
+              admissions: data.admissions || [],
+              facilities: data.facilities || [],
+              homepageInfra: data.homepageInfra || [],
+              homepageStats: data.homepageStats || [],
+              gradingProcess: data.gradingProcess || [],
+              gradingScheme: data.gradingScheme || [],
+              departments: data.departments || [],
+              galleryCategories: data.galleryCategories || [],
+              complaints: data.complaints || [],
+              whatsappLogs: data.whatsappLogs || [],
+              requiredDocuments: data.requiredDocuments || [],
+              leaveRequests: data.leaveRequests || [],
+              starredFormFields: data.starredFormFields || {}
+            };
+
+            lastSyncedPayloadRef.current = JSON.stringify(payload);
+
+            if (data.schools) setSchools(data.schools);
+            if (data.teachers) setTeachers(data.teachers);
+            if (data.students) setStudents(data.students);
+            if (data.parents) setParents(data.parents);
+            if (data.admins) setAdmins(data.admins);
+            if (data.attendance) setAttendance(data.attendance);
+            if (data.marks) setMarks(data.marks);
+            if (data.homework) setHomework(data.homework);
+            if (data.notes) setNotes(data.notes);
+            if (data.circulars) setCirculars(data.circulars);
+            if (data.liveClasses) setLiveClasses(data.liveClasses);
+            if (data.libraryBooks) setLibraryBooks(data.libraryBooks);
+            if (data.hostels) setHostels(data.hostels);
+            if (data.transportRoutes) setTransportRoutes(data.transportRoutes);
+            if (data.timetables) setTimetables(data.timetables);
+            if (data.fees) setFees(data.fees);
+            if (data.tickerItems) setTickerItems(data.tickerItems);
+            if (data.schoolInfo) setSchoolInfo(data.schoolInfo);
+            if (data.managementCommittee) setManagementCommittee(data.managementCommittee);
+            if (data.exams) setExams(data.exams);
+            if (data.classes) setClasses(data.classes);
+            if (data.sections) setSections(data.sections);
+            if (data.auditLogs) setAuditLogs(data.auditLogs);
+            if (data.supportTickets) setSupportTickets(data.supportTickets);
+            if (data.galleryItems) setGalleryItems(data.galleryItems);
+            if (data.academicCalendar) setAcademicCalendar(data.academicCalendar);
+            if (data.academicPrograms) setAcademicPrograms(data.academicPrograms);
+            if (data.testimonials) setTestimonials(data.testimonials);
+            if (data.enquiries) setEnquiries(data.enquiries);
+            if (data.subjects) setSubjects(data.subjects);
+            if (data.admissionBanner) setAdmissionBanner(data.admissionBanner);
+            if (data.admissions) setAdmissions(data.admissions);
+            if (data.facilities) setFacilities(data.facilities);
+            if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
+            else setHomepageInfra(initialHomepageInfra);
+            if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
+            else setHomepageStats(initialHomepageStats);
+            if (data.gradingProcess) setGradingProcess(data.gradingProcess);
+            if (data.gradingScheme) setGradingScheme(data.gradingScheme);
+            if (data.departments) setDepartments(data.departments);
+            if (data.galleryCategories) setGalleryCategories(data.galleryCategories);
+            if (data.complaints) setComplaints(data.complaints);
+            if (data.whatsappLogs) setWhatsappLogs(data.whatsappLogs);
+            if (data.requiredDocuments) setRequiredDocuments(data.requiredDocuments);
+            if (data.leaveRequests) setLeaveRequests(data.leaveRequests);
+            if (data.starredFormFields) setStarredFormFields(data.starredFormFields);
+
+            setTimeout(() => {
+              isUpdatingFromDBRef.current = false;
+            }, 1000);
+          }
+        }
+      } catch (err) {
+        console.error('❌ Failed to poll state updates from MongoDB:', err);
+      }
+    };
+
+    const interval = setInterval(pollState, 6000); // poll every 6 seconds
+    return () => clearInterval(interval);
+  }, [isLoaded]);
 
   // Recalculate attendance percentages on startup based on loaded attendance records
   useEffect(() => {
