@@ -68,9 +68,11 @@ export async function POST(req) {
     await connectDB();
     
     // Update or insert the state document with key 'main'
+    // Strip internal MongoDB fields to prevent immutable field errors
+    const { _id, __v, createdAt, updatedAt, ...cleanBody } = body;
     const updatedState = await AppState.findOneAndUpdate(
       { stateKey: 'main' },
-      { $set: body },
+      { $set: cleanBody },
       { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     );
     

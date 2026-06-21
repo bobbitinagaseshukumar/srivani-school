@@ -332,138 +332,157 @@ export const AppProvider = ({ children }) => {
 
   const lastSyncedPayloadRef = useRef('');
   const lastUpdatedAtRef = useRef(null);
-  const isUpdatingFromDBRef = useRef(false);
+  const isUpdatingFromDBRef = useRef(true); // Start TRUE to block write-back until initial load completes
+  const initialLoadDoneRef = useRef(false);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Sync state from API on load
+  // Helper: build a canonical payload object from data (used in load, save, and poll)
+  const buildPayload = (src) => ({
+    schools: src.schools || [],
+    teachers: src.teachers || [],
+    students: src.students || [],
+    parents: src.parents || [],
+    admins: src.admins || [],
+    attendance: src.attendance || [],
+    marks: src.marks || [],
+    homework: src.homework || [],
+    notes: src.notes || [],
+    circulars: src.circulars || [],
+    liveClasses: src.liveClasses || [],
+    libraryBooks: src.libraryBooks || [],
+    hostels: src.hostels || [],
+    transportRoutes: src.transportRoutes || [],
+    timetables: src.timetables || [],
+    fees: src.fees || [],
+    tickerItems: src.tickerItems || [],
+    schoolInfo: src.schoolInfo || {},
+    managementCommittee: src.managementCommittee || [],
+    exams: src.exams || [],
+    classes: src.classes || [],
+    sections: src.sections || [],
+    auditLogs: src.auditLogs || [],
+    supportTickets: src.supportTickets || [],
+    galleryItems: src.galleryItems || [],
+    academicCalendar: src.academicCalendar || [],
+    academicPrograms: src.academicPrograms || [],
+    testimonials: src.testimonials || [],
+    enquiries: src.enquiries || [],
+    subjects: src.subjects || [],
+    admissionBanner: src.admissionBanner || {},
+    admissions: src.admissions || [],
+    facilities: src.facilities || [],
+    homepageInfra: src.homepageInfra || [],
+    homepageStats: src.homepageStats || [],
+    gradingProcess: src.gradingProcess || {},
+    gradingScheme: src.gradingScheme || [],
+    departments: src.departments || [],
+    galleryCategories: src.galleryCategories || [],
+    complaints: src.complaints || [],
+    whatsappLogs: src.whatsappLogs || [],
+    requiredDocuments: src.requiredDocuments || [],
+    leaveRequests: src.leaveRequests || [],
+    starredFormFields: src.starredFormFields || {}
+  });
+
+  // Helper: apply data from DB to all React state setters
+  const applyDBData = (data) => {
+    // Always set — even if the DB value is an empty array, that IS the truth
+    setSchools(data.schools || []);
+    setTeachers(data.teachers || []);
+    setStudents(data.students || []);
+    setParents(data.parents || []);
+    setAdmins(data.admins || []);
+    setAttendance(data.attendance || []);
+    setMarks(data.marks || []);
+    setHomework(data.homework || []);
+    setNotes(data.notes || []);
+    setCirculars(data.circulars || []);
+    setLiveClasses(data.liveClasses || []);
+    setLibraryBooks(data.libraryBooks || []);
+    setHostels(data.hostels || []);
+    setTransportRoutes(data.transportRoutes || []);
+    setTimetables(data.timetables || []);
+    setFees(data.fees || []);
+    setTickerItems(data.tickerItems || []);
+    setSchoolInfo(data.schoolInfo || {});
+    setManagementCommittee(data.managementCommittee || []);
+    setExams(data.exams || []);
+    setClasses(data.classes || []);
+    setSections(data.sections || []);
+    setAuditLogs(data.auditLogs || []);
+    setSupportTickets(data.supportTickets || []);
+    setGalleryItems(data.galleryItems || []);
+    setAcademicCalendar(data.academicCalendar || []);
+    setAcademicPrograms(data.academicPrograms || []);
+    setTestimonials(data.testimonials || []);
+    setEnquiries(data.enquiries || []);
+    setSubjects(data.subjects || []);
+    setAdmissionBanner(data.admissionBanner || {});
+    setAdmissions(data.admissions || []);
+    setFacilities(data.facilities || []);
+    if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
+    else setHomepageInfra(initialHomepageInfra);
+    if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
+    else setHomepageStats(initialHomepageStats);
+    setGradingProcess(data.gradingProcess || initialGradingProcess);
+    setGradingScheme(data.gradingScheme || initialGradingScheme);
+    setDepartments(data.departments || initialDepartments);
+    setGalleryCategories(data.galleryCategories || initialGalleryCategories);
+    setComplaints(data.complaints || []);
+    setWhatsappLogs(data.whatsappLogs || []);
+    setRequiredDocuments(data.requiredDocuments || []);
+    setLeaveRequests(data.leaveRequests || []);
+    setStarredFormFields(data.starredFormFields || initialStarredFormFields);
+  };
+
+  // ═══ SYNC 1: Load state from MongoDB on first mount ═══
   useEffect(() => {
     const fetchState = async () => {
+      // Keep the guard ON so the write-back effect does NOT fire during load
+      isUpdatingFromDBRef.current = true;
+
       try {
         const res = await fetch(`${API_BASE_URL}/api/data`);
         const json = await res.json();
         if (json.success && json.data) {
           const data = json.data;
-          
+
           lastUpdatedAtRef.current = data.updatedAt;
-          
-          // Build payload object matching our states
-          const payload = {
-            schools: data.schools || [],
-            teachers: data.teachers || [],
-            students: data.students || [],
-            parents: data.parents || [],
-            admins: data.admins || [],
-            attendance: data.attendance || [],
-            marks: data.marks || [],
-            homework: data.homework || [],
-            notes: data.notes || [],
-            circulars: data.circulars || [],
-            liveClasses: data.liveClasses || [],
-            libraryBooks: data.libraryBooks || [],
-            hostels: data.hostels || [],
-            transportRoutes: data.transportRoutes || [],
-            timetables: data.timetables || [],
-            fees: data.fees || [],
-            tickerItems: data.tickerItems || [],
-            schoolInfo: data.schoolInfo || {},
-            managementCommittee: data.managementCommittee || [],
-            exams: data.exams || [],
-            classes: data.classes || [],
-            sections: data.sections || [],
-            auditLogs: data.auditLogs || [],
-            supportTickets: data.supportTickets || [],
-            galleryItems: data.galleryItems || [],
-            academicCalendar: data.academicCalendar || [],
-            academicPrograms: data.academicPrograms || [],
-            testimonials: data.testimonials || [],
-            enquiries: data.enquiries || [],
-            subjects: data.subjects || [],
-            admissionBanner: data.admissionBanner || {},
-            admissions: data.admissions || [],
-            facilities: data.facilities || [],
-            homepageInfra: data.homepageInfra || [],
-            homepageStats: data.homepageStats || [],
-            gradingProcess: data.gradingProcess || [],
-            gradingScheme: data.gradingScheme || [],
-            departments: data.departments || [],
-            galleryCategories: data.galleryCategories || [],
-            complaints: data.complaints || [],
-            whatsappLogs: data.whatsappLogs || [],
-            requiredDocuments: data.requiredDocuments || [],
-            leaveRequests: data.leaveRequests || [],
-            starredFormFields: data.starredFormFields || {}
-          };
-          
+
+          const payload = buildPayload(data);
           lastSyncedPayloadRef.current = JSON.stringify(payload);
 
-          if (data.schools) setSchools(data.schools);
-          if (data.teachers) setTeachers(data.teachers);
-          if (data.students) setStudents(data.students);
-          if (data.parents) setParents(data.parents);
-          if (data.admins) setAdmins(data.admins);
-          if (data.attendance) setAttendance(data.attendance);
-          if (data.marks) setMarks(data.marks);
-          if (data.homework) setHomework(data.homework);
-          if (data.notes) setNotes(data.notes);
-          if (data.circulars) setCirculars(data.circulars);
-          if (data.liveClasses) setLiveClasses(data.liveClasses);
-          if (data.libraryBooks) setLibraryBooks(data.libraryBooks);
-          if (data.hostels) setHostels(data.hostels);
-          if (data.transportRoutes) setTransportRoutes(data.transportRoutes);
-          if (data.timetables) setTimetables(data.timetables);
-          if (data.fees) setFees(data.fees);
-          if (data.tickerItems) setTickerItems(data.tickerItems);
-          if (data.schoolInfo) setSchoolInfo(data.schoolInfo);
-          if (data.managementCommittee) setManagementCommittee(data.managementCommittee);
-          if (data.exams) setExams(data.exams);
-          if (data.classes) setClasses(data.classes);
-          if (data.sections) setSections(data.sections);
-          if (data.auditLogs) setAuditLogs(data.auditLogs);
-          if (data.supportTickets) setSupportTickets(data.supportTickets);
-          if (data.galleryItems) setGalleryItems(data.galleryItems);
-          if (data.academicCalendar) setAcademicCalendar(data.academicCalendar);
-          if (data.academicPrograms) setAcademicPrograms(data.academicPrograms);
-          if (data.testimonials) setTestimonials(data.testimonials);
-          if (data.enquiries) setEnquiries(data.enquiries);
-          if (data.subjects) setSubjects(data.subjects);
-          if (data.admissionBanner) setAdmissionBanner(data.admissionBanner);
-          if (data.admissions) setAdmissions(data.admissions);
-          if (data.facilities) setFacilities(data.facilities);
-          if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
-          else setHomepageInfra(initialHomepageInfra);
-          if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
-          else setHomepageStats(initialHomepageStats);
-          if (data.gradingProcess) setGradingProcess(data.gradingProcess);
-          if (data.gradingScheme) setGradingScheme(data.gradingScheme);
-          if (data.departments) setDepartments(data.departments);
-          if (data.galleryCategories) setGalleryCategories(data.galleryCategories);
-          if (data.complaints) setComplaints(data.complaints);
-          if (data.whatsappLogs) setWhatsappLogs(data.whatsappLogs);
-          if (data.requiredDocuments) setRequiredDocuments(data.requiredDocuments);
-          if (data.leaveRequests) setLeaveRequests(data.leaveRequests);
-          if (data.starredFormFields) setStarredFormFields(data.starredFormFields);
+          applyDBData(data);
           console.log('✅ Loaded application state from MongoDB Atlas');
         } else {
-          console.log('ℹ️ MongoDB Atlas state empty or first-time load. Initializing state from localStorage.');
+          console.log('ℹ️ MongoDB Atlas state empty or first-time load. Using localStorage defaults.');
         }
       } catch (err) {
         console.error('❌ Failed to load state from MongoDB, using localStorage fallback:', err);
       } finally {
         setIsLoaded(true);
+        initialLoadDoneRef.current = true;
+        // Release the guard AFTER a delay so React has time to flush all setState calls
+        // before the write-back effect runs
+        setTimeout(() => {
+          isUpdatingFromDBRef.current = false;
+        }, 3000);
       }
     };
     fetchState();
   }, []);
 
-  // Sync state to API (debounced)
+  // ═══ SYNC 2: Write state changes to MongoDB (debounced) ═══
   useEffect(() => {
     if (!isLoaded) return;
+    if (!initialLoadDoneRef.current) return;
 
     const syncState = async () => {
+      // Double-check the guard — if we're in the middle of applying DB data, skip
       if (isUpdatingFromDBRef.current) return;
 
-      const payload = {
+      const payload = buildPayload({
         schools,
         teachers,
         students,
@@ -508,7 +527,7 @@ export const AppProvider = ({ children }) => {
         requiredDocuments,
         leaveRequests,
         starredFormFields
-      };
+      });
 
       const payloadStr = JSON.stringify(payload);
       if (payloadStr === lastSyncedPayloadRef.current) {
@@ -519,15 +538,14 @@ export const AppProvider = ({ children }) => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/data`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: payloadStr
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stateKey: 'main', ...payload })
         });
         const json = await res.json();
         if (json.success && json.data) {
           lastSyncedPayloadRef.current = payloadStr;
           lastUpdatedAtRef.current = json.data.updatedAt;
+          console.log('✅ State saved to MongoDB Atlas');
         } else {
           console.error('❌ Failed to save state to MongoDB Atlas:', json.error);
         }
@@ -538,7 +556,7 @@ export const AppProvider = ({ children }) => {
 
     const timer = setTimeout(() => {
       syncState();
-    }, 2000); // 2 second debounce
+    }, 3000); // 3 second debounce to avoid write storms
 
     return () => clearTimeout(timer);
   }, [
@@ -556,7 +574,7 @@ export const AppProvider = ({ children }) => {
     liveClasses,
     libraryBooks,
     hostels,
-    transportRoutes,
+    // NOTE: transportRoutes intentionally excluded — the bus simulator changes it every 5s
     timetables,
     fees,
     tickerItems,
@@ -589,7 +607,7 @@ export const AppProvider = ({ children }) => {
     starredFormFields
   ]);
 
-  // Polling loop to fetch remote state updates from MongoDB Atlas
+  // ═══ SYNC 3: Poll remote state updates from MongoDB Atlas every 6 seconds ═══
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -601,112 +619,21 @@ export const AppProvider = ({ children }) => {
         const json = await res.json();
         if (json.success && json.data) {
           const data = json.data;
-          
+
           if (data.updatedAt && data.updatedAt !== lastUpdatedAtRef.current) {
             console.log('🔄 Remote database changes detected, updating client states...');
-            
+
             isUpdatingFromDBRef.current = true;
             lastUpdatedAtRef.current = data.updatedAt;
 
-            const payload = {
-              schools: data.schools || [],
-              teachers: data.teachers || [],
-              students: data.students || [],
-              parents: data.parents || [],
-              admins: data.admins || [],
-              attendance: data.attendance || [],
-              marks: data.marks || [],
-              homework: data.homework || [],
-              notes: data.notes || [],
-              circulars: data.circulars || [],
-              liveClasses: data.liveClasses || [],
-              libraryBooks: data.libraryBooks || [],
-              hostels: data.hostels || [],
-              transportRoutes: data.transportRoutes || [],
-              timetables: data.timetables || [],
-              fees: data.fees || [],
-              tickerItems: data.tickerItems || [],
-              schoolInfo: data.schoolInfo || {},
-              managementCommittee: data.managementCommittee || [],
-              exams: data.exams || [],
-              classes: data.classes || [],
-              sections: data.sections || [],
-              auditLogs: data.auditLogs || [],
-              supportTickets: data.supportTickets || [],
-              galleryItems: data.galleryItems || [],
-              academicCalendar: data.academicCalendar || [],
-              academicPrograms: data.academicPrograms || [],
-              testimonials: data.testimonials || [],
-              enquiries: data.enquiries || [],
-              subjects: data.subjects || [],
-              admissionBanner: data.admissionBanner || {},
-              admissions: data.admissions || [],
-              facilities: data.facilities || [],
-              homepageInfra: data.homepageInfra || [],
-              homepageStats: data.homepageStats || [],
-              gradingProcess: data.gradingProcess || [],
-              gradingScheme: data.gradingScheme || [],
-              departments: data.departments || [],
-              galleryCategories: data.galleryCategories || [],
-              complaints: data.complaints || [],
-              whatsappLogs: data.whatsappLogs || [],
-              requiredDocuments: data.requiredDocuments || [],
-              leaveRequests: data.leaveRequests || [],
-              starredFormFields: data.starredFormFields || {}
-            };
-
+            const payload = buildPayload(data);
             lastSyncedPayloadRef.current = JSON.stringify(payload);
 
-            if (data.schools) setSchools(data.schools);
-            if (data.teachers) setTeachers(data.teachers);
-            if (data.students) setStudents(data.students);
-            if (data.parents) setParents(data.parents);
-            if (data.admins) setAdmins(data.admins);
-            if (data.attendance) setAttendance(data.attendance);
-            if (data.marks) setMarks(data.marks);
-            if (data.homework) setHomework(data.homework);
-            if (data.notes) setNotes(data.notes);
-            if (data.circulars) setCirculars(data.circulars);
-            if (data.liveClasses) setLiveClasses(data.liveClasses);
-            if (data.libraryBooks) setLibraryBooks(data.libraryBooks);
-            if (data.hostels) setHostels(data.hostels);
-            if (data.transportRoutes) setTransportRoutes(data.transportRoutes);
-            if (data.timetables) setTimetables(data.timetables);
-            if (data.fees) setFees(data.fees);
-            if (data.tickerItems) setTickerItems(data.tickerItems);
-            if (data.schoolInfo) setSchoolInfo(data.schoolInfo);
-            if (data.managementCommittee) setManagementCommittee(data.managementCommittee);
-            if (data.exams) setExams(data.exams);
-            if (data.classes) setClasses(data.classes);
-            if (data.sections) setSections(data.sections);
-            if (data.auditLogs) setAuditLogs(data.auditLogs);
-            if (data.supportTickets) setSupportTickets(data.supportTickets);
-            if (data.galleryItems) setGalleryItems(data.galleryItems);
-            if (data.academicCalendar) setAcademicCalendar(data.academicCalendar);
-            if (data.academicPrograms) setAcademicPrograms(data.academicPrograms);
-            if (data.testimonials) setTestimonials(data.testimonials);
-            if (data.enquiries) setEnquiries(data.enquiries);
-            if (data.subjects) setSubjects(data.subjects);
-            if (data.admissionBanner) setAdmissionBanner(data.admissionBanner);
-            if (data.admissions) setAdmissions(data.admissions);
-            if (data.facilities) setFacilities(data.facilities);
-            if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
-            else setHomepageInfra(initialHomepageInfra);
-            if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
-            else setHomepageStats(initialHomepageStats);
-            if (data.gradingProcess) setGradingProcess(data.gradingProcess);
-            if (data.gradingScheme) setGradingScheme(data.gradingScheme);
-            if (data.departments) setDepartments(data.departments);
-            if (data.galleryCategories) setGalleryCategories(data.galleryCategories);
-            if (data.complaints) setComplaints(data.complaints);
-            if (data.whatsappLogs) setWhatsappLogs(data.whatsappLogs);
-            if (data.requiredDocuments) setRequiredDocuments(data.requiredDocuments);
-            if (data.leaveRequests) setLeaveRequests(data.leaveRequests);
-            if (data.starredFormFields) setStarredFormFields(data.starredFormFields);
+            applyDBData(data);
 
             setTimeout(() => {
               isUpdatingFromDBRef.current = false;
-            }, 1000);
+            }, 2000);
           }
         }
       } catch (err) {
