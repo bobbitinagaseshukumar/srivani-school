@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node -e \"if (process.env.RENDER !== 'true') { require('child_process').execSync('next build', { stdio: 'inherit' }); } else { console.log('Skipping Next.js build on Render backend'); }\"",
     "start": "next start"
   },
   "dependencies": {

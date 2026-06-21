@@ -377,17 +377,8 @@ export default function App() {
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-          {/* Skip & Volume Controls - fixed at bottom center */}
-          <div style={{ position: 'absolute', bottom: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 30, display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button
-              onClick={handleToggleMute}
-              className="px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900/80 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg transition-all border border-white/10 flex items-center gap-1.5 focus:outline-none cursor-pointer hover:scale-105"
-              style={{ backdropFilter: 'blur(12px)', transition: 'all 0.2s ease-in-out' }}
-            >
-              {isMuted ? <VolumeX size={15} className="text-red-400" /> : <Volume2 size={15} className="text-emerald-400" />}
-              {isMuted ? 'Unmute' : 'Mute'}
-            </button>
-
+          {/* Skip Button - fixed at bottom center */}
+          <div style={{ position: 'absolute', bottom: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
             <button
               onClick={handleCloseIntro}
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg shadow-blue-500/20 transition-all border border-blue-400/20 flex items-center gap-1.5 focus:outline-none cursor-pointer hover:scale-105"
