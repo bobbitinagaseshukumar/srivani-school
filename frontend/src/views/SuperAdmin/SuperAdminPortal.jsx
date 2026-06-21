@@ -85,6 +85,18 @@ const getTeacherForSubject = (subjectName, teachersList) => {
   return match ? match.name : 'TBD';
 };
 
+const cleanPhoneForWhatsapp = (phoneStr) => {
+  if (!phoneStr) return '';
+  const digitsOnly = phoneStr.replace(/\D/g, '');
+  if (digitsOnly.length === 10) {
+    return `91${digitsOnly}`;
+  }
+  if (digitsOnly.length === 11 && digitsOnly.startsWith('0')) {
+    return `91${digitsOnly.slice(1)}`;
+  }
+  return digitsOnly;
+};
+
 export default function SuperAdminPortal() {
   const { 
     schools, toggleSchoolStatus,
@@ -850,8 +862,24 @@ export default function SuperAdminPortal() {
                           </td>
                           <td className="p-4 font-semibold">{adm.grade || adm.gradeApplied}</td>
                           <td className="p-4 font-medium">{adm.parentName}</td>
-                          <td className="p-4 font-mono text-[10px] space-y-0.5">
-                            <p>📞 {adm.parentPhone || adm.phone}</p>
+                          <td className="p-4 font-mono text-[10px] space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>📞 {adm.parentPhone || adm.phone}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const rawPhone = adm.whatsappNumber || adm.parentPhone || adm.phone || '';
+                                  const cleaned = cleanPhoneForWhatsapp(rawPhone);
+                                  const text = `Dear ${adm.parentName}, regarding your admission application for ${adm.studentName} to ${adm.grade || adm.gradeApplied} at Sri Vani Vidyanikethan...`;
+                                  window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(text)}`, '_blank');
+                                }}
+                                className="px-1.5 py-0.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded text-[9px] font-bold transition flex items-center gap-0.5 cursor-pointer"
+                                title="Chat on WhatsApp"
+                              >
+                                📱 WhatsApp
+                              </button>
+                            </div>
                             <p>✉️ {adm.parentEmail || adm.email}</p>
                           </td>
                           <td className="p-4">
@@ -1178,6 +1206,12 @@ export default function SuperAdminPortal() {
                               setEditingAdmission(null);
                               setWhatsappToast(selectedAdmission.parentName);
                               setTimeout(() => setWhatsappToast(null), 3000);
+
+                              const parentPhone = selectedAdmission.whatsappNumber || selectedAdmission.parentPhone || selectedAdmission.phone || '';
+                              const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
+                              const messageText = `Dear ${selectedAdmission.parentName}, your admission application for ${selectedAdmission.studentName} to ${selectedAdmission.grade || selectedAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
+                              const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
+                              window.open(waUrl, '_blank');
                             }}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
                           >
