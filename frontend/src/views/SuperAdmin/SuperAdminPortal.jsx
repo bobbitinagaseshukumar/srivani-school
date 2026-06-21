@@ -134,6 +134,8 @@ export default function SuperAdminPortal() {
 
 
   const [activeTab, setActiveTab] = useState('Schools');
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropTarget, setCropTarget] = useState(null); // 'student' or 'teacher'
   
   // School Tenant form
   const [showAddSchool, setShowAddSchool] = useState(false);
@@ -622,11 +624,20 @@ export default function SuperAdminPortal() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setShowModuleMenu(!showModuleMenu)}
-            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-md flex items-center justify-between gap-3 border border-blue-500/20"
+            className="relative w-full sm:w-auto px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-md flex items-center justify-between gap-3 border border-blue-500/20"
           >
             <span className="flex items-center gap-2">
               <Menu size={16} />
               Portal Directory Menu (Active Module: <span className="underline decoration-wavy decoration-white/50">{activeTab}</span>)
+              {((enquiries.filter(e => e.status === 'New').length > 0) || 
+                (admissions.filter(a => a.status === 'Pending').length > 0) || 
+                (leaveRequests.filter(l => l.status === 'Pending').length > 0) || 
+                (complaints.filter(c => c.status === 'Pending').length > 0)) && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              )}
             </span>
             <ChevronDown size={14} className={`transition-transform duration-300 ${showModuleMenu ? 'rotate-180' : ''}`} />
           </button>
@@ -649,6 +660,22 @@ export default function SuperAdminPortal() {
                 ⏳ {admissions.filter(a => a.status === 'Pending').length} Admissions
               </span>
             )}
+            {leaveRequests.filter(l => l.status === 'Pending').length > 0 && (
+              <span 
+                onClick={() => { setActiveTab('Leaves'); setShowModuleMenu(false); }}
+                className="cursor-pointer bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-full animate-pulse shadow flex items-center gap-1"
+              >
+                📋 {leaveRequests.filter(l => l.status === 'Pending').length} Leaves
+              </span>
+            )}
+            {complaints.filter(c => c.status === 'Pending').length > 0 && (
+              <span 
+                onClick={() => { setActiveTab('Complaints'); setShowModuleMenu(false); }}
+                className="cursor-pointer bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-full animate-pulse shadow flex items-center gap-1"
+              >
+                ⚠️ {complaints.filter(c => c.status === 'Pending').length} Complaints
+              </span>
+            )}
           </div>
         </div>
 
@@ -661,6 +688,8 @@ export default function SuperAdminPortal() {
               {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','School Settings','Committee Members','Audit Logs'].map((tab) => {
                 const hasPendingAdmissions = tab === 'Admissions' && admissions.filter(a => a.status === 'Pending').length > 0;
                 const hasNewEnquiries = tab === 'Enquiries' && enquiries.filter(e => e.status === 'New').length > 0;
+                const hasPendingLeaves = tab === 'Leaves' && leaveRequests.filter(l => l.status === 'Pending').length > 0;
+                const hasPendingComplaints = tab === 'Complaints' && complaints.filter(c => c.status === 'Pending').length > 0;
                 return (
                   <button
                     key={tab}
@@ -681,6 +710,12 @@ export default function SuperAdminPortal() {
                       )}
                       {hasPendingAdmissions && (
                         <span className="bg-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">{admissions.filter(a => a.status === 'Pending').length}</span>
+                      )}
+                      {hasPendingLeaves && (
+                        <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">{leaveRequests.filter(l => l.status === 'Pending').length}</span>
+                      )}
+                      {hasPendingComplaints && (
+                        <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">{complaints.filter(c => c.status === 'Pending').length}</span>
                       )}
                     </div>
                   </button>
@@ -1583,9 +1618,11 @@ export default function SuperAdminPortal() {
                           if (!file) return;
                           const reader = new FileReader();
                           reader.onload = (ev) => {
-                            setTeacherForm(prev => ({ ...prev, photo: ev.target.result }));
+                            setCropImageSrc(ev.target.result);
+                            setCropTarget('teacher');
                           };
                           reader.readAsDataURL(file);
+                          e.target.value = '';
                         }} 
                       />
                     </label>
@@ -1837,9 +1874,11 @@ export default function SuperAdminPortal() {
                           if (!file) return;
                           const reader = new FileReader();
                           reader.onload = (ev) => {
-                            setStudentForm(prev => ({ ...prev, photo: ev.target.result }));
+                            setCropImageSrc(ev.target.result);
+                            setCropTarget('student');
                           };
                           reader.readAsDataURL(file);
+                          e.target.value = '';
                         }} 
                       />
                     </label>
@@ -3528,8 +3567,8 @@ export default function SuperAdminPortal() {
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                    <th className="p-4">Student Name</th>
-                    <th className="p-4">Class &amp; Sec</th>
+                    <th className="p-4">Applicant Name</th>
+                    <th className="p-4">Class / Role</th>
                     <th className="p-4">Leave Type</th>
                     <th className="p-4">Dates</th>
                     <th className="p-4">Reason</th>
@@ -3541,7 +3580,7 @@ export default function SuperAdminPortal() {
                   {leaveRequests.filter(l => l.status === leaveFilter).map((leave) => (
                     <tr key={leave.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                       <td className="p-4 font-bold text-slate-900 dark:text-white">{leave.studentName}</td>
-                      <td className="p-4 font-semibold">{leave.class} - {leave.section}</td>
+                      <td className="p-4 font-semibold">{leave.class === 'Teacher' ? 'Teacher' : `${leave.class} - ${leave.section}`}</td>
                       <td className="p-4">
                         <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
                           {leave.leaveType}
@@ -5299,8 +5338,225 @@ function SubjectsManagerPanel({ subjects, addSubject, editSubject, deleteSubject
               </div>
             </div>
           ))}
+          {cropImageSrc && (
+            <ImageCropperModal
+              src={cropImageSrc}
+              onCrop={(croppedData) => {
+                if (cropTarget === 'student') {
+                  setStudentForm(prev => ({ ...prev, photo: croppedData }));
+                } else if (cropTarget === 'teacher') {
+                  setTeacherForm(prev => ({ ...prev, photo: croppedData }));
+                }
+                setCropImageSrc(null);
+                setCropTarget(null);
+              }}
+              onCancel={() => {
+                setCropImageSrc(null);
+                setCropTarget(null);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
+// Reusable custom canvas-based image cropper
+function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
+  const [zoom, setZoom] = useState(1);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [cropShape, setCropShape] = useState(shape);
+  const canvasRef = useRef(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const imageRef = useRef(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      imageRef.current = img;
+      setZoom(1);
+      setOffsetX(0);
+      setOffsetY(0);
+      draw();
+    };
+  }, [src]);
+
+  useEffect(() => {
+    if (imageRef.current) {
+      draw();
+    }
+  }, [zoom, offsetX, offsetY, cropShape]);
+
+  const draw = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const img = imageRef.current;
+    if (!img) return;
+
+    const ratio = Math.max(200 / img.width, 200 / img.height);
+    const imgWidth = img.width * ratio;
+    const imgHeight = img.height * ratio;
+
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.save();
+    ctx.translate(150 + offsetX, 150 + offsetY);
+    ctx.scale(zoom, zoom);
+    ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.beginPath();
+    ctx.rect(0, 0, 300, 300);
+    if (cropShape === 'circle') {
+      ctx.arc(150, 150, 100, 0, 2 * Math.PI, true);
+    } else {
+      ctx.moveTo(50, 50);
+      ctx.lineTo(50, 250);
+      ctx.lineTo(250, 250);
+      ctx.lineTo(250, 50);
+      ctx.closePath();
+    }
+    ctx.fill();
+
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (cropShape === 'circle') {
+      ctx.arc(150, 150, 100, 0, 2 * Math.PI);
+    } else {
+      ctx.rect(50, 50, 200, 200);
+    }
+    ctx.stroke();
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    dragStart.current = { x: e.clientX - offsetX, y: e.clientY - offsetY };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    setOffsetX(e.clientX - dragStart.current.x);
+    setOffsetY(e.clientY - dragStart.current.y);
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      isDragging.current = true;
+      dragStart.current = { x: e.touches[0].clientX - offsetX, y: e.touches[0].clientY - offsetY };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging.current || e.touches.length !== 1) return;
+    setOffsetX(e.touches[0].clientX - dragStart.current.x);
+    setOffsetY(e.touches[0].clientY - dragStart.current.y);
+  };
+
+  const handleExport = () => {
+    const img = imageRef.current;
+    if (!img) return;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = 200;
+    exportCanvas.height = 200;
+    const ectx = exportCanvas.getContext('2d');
+
+    const ratio = Math.max(200 / img.width, 200 / img.height);
+    const imgWidth = img.width * ratio;
+    const imgHeight = img.height * ratio;
+
+    ectx.save();
+    ectx.translate(100 + offsetX, 100 + offsetY);
+    ectx.scale(zoom, zoom);
+    ectx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+    ectx.restore();
+
+    const croppedDataUrl = exportCanvas.toDataURL('image/jpeg', 0.75);
+    onCrop(croppedDataUrl);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col items-center p-6 text-center">
+        <h3 className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-white mb-0.5">Crop Profile Picture</h3>
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-4 font-medium">Drag to position • Use slider to zoom</p>
+
+        <div 
+          className="relative w-[300px] h-[300px] bg-slate-50 dark:bg-slate-950 rounded-2xl overflow-hidden cursor-move border border-slate-200 dark:border-slate-800 shadow-inner mb-4"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
+        >
+          <canvas 
+            ref={canvasRef} 
+            width={300} 
+            height={300} 
+            className="block"
+          />
+        </div>
+
+        <div className="w-full flex items-center gap-3 mb-4 px-2">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600">A</span>
+          <input 
+            type="range" 
+            min="1" 
+            max="3" 
+            step="0.05"
+            value={zoom} 
+            onChange={(e) => setZoom(parseFloat(e.target.value))}
+            className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+          />
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-600">A+</span>
+        </div>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setCropShape('circle')}
+            type="button"
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${cropShape === 'circle' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}
+          >
+            Circle Crop
+          </button>
+          <button
+            onClick={() => setCropShape('square')}
+            type="button"
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${cropShape === 'square' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}
+          >
+            Square Crop
+          </button>
+        </div>
+
+        <div className="w-full flex gap-3 text-left">
+          <button 
+            onClick={onCancel}
+            type="button"
+            className="flex-1 px-4 py-2 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400 text-center transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={handleExport}
+            type="button"
+            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            Apply Crop
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

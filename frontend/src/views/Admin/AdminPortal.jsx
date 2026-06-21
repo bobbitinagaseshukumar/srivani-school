@@ -37,6 +37,7 @@ export default function AdminPortal() {
   } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [cropImageSrc, setCropImageSrc] = useState(null);
   const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
   const [editingAdmission, setEditingAdmission] = useState(null);
   const [leaveFilter, setLeaveFilter] = useState('Pending');
@@ -466,9 +467,10 @@ export default function AdminPortal() {
                           if (!file) return;
                           const reader = new FileReader();
                           reader.onload = (ev) => {
-                            setEnrollForm(prev => ({ ...prev, photo: ev.target.result }));
+                            setCropImageSrc(ev.target.result);
                           };
                           reader.readAsDataURL(file);
+                          e.target.value = '';
                         }} 
                       />
                     </label>
@@ -1828,8 +1830,220 @@ export default function AdminPortal() {
           </div>
         )}
 
+        {cropImageSrc && (
+          <ImageCropperModal
+            src={cropImageSrc}
+            onCrop={(croppedData) => {
+              setEnrollForm(prev => ({ ...prev, photo: croppedData }));
+              setCropImageSrc(null);
+            }}
+            onCancel={() => {
+              setCropImageSrc(null);
+            }}
+          />
+        )}
       </div>
 
     </div>
   );
 }
+
+// Reusable custom canvas-based image cropper
+function ImageCropperModal({ src, shape = 'circle', onCrop, onCancel }) {
+  const [zoom, setZoom] = useState(1);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [cropShape, setCropShape] = useState(shape);
+  const canvasRef = useRef(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const imageRef = useRef(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      imageRef.current = img;
+      setZoom(1);
+      setOffsetX(0);
+      setOffsetY(0);
+      draw();
+    };
+  }, [src]);
+
+  useEffect(() => {
+    if (imageRef.current) {
+      draw();
+    }
+  }, [zoom, offsetX, offsetY, cropShape]);
+
+  const draw = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const img = imageRef.current;
+    if (!img) return;
+
+    const ratio = Math.max(200 / img.width, 200 / img.height);
+    const imgWidth = img.width * ratio;
+    const imgHeight = img.height * ratio;
+
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.save();
+    ctx.translate(150 + offsetX, 150 + offsetY);
+    ctx.scale(zoom, zoom);
+    ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.beginPath();
+    ctx.rect(0, 0, 300, 300);
+    if (cropShape === 'circle') {
+      ctx.arc(150, 150, 100, 0, 2 * Math.PI, true);
+    } else {
+      ctx.moveTo(50, 50);
+      ctx.lineTo(50, 250);
+      ctx.lineTo(250, 250);
+      ctx.lineTo(250, 50);
+      ctx.closePath();
+    }
+    ctx.fill();
+
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (cropShape === 'circle') {
+      ctx.arc(150, 150, 100, 0, 2 * Math.PI);
+    } else {
+      ctx.rect(50, 50, 200, 200);
+    }
+    ctx.stroke();
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    dragStart.current = { x: e.clientX - offsetX, y: e.clientY - offsetY };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    setOffsetX(e.clientX - dragStart.current.x);
+    setOffsetY(e.clientY - dragStart.current.y);
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      isDragging.current = true;
+      dragStart.current = { x: e.touches[0].clientX - offsetX, y: e.touches[0].clientY - offsetY };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging.current || e.touches.length !== 1) return;
+    setOffsetX(e.touches[0].clientX - dragStart.current.x);
+    setOffsetY(e.touches[0].clientY - dragStart.current.y);
+  };
+
+  const handleExport = () => {
+    const img = imageRef.current;
+    if (!img) return;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = 200;
+    exportCanvas.height = 200;
+    const ectx = exportCanvas.getContext('2d');
+
+    const ratio = Math.max(200 / img.width, 200 / img.height);
+    const imgWidth = img.width * ratio;
+    const imgHeight = img.height * ratio;
+
+    ectx.save();
+    ectx.translate(100 + offsetX, 100 + offsetY);
+    ectx.scale(zoom, zoom);
+    ectx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+    ectx.restore();
+
+    const croppedDataUrl = exportCanvas.toDataURL('image/jpeg', 0.75);
+    onCrop(croppedDataUrl);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col items-center p-6 text-center">
+        <h3 className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-white mb-0.5">Crop Profile Picture</h3>
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-4 font-medium">Drag to position • Use slider to zoom</p>
+
+        <div 
+          className="relative w-[300px] h-[300px] bg-slate-50 dark:bg-slate-950 rounded-2xl overflow-hidden cursor-move border border-slate-200 dark:border-slate-800 shadow-inner mb-4"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
+        >
+          <canvas 
+            ref={canvasRef} 
+            width={300} 
+            height={300} 
+            className="block"
+          />
+        </div>
+
+        <div className="w-full flex items-center gap-3 mb-4 px-2">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600">A</span>
+          <input 
+            type="range" 
+            min="1" 
+            max="3" 
+            step="0.05"
+            value={zoom} 
+            onChange={(e) => setZoom(parseFloat(e.target.value))}
+            className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+          />
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-600">A+</span>
+        </div>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setCropShape('circle')}
+            type="button"
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${cropShape === 'circle' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}
+          >
+            Circle Crop
+          </button>
+          <button
+            onClick={() => setCropShape('square')}
+            type="button"
+            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${cropShape === 'square' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'}`}
+          >
+            Square Crop
+          </button>
+        </div>
+
+        <div className="w-full flex gap-3 text-left">
+          <button 
+            onClick={onCancel}
+            type="button"
+            className="flex-1 px-4 py-2 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400 text-center transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={handleExport}
+            type="button"
+            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            Apply Crop
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
