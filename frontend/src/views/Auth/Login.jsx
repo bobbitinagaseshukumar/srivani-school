@@ -326,7 +326,7 @@ export default function Login({ onLoginSuccess }) {
                         type="submit"
                         className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto"
                       >
-                        Verify Credentials <ArrowRight size={14} />
+                        Login <ArrowRight size={14} />
                       </button>
                     </div>
                   </form>

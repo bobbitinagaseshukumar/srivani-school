@@ -76,9 +76,19 @@ const initialAdmissions = [];
 
 const initialFacilities = [];
 
-const initialHomepageInfra = [];
+const initialHomepageInfra = [
+  { id: 'infra1', title: 'Smart Digital Classrooms', description: 'Interactive smart boards, projectors, and air-conditioned rooms for immersive learning experiences.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra2', title: 'Advanced Science Labs', description: 'Fully equipped Physics, Chemistry, and Biology laboratories with modern instruments and safety gear.', image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra3', title: 'Olympic-Grade Sports Complex', description: 'Basketball courts, cricket ground, athletics track, and indoor games facility for holistic student development.', image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80' },
+  { id: 'infra4', title: 'Central Library & Resource Center', description: 'Over 10,050 books, digital research stations, and a serene reading hall open to all students.', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80' }
+];
 
-const initialHomepageStats = [];
+const initialHomepageStats = [
+  { id: 'stat1', value: '500+', label: 'Students Enrolled', icon: '🎓' },
+  { id: 'stat2', value: '50+', label: 'Expert Educators', icon: '👨‍🏫' },
+  { id: 'stat3', value: '1', label: 'School Branch', icon: '🏫' },
+  { id: 'stat4', value: '15+', label: 'Years of Excellence', icon: '🏆' }
+];
 
 const initialGradingProcess = {
   title: 'Resulting & Grading Process',
@@ -121,7 +131,7 @@ const initialAcademicCalendar = [];
 
 const initialAcademicPrograms = [];
 
-const DATA_VERSION = '5';
+const DATA_VERSION = '6';
 
 const readStoredValue = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
@@ -363,8 +373,10 @@ export const AppProvider = ({ children }) => {
           if (data.admissionBanner) setAdmissionBanner(data.admissionBanner);
           if (data.admissions) setAdmissions(data.admissions);
           if (data.facilities) setFacilities(data.facilities);
-          if (data.homepageInfra) setHomepageInfra(data.homepageInfra);
-          if (data.homepageStats) setHomepageStats(data.homepageStats);
+          if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
+          else setHomepageInfra(initialHomepageInfra);
+          if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
+          else setHomepageStats(initialHomepageStats);
           if (data.gradingProcess) setGradingProcess(data.gradingProcess);
           if (data.gradingScheme) setGradingScheme(data.gradingScheme);
           if (data.departments) setDepartments(data.departments);

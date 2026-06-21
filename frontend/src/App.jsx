@@ -412,48 +412,7 @@ export default function App() {
 
           {/* Utilities Panel */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Notifications Alert Dropdown */}
-            {mounted && currentUser.role !== 'Guest' && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 relative transition-colors"
-                >
-                  <Bell size={16} />
-                  {unreadNotifications.length > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                  )}
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 z-50 text-xs text-left">
-                    <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
-                      <p className="font-bold">Real-time alerts</p>
-                      <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">
-                        {unreadNotifications.length} New
-                      </span>
-                    </div>
-
-                    <div className="divide-y divide-slate-100 dark:divide-slate-850 max-h-60 overflow-y-auto pr-1">
-                      {notifications.map((ntf) => (
-                        <div 
-                          key={ntf.id} 
-                          onClick={() => markNotificationRead(ntf.id)}
-                          className={`py-2 cursor-pointer transition-colors ${!ntf.read ? 'bg-blue-500/5 px-1 rounded' : ''}`}
-                        >
-                          <p className="font-bold text-slate-900 dark:text-white flex justify-between">
-                            <span>{ntf.title}</span>
-                            <span className="text-[8px] text-slate-400 font-normal">{ntf.time}</span>
-                          </p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{ntf.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
+            
             {/* Portal Action Button */}
             {!mounted || currentUser.role === 'Guest' ? (
               <button

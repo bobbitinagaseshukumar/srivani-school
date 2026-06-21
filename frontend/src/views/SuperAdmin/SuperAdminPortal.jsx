@@ -386,7 +386,6 @@ export default function SuperAdminPortal() {
   const systemMetrics = [
     { label: 'Total Students', value: `${(students || []).length} Enrolled`, icon: User, color: 'text-emerald-500' },
     { label: 'Total Teachers', value: `${(teachers || []).length} Faculty`, icon: UserCheck, color: 'text-blue-500' },
-    { label: 'Active Clusters', value: '3 Nodes Online', icon: Activity, color: 'text-amber-500' },
     { label: 'Database Replication', value: '100% Synced', icon: CheckCircle2, color: 'text-purple-500' }
   ];
 
@@ -797,15 +796,15 @@ export default function SuperAdminPortal() {
 
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             {/* Table of Applications */}
-            <div className="lg:col-span-8 space-y-4">
-              <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-2 rounded-xl">
+            <div className="lg:col-span-8 space-y-4 min-w-0 w-full">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-900/40 p-3 sm:p-2 rounded-xl gap-2">
                 <span className="font-bold text-xs uppercase text-slate-500 tracking-wider">Application Records</span>
-                <div className="flex gap-1.5">
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
                   {['Pending', 'Approved', 'Rejected'].map(s => (
                     <button
                       key={s}
                       onClick={() => setAdmissionFilter(s)}
-                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all flex-1 sm:flex-initial text-center ${
                         admissionFilter === s 
                           ? 'bg-blue-600 text-white shadow'
                           : 'bg-white dark:bg-slate-800 text-slate-500 border hover:bg-slate-100'
@@ -1947,22 +1946,22 @@ export default function SuperAdminPortal() {
 
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Number of Active Periods</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
                     <button
                       type="button"
                       onClick={() => setPeriodsCount(prev => Math.max(1, prev - 1))}
-                      className="px-3.5 py-2 bg-red-500 hover:bg-red-650 text-white rounded-xl text-xs font-extrabold transition flex items-center gap-1 shadow-sm shrink-0"
+                      className="px-3 py-2 bg-red-500 hover:bg-red-605 text-white rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1 shadow-sm sm:shrink-0 w-full sm:w-auto cursor-pointer"
                       title="Decrease periods count"
                     >
                       ➖ Remove Period
                     </button>
-                    <div className="flex-1 text-center py-2 border rounded-xl bg-slate-100 dark:bg-slate-900/50 text-xs font-extrabold text-slate-900 dark:text-white">
+                    <div className="text-center py-2 px-3 border rounded-xl bg-slate-100 dark:bg-slate-900/50 text-xs font-extrabold text-slate-900 dark:text-white flex-1 min-w-0">
                       {periodsCount} Periods Configured
                     </div>
                     <button
                       type="button"
                       onClick={() => setPeriodsCount(prev => Math.min(8, prev + 1))}
-                      className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-650 text-white rounded-xl text-xs font-extrabold transition flex items-center gap-1 shadow-sm shrink-0"
+                      className="px-3 py-2 bg-emerald-500 hover:bg-emerald-655 text-white rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1 shadow-sm sm:shrink-0 w-full sm:w-auto cursor-pointer"
                       title="Increase periods count"
                     >
                       ➕ Add Period
