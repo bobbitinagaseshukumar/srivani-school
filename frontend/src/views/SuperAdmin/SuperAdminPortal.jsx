@@ -41,6 +41,42 @@ const compressImageForCropper = (file, callback) => {
   reader.readAsDataURL(file);
 };
 
+const compressImageDirectly = (file, callback) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const targetSize = 300;
+      let width = img.width;
+      let height = img.height;
+      let sourceX = 0;
+      let sourceY = 0;
+      let sourceWidth = width;
+      let sourceHeight = height;
+
+      if (width > height) {
+        sourceWidth = height;
+        sourceX = Math.round((width - height) / 2);
+      } else if (height > width) {
+        sourceHeight = width;
+        sourceY = Math.round((height - width) / 2);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetSize, targetSize);
+      callback(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => {
+      callback(e.target.result);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
 const presetTimings = [
   '09:30 AM - 10:15 AM',
   '10:30 AM - 11:15 AM',
@@ -1636,30 +1672,54 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          compressImageForCropper(file, (compressedUrl) => {
-                            setCropImageSrc(compressedUrl);
-                            setCropTarget('admin');
+                          compressImageDirectly(file, (croppedData) => {
+                            setAdminForm(prev => ({ ...prev, photo: croppedData }));
                           });
                           e.target.value = '';
                         }} 
                       />
                     </label>
                   </div>
-                  {adminForm.photo && adminForm.photo.startsWith('data:') ? (
-                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
-                      ✅ Photo uploaded (cropped)
-                      <button type="button" onClick={() => setAdminForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
-                    </div>
-                  ) : (
+                  <div className="relative w-full">
                     <input 
                       type="text" 
                       placeholder="— or paste photo link URL —" 
-                      value={adminForm.photo} 
+                      value={adminForm.photo && adminForm.photo.startsWith('data:') ? '✅ Photo uploaded (cropped)' : adminForm.photo} 
                       onChange={(e) => setAdminForm(prev => ({ ...prev, photo: e.target.value }))} 
-                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                      readOnly={adminForm.photo && adminForm.photo.startsWith('data:')}
+                      className="w-full pr-16 px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
                     />
-                  )}
+                    {adminForm.photo && (
+                      <button 
+                        type="button" 
+                        onClick={() => setAdminForm(prev => ({ ...prev, photo: '' }))}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-700 text-[10px] font-bold cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* Gallery Image Picker */}
+                {galleryItems && galleryItems.filter(item => item.type === 'image').length > 0 && (
+                  <div className="mt-2 border rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 text-left">
+                    <span className="text-[9px] text-slate-400 font-bold block mb-2">— or select from Gallery folder —</span>
+                    <div className="grid grid-cols-6 gap-2 max-h-24 overflow-y-auto pr-1">
+                      {galleryItems.filter(item => item.type === 'image').map(item => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setAdminForm(prev => ({ ...prev, photo: item.url }))}
+                          className={`relative aspect-square rounded-lg overflow-hidden border hover:border-blue-500 hover:ring-2 hover:ring-blue-500/20 transition-all shrink-0 cursor-pointer ${adminForm.photo === item.url ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-800'}`}
+                          title={item.title}
+                        >
+                          <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl">
                 {adminEditId ? 'Update Credentials' : 'Confirm Registration'}
@@ -1856,30 +1916,54 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          compressImageForCropper(file, (compressedUrl) => {
-                            setCropImageSrc(compressedUrl);
-                            setCropTarget('teacher');
+                          compressImageDirectly(file, (croppedData) => {
+                            setTeacherForm(prev => ({ ...prev, photo: croppedData }));
                           });
                           e.target.value = '';
                         }} 
                       />
                     </label>
                   </div>
-                  {teacherForm.photo && teacherForm.photo.startsWith('data:') ? (
-                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
-                      ✅ Photo uploaded (cropped)
-                      <button type="button" onClick={() => setTeacherForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
-                    </div>
-                  ) : (
+                  <div className="relative w-full">
                     <input 
                       type="text" 
                       placeholder="— or paste photo link URL —" 
-                      value={teacherForm.photo} 
+                      value={teacherForm.photo && teacherForm.photo.startsWith('data:') ? '✅ Photo uploaded (cropped)' : teacherForm.photo} 
                       onChange={(e) => setTeacherForm(prev => ({ ...prev, photo: e.target.value }))} 
-                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                      readOnly={teacherForm.photo && teacherForm.photo.startsWith('data:')}
+                      className="w-full pr-16 px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
                     />
-                  )}
+                    {teacherForm.photo && (
+                      <button 
+                        type="button" 
+                        onClick={() => setTeacherForm(prev => ({ ...prev, photo: '' }))}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-700 text-[10px] font-bold cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* Gallery Image Picker */}
+                {galleryItems && galleryItems.filter(item => item.type === 'image').length > 0 && (
+                  <div className="mt-2 border rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 text-left">
+                    <span className="text-[9px] text-slate-400 font-bold block mb-2">— or select from Gallery folder —</span>
+                    <div className="grid grid-cols-6 gap-2 max-h-24 overflow-y-auto pr-1">
+                      {galleryItems.filter(item => item.type === 'image').map(item => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setTeacherForm(prev => ({ ...prev, photo: item.url }))}
+                          className={`relative aspect-square rounded-lg overflow-hidden border hover:border-blue-500 hover:ring-2 hover:ring-blue-500/20 transition-all shrink-0 cursor-pointer ${teacherForm.photo === item.url ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-800'}`}
+                          title={item.title}
+                        >
+                          <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
                 {teacherEditId ? 'Update Faculty Details' : 'Register Faculty Login'}
@@ -2128,31 +2212,54 @@ export default function SuperAdminPortal() {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (!file) return;
-                          compressImageForCropper(file, (compressedUrl) => {
-                            setCropImageSrc(compressedUrl);
-                            setCropTarget('student');
+                          compressImageDirectly(file, (croppedData) => {
+                            setStudentForm(prev => ({ ...prev, photo: croppedData }));
                           });
                           e.target.value = '';
                         }} 
                       />
                     </label>
                   </div>
-                  {studentForm.photo && studentForm.photo.startsWith('data:') ? (
-                    <div className="flex items-center gap-2 w-full px-3 py-2 border rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
-                      ✅ Photo uploaded (cropped)
-                      <button type="button" onClick={() => setStudentForm(prev => ({ ...prev, photo: '' }))} className="ml-auto text-red-400 hover:text-red-600 text-[10px] font-bold cursor-pointer">Remove</button>
-                    </div>
-                  ) : (
+                  <div className="relative w-full">
                     <input 
                       type="text" 
                       placeholder="— or paste photo link URL —" 
-                      value={studentForm.photo} 
+                      value={studentForm.photo && studentForm.photo.startsWith('data:') ? '✅ Photo uploaded (cropped)' : studentForm.photo} 
                       onChange={(e) => setStudentForm(prev => ({ ...prev, photo: e.target.value }))} 
-                      className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                      readOnly={studentForm.photo && studentForm.photo.startsWith('data:')}
+                      className="w-full pr-16 px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
                     />
-                  )}
+                    {studentForm.photo && (
+                      <button 
+                        type="button" 
+                        onClick={() => setStudentForm(prev => ({ ...prev, photo: '' }))}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-750 text-[10px] font-bold cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
 
+                {/* Gallery Image Picker */}
+                {galleryItems && galleryItems.filter(item => item.type === 'image').length > 0 && (
+                  <div className="mt-2 border rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 text-left">
+                    <span className="text-[9px] text-slate-400 font-bold block mb-2">— or select from Gallery folder —</span>
+                    <div className="grid grid-cols-6 gap-2 max-h-24 overflow-y-auto pr-1">
+                      {galleryItems.filter(item => item.type === 'image').map(item => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setStudentForm(prev => ({ ...prev, photo: item.url }))}
+                          className={`relative aspect-square rounded-lg overflow-hidden border hover:border-blue-500 hover:ring-2 hover:ring-blue-500/20 transition-all shrink-0 cursor-pointer ${studentForm.photo === item.url ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-800'}`}
+                          title={item.title}
+                        >
+                          <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
                 {studentEditId ? 'Update Student Profile' : 'Enroll Student'}
