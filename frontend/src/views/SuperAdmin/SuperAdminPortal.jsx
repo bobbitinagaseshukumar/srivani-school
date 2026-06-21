@@ -1237,42 +1237,47 @@ export default function SuperAdminPortal() {
                       >
                         Save Changes
                       </button>
-                      {(selectedAdmission.status === 'Pending' || selectedAdmission.status === 'Rejected') && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              // Save current form edits first, then approve using edited values
-                              updateAdmissionFields(editingAdmission.id, editingAdmission);
-                              approveAdmission(editingAdmission.id, editingAdmission);
-                              setSelectedAdmission(null);
-                              setEditingAdmission(null);
-                              setWhatsappToast(editingAdmission.parentName);
-                              setTimeout(() => setWhatsappToast(null), 3000);
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Save current form edits first, then approve using edited values
+                          updateAdmissionFields(editingAdmission.id, editingAdmission);
+                          approveAdmission(editingAdmission.id, editingAdmission);
+                          setSelectedAdmission(null);
+                          setEditingAdmission(null);
+                          setWhatsappToast(editingAdmission.parentName);
+                          setTimeout(() => setWhatsappToast(null), 3000);
 
-                              const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
-                              const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
-                              const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
-                              const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
-                              window.open(waUrl, '_blank');
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              rejectAdmission(selectedAdmission.id);
-                              setSelectedAdmission(null);
-                              setEditingAdmission(null);
-                            }}
-                            className="bg-red-500 hover:bg-red-655 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
+                          const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
+                          const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
+                          const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
+                          const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
+                          window.open(waUrl, '_blank');
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Save current form edits first, then reject using edited values
+                          updateAdmissionFields(editingAdmission.id, editingAdmission);
+                          rejectAdmission(editingAdmission.id, editingAdmission);
+                          setSelectedAdmission(null);
+                          setEditingAdmission(null);
+                          alert('Admission application REJECTED.');
+
+                          const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
+                          const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
+                          const messageText = `Dear ${editingAdmission.parentName}, thank you for your interest in Sri Vani Vidyanikethan. We regret to inform you that your admission application for ${editingAdmission.studentName} has been declined. For any further queries, please contact the school administration office.`;
+                          const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
+                          window.open(waUrl, '_blank');
+                        }}
+                        className="bg-red-500 hover:bg-red-655 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </form>
                 </div>

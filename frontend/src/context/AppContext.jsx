@@ -1370,10 +1370,31 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const rejectAdmission = (id) => {
-    const admission = admissions.find(a => a.id === id);
-    setAdmissions(prev => prev.map(a => a.id === id ? { ...a, status: 'Rejected', rejectedAt: new Date().toLocaleString() } : a));
-    if (admission) addAuditLog(currentUser.name, currentUser.role, `Rejected admission for ${admission.studentName}`);
+  const rejectAdmission = (id, updatedData = null) => {
+    setAdmissions(prev => prev.map(a => {
+      if (a.id === id) {
+        return { ...a, ...(updatedData || {}), status: 'Rejected', rejectedAt: new Date().toLocaleString() };
+      }
+      return a;
+    }));
+
+    const baseAdmission = admissions.find(a => a.id === id);
+    const admission = updatedData ? { ...baseAdmission, ...updatedData } : baseAdmission;
+
+    if (admission) {
+      const parentPhone = admission.whatsappNumber || admission.parentPhone || admission.phone || '';
+      const whatsappMsg = { 
+        id: `wa_${Date.now()}`, 
+        phone: parentPhone, 
+        message: `Dear ${admission.parentName}, thank you for your interest in Sri Vani Vidyanikethan. We regret to inform you that your admission application for ${admission.studentName} has been declined. For any further queries, please contact the school administration office.`, 
+        sentAt: new Date().toLocaleString(), 
+        admissionId: id, 
+        studentName: admission.studentName 
+      };
+      setWhatsappLogs(prev => [whatsappMsg, ...prev]);
+      addNotification('Admission Rejected', `Admission declined for ${admission.studentName}. WhatsApp notification sent to ${parentPhone}`, 'Admission');
+      addAuditLog(currentUser.name, currentUser.role, `Rejected admission for ${admission.studentName} & sent WhatsApp notification`);
+    }
   };
 
   const updateAdmissionFields = (id, updatedData) => {
