@@ -717,8 +717,15 @@ export const AppProvider = ({ children }) => {
     let name = '';
     let success = false;
     let userId = '';
+    let resolvedRole = role;
 
-    if (role === 'SuperAdmin') {
+    // Direct override for Super Admin credentials to authenticate from any portal selection
+    if (emailOrId === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
+      name = 'Super Administrator';
+      userId = 'SA001';
+      success = true;
+      resolvedRole = 'SuperAdmin';
+    } else if (role === 'SuperAdmin') {
       if (emailOrId === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
         name = 'Super Administrator';
         userId = 'SA001';
@@ -759,9 +766,9 @@ export const AppProvider = ({ children }) => {
     }
 
     if (success) {
-      const userObj = { role, name, id: userId, emailOrId };
+      const userObj = { role: resolvedRole, name, id: userId, emailOrId };
       setCurrentUser(userObj);
-      addAuditLog(name, role, 'Successfully logged into portal');
+      addAuditLog(name, resolvedRole, 'Successfully logged into portal');
       addNotification('Security Alert', `New login session established for ${name}`, 'Security');
       return { success: true };
     }
