@@ -4,7 +4,7 @@ import {
   ShieldCheck, Plus, ToggleLeft, ToggleRight, Building, CheckCircle2, 
   DollarSign, Activity, Settings, UserCheck, Trash2, Edit, X, 
   FileSpreadsheet, Lock, User, Key, Mail, Phone, MapPin, Sparkles, AlertCircle, Calendar, Clipboard,
-  Image, Video, Upload, ZoomIn, FolderOpen, Filter, MessageSquare, Home, Menu, ChevronDown
+  Image, Video, Upload, ZoomIn, FolderOpen, Filter, MessageSquare, Home, Menu, ChevronDown, Eye, EyeOff
 } from 'lucide-react';
 
 const presetTimings = [
@@ -143,6 +143,14 @@ export default function SuperAdminPortal() {
   const [studentSearch, setStudentSearch] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('All');
   const [duplicateError, setDuplicateError] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [showTeacherPassword, setShowTeacherPassword] = useState(false);
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
+  const [showParentPassword, setShowParentPassword] = useState(false);
+  const [revealedPasswords, setRevealedPasswords] = useState({});
+  const toggleRevealPassword = (id) => {
+    setRevealedPasswords(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Admissions tab states
   const [whatsappToast, setWhatsappToast] = useState(null);
@@ -1283,11 +1291,23 @@ export default function SuperAdminPortal() {
                   className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
               </div>
-              <input 
-                type="password" required placeholder="Portal Access Password" value={adminForm.password}
-                onChange={(e) => setAdminForm(prev => ({ ...prev, password: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-              />
+              <div className="relative flex items-center w-full">
+                <input 
+                  type={showAdminPassword ? "text" : "password"} 
+                  required 
+                  placeholder="Portal Access Password" 
+                  value={adminForm.password}
+                  onChange={(e) => setAdminForm(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full pl-3 pr-10 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="absolute right-3 text-slate-400 hover:text-slate-650 cursor-pointer"
+                >
+                  {showAdminPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl">
                 {adminEditId ? 'Update Credentials' : 'Confirm Registration'}
               </button>
@@ -1313,7 +1333,19 @@ export default function SuperAdminPortal() {
                         <User size={14} className="text-blue-500" /> {adm.name}
                       </td>
                       <td className="p-4 font-mono">{adm.email}</td>
-                      <td className="p-4 font-mono text-slate-450">{adm.password}</td>
+                      <td className="p-4 font-mono text-slate-450">
+                        <div className="flex items-center gap-1.5">
+                          <span>{revealedPasswords[adm.id] ? adm.password : '••••••••'}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleRevealPassword(adm.id)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
+                            title={revealedPasswords[adm.id] ? "Hide password" : "Show password"}
+                          >
+                            {revealedPasswords[adm.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4 text-center">
                         <button 
                           onClick={() => editAdmin(adm.id, { status: adm.status === 'Active' ? 'Disabled' : 'Active' })}
@@ -1428,11 +1460,23 @@ export default function SuperAdminPortal() {
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
                   className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
-                <input 
-                  type="password" required placeholder="Assign Password" value={teacherForm.password}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, password: e.target.value }))}
-                  className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-                />
+                <div className="relative flex items-center w-full">
+                  <input 
+                    type={showTeacherPassword ? "text" : "password"} 
+                    required 
+                    placeholder="Assign Password" 
+                    value={teacherForm.password}
+                    onChange={(e) => setTeacherForm(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full pl-3 pr-10 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherPassword(!showTeacherPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-650 cursor-pointer"
+                  >
+                    {showTeacherPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="text-[10px] text-slate-450 font-bold block mb-1">Teacher Profile Photo URL</label>
@@ -1483,7 +1527,19 @@ export default function SuperAdminPortal() {
                       <td className="p-4 text-slate-500">{teach.experience || '5 Years'}</td>
                       <td className="p-4 font-bold text-indigo-600 dark:text-indigo-400">${teach.salary || 5000}</td>
                       <td className="p-4">{teach.phone}</td>
-                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">{teach.password || 'teacher123'}</td>
+                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">
+                        <div className="flex items-center gap-1.5">
+                          <span>{revealedPasswords[teach.id] ? (teach.password || 'teacher123') : '••••••••'}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleRevealPassword(teach.id)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
+                            title={revealedPasswords[teach.id] ? "Hide password" : "Show password"}
+                          >
+                            {revealedPasswords[teach.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4 text-right space-x-2">
                         <button 
                           onClick={() => {
@@ -1623,11 +1679,23 @@ export default function SuperAdminPortal() {
                   onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
                   className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
-                <input 
-                  type="password" required placeholder="Assign Student Password" value={studentForm.password}
-                  onChange={(e) => setStudentForm(prev => ({ ...prev, password: e.target.value }))}
-                  className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-                />
+                <div className="relative flex items-center w-full">
+                  <input 
+                    type={showStudentPassword ? "text" : "password"} 
+                    required 
+                    placeholder="Assign Student Password" 
+                    value={studentForm.password}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full pl-3 pr-10 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowStudentPassword(!showStudentPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-650 cursor-pointer"
+                  >
+                    {showStudentPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
               <input 
                 type="text" required placeholder="Address details" value={studentForm.address}
@@ -1727,7 +1795,19 @@ export default function SuperAdminPortal() {
                       <td className="p-4 text-slate-500 max-w-[120px] truncate">{stud.address}</td>
                       <td className="p-4 font-bold text-slate-650 dark:text-slate-355">{stud.class} - {stud.section}</td>
                       <td className="p-4 font-mono">{stud.email}</td>
-                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">{stud.password || 'student123'}</td>
+                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">
+                        <div className="flex items-center gap-1.5">
+                          <span>{revealedPasswords[stud.id] ? (stud.password || 'student123') : '••••••••'}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleRevealPassword(stud.id)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
+                            title={revealedPasswords[stud.id] ? "Hide password" : "Show password"}
+                          >
+                            {revealedPasswords[stud.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4 text-right space-x-2">
                         <button 
                           onClick={() => {
@@ -1794,11 +1874,23 @@ export default function SuperAdminPortal() {
                   onChange={(e) => setParentForm(prev => ({ ...prev, email: e.target.value }))}
                   className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                 />
-                <input 
-                  type="password" required placeholder="Set Password" value={parentForm.password}
-                  onChange={(e) => setParentForm(prev => ({ ...prev, password: e.target.value }))}
-                  className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-                />
+                <div className="relative flex items-center w-full">
+                  <input 
+                    type={showParentPassword ? "text" : "password"} 
+                    required 
+                    placeholder="Set Password" 
+                    value={parentForm.password}
+                    onChange={(e) => setParentForm(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full pl-3 pr-10 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowParentPassword(!showParentPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-650 cursor-pointer"
+                  >
+                    {showParentPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
 
               {/* Linked Children Selection Grid */}
@@ -1871,7 +1963,19 @@ export default function SuperAdminPortal() {
                       </td>
                       <td className="p-4">{par.phone}</td>
                       <td className="p-4 font-mono">{par.email}</td>
-                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">{par.password || 'parent123'}</td>
+                      <td className="p-4 font-mono font-bold text-purple-600 dark:text-purple-400">
+                        <div className="flex items-center gap-1.5">
+                          <span>{revealedPasswords[par.id] ? (par.password || 'parent123') : '••••••••'}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleRevealPassword(par.id)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
+                            title={revealedPasswords[par.id] ? "Hide password" : "Show password"}
+                          >
+                            {revealedPasswords[par.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
                           {par.childrenIds.map(cId => {

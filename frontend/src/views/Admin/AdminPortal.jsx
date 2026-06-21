@@ -3,7 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import { 
   Users, GraduationCap, Calendar, FileText, Settings, Plus, Trash2, 
   Search, Award, MessageSquare, AlertCircle, RefreshCw, Layers, BookOpen, Download, FileSpreadsheet,
-  Edit2, Building2, X, UserPlus, User, ClipboardList, CheckSquare 
+  Edit2, Building2, X, UserPlus, User, ClipboardList, CheckSquare, Eye, EyeOff
 } from 'lucide-react';
 
 export default function AdminPortal() {
@@ -30,6 +30,7 @@ export default function AdminPortal() {
   const [leaveFilter, setLeaveFilter] = useState('Pending');
   const [admissionFilter, setAdmissionFilter] = useState('Pending');
   const [selectedAdmission, setSelectedAdmission] = useState(null);
+  const [showEnrollPassword, setShowEnrollPassword] = useState(false);
 
   const contentRef = React.useRef(null);
 
@@ -408,7 +409,23 @@ export default function AdminPortal() {
                 <select value={enrollForm.section} onChange={(e) => setEnrollForm(prev => ({ ...prev, section: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500">
                   {sections.map(s => <option key={s} value={s}>Section {s}</option>)}
                 </select>
-                <input type="password" required placeholder="Password (created by Admin)" value={enrollForm.password} onChange={(e) => setEnrollForm(prev => ({ ...prev, password: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                <div className="relative flex items-center w-full">
+                  <input 
+                    type={showEnrollPassword ? "text" : "password"} 
+                    required 
+                    placeholder="Password (created by Admin)" 
+                    value={enrollForm.password} 
+                    onChange={(e) => setEnrollForm(prev => ({ ...prev, password: e.target.value }))} 
+                    className="w-full pl-3.5 pr-10 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEnrollPassword(!showEnrollPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                  >
+                    {showEnrollPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
               <div className="grid sm:grid-cols-3 gap-4">
                 <input type="text" placeholder="Mobile" value={enrollForm.phone} onChange={(e) => setEnrollForm(prev => ({ ...prev, phone: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
