@@ -147,6 +147,8 @@ export default function SuperAdminPortal() {
   const [showTeacherPassword, setShowTeacherPassword] = useState(false);
   const [showStudentPassword, setShowStudentPassword] = useState(false);
   const [showParentPassword, setShowParentPassword] = useState(false);
+  const [showStudentGallerySelector, setShowStudentGallerySelector] = useState(false);
+  const [showTeacherGallerySelector, setShowTeacherGallerySelector] = useState(false);
   const [revealedPasswords, setRevealedPasswords] = useState({});
   const toggleRevealPassword = (id) => {
     setRevealedPasswords(prev => ({ ...prev, [id]: !prev[id] }));
@@ -1480,11 +1482,56 @@ export default function SuperAdminPortal() {
               </div>
               <div>
                 <label className="text-[10px] text-slate-450 font-bold block mb-1">Teacher Profile Photo URL</label>
-                <input 
-                  type="text" required placeholder="Teacher Photo URL (e.g. https://images.unsplash.com/...)" value={teacherForm.photo}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, photo: e.target.value }))}
-                  className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-                />
+                <div className="flex gap-2">
+                  <input 
+                    type="text" required placeholder="Teacher Photo URL (e.g. https://images.unsplash.com/...)" value={teacherForm.photo}
+                    onChange={(e) => setTeacherForm(prev => ({ ...prev, photo: e.target.value }))}
+                    className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  />
+                  <div className="w-10 h-10 rounded-full border bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center overflow-hidden shrink-0">
+                    {teacherForm.photo ? (
+                      <img src={teacherForm.photo} alt="Teacher Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={16} className="text-slate-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Gallery Selector */}
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherGallerySelector(!showTeacherGallerySelector)}
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    📁 Select from Gallery folder
+                  </button>
+                  {showTeacherGallerySelector && (
+                    <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900/60 border rounded-xl space-y-2">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Choose from Gallery Photos</p>
+                      {((galleryItems || []).filter(item => item.type === 'image')).length === 0 ? (
+                        <p className="text-[11px] text-slate-550 dark:text-slate-400">No photos uploaded in gallery yet. You can upload photos in the Gallery tab first.</p>
+                      ) : (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 scrollbar-thin">
+                          {(galleryItems || []).filter(item => item.type === 'image').map(item => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                setTeacherForm(prev => ({ ...prev, photo: item.url }));
+                                setShowTeacherGallerySelector(false);
+                              }}
+                              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${teacherForm.photo === item.url ? 'border-blue-500 scale-105' : 'border-slate-200 dark:border-slate-800'}`}
+                              title={item.title}
+                            >
+                              <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
                 {teacherEditId ? 'Update Faculty Details' : 'Register Faculty Login'}
@@ -1738,6 +1785,42 @@ export default function SuperAdminPortal() {
                     onChange={(e) => setStudentForm(prev => ({ ...prev, photo: e.target.value }))} 
                     className="w-full px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" 
                   />
+                </div>
+
+                {/* Gallery Selector */}
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowStudentGallerySelector(!showStudentGallerySelector)}
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    📁 Select from Gallery folder
+                  </button>
+                  {showStudentGallerySelector && (
+                    <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900/60 border rounded-xl space-y-2">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Choose from Gallery Photos</p>
+                      {((galleryItems || []).filter(item => item.type === 'image')).length === 0 ? (
+                        <p className="text-[11px] text-slate-555 dark:text-slate-400">No photos uploaded in gallery yet. You can upload photos in the Gallery tab first.</p>
+                      ) : (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 scrollbar-thin">
+                          {(galleryItems || []).filter(item => item.type === 'image').map(item => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                setStudentForm(prev => ({ ...prev, photo: item.url }));
+                                setShowStudentGallerySelector(false);
+                              }}
+                              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${studentForm.photo === item.url ? 'border-blue-500 scale-105' : 'border-slate-200 dark:border-slate-800'}`}
+                              title={item.title}
+                            >
+                              <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <button type="submit" className="bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl">
