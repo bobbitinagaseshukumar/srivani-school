@@ -1357,6 +1357,43 @@ export default function AdminPortal() {
                         />
                       </div>
 
+                      {/* Field WhatsApp Number */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            WhatsApp Number
+                            {editingAdmission.starredFields?.whatsappNumber && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'whatsappNumber');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  whatsappNumber: !prev.starredFields?.whatsappNumber
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.whatsappNumber 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={editingAdmission.whatsappNumber || ''}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                          placeholder="e.g. 9876543210 (if blank, Parent Phone is used)"
+                        />
+                      </div>
+
                       {/* Field Parent Email */}
                       <div className="space-y-1">
                         <div className="flex justify-between items-center">
@@ -1441,14 +1478,16 @@ export default function AdminPortal() {
                             <button
                               type="button"
                               onClick={() => {
-                                approveAdmission(selectedAdmission.id);
+                                // Save current form edits first, then approve using edited values
+                                updateAdmissionFields(editingAdmission.id, editingAdmission);
+                                approveAdmission(editingAdmission.id, editingAdmission);
                                 setSelectedAdmission(null);
                                 setEditingAdmission(null);
                                 alert('Admission application APPROVED!');
                                 
-                                const parentPhone = selectedAdmission.whatsappNumber || selectedAdmission.parentPhone || selectedAdmission.phone || '';
+                                const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
                                 const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
-                                const messageText = `Dear ${selectedAdmission.parentName}, your admission application for ${selectedAdmission.studentName} to ${selectedAdmission.grade || selectedAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
+                                const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
                                 const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                                 window.open(waUrl, '_blank');
                               }}
@@ -1464,7 +1503,7 @@ export default function AdminPortal() {
                                 setEditingAdmission(null);
                                 alert('Admission application Rejected.');
                               }}
-                              className="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                              className="bg-red-500 hover:bg-red-650 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
                             >
                               Reject
                             </button>

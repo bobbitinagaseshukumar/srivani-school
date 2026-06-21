@@ -76,6 +76,12 @@ const initialAdmissions = [];
 
 const initialFacilities = [];
 
+const initialManagementCommittee = [
+  { id: 'm1', name: 'K Dasaratha Rami Reddy', role: 'Principal & Director', qual: 'M.Ed / M.Sc, Educational Leadership', photo: '/principal.jpg' },
+  { id: 'm2', name: 'Robert Vance', role: 'Chairman, Management Committee', qual: 'MBA (Harvard Business School)', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+  { id: 'm3', name: 'Dr. Evelyn Carter', role: 'Vice Principal', qual: 'Ph.D. in Child Psychology', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }
+];
+
 const initialHomepageInfra = [
   { id: 'infra1', title: 'Smart Digital Classrooms', description: 'Interactive smart boards, projectors, and air-conditioned rooms for immersive learning experiences.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80' },
   { id: 'infra2', title: 'Advanced Science Labs', description: 'Fully equipped Physics, Chemistry, and Biology laboratories with modern instruments and safety gear.', image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&auto=format&fit=crop&q=80' },
@@ -243,9 +249,7 @@ export const AppProvider = ({ children }) => {
   });
 
   const [managementCommittee, setManagementCommittee] = useState(() => {
-    return readStoredValue('school_management_committee', [
-      { id: 'm1', name: 'K Dasaratha Rami Reddy', role: 'Principal & Director', qual: 'M.Ed / M.Sc, Educational Leadership', photo: '/principal.jpg' }
-    ]);
+    return readStoredValue('school_management_committee', initialManagementCommittee);
   });
 
   const [admins, setAdmins] = useState(() => {
@@ -406,7 +410,7 @@ export const AppProvider = ({ children }) => {
     setFees(data.fees || []);
     setTickerItems(data.tickerItems || []);
     setSchoolInfo(data.schoolInfo || {});
-    setManagementCommittee(data.managementCommittee || []);
+    setManagementCommittee(data.managementCommittee || initialManagementCommittee);
     setExams(data.exams || []);
     setClasses(data.classes || []);
     setSections(data.sections || []);
@@ -421,10 +425,8 @@ export const AppProvider = ({ children }) => {
     setAdmissionBanner(data.admissionBanner || {});
     setAdmissions(data.admissions || []);
     setFacilities(data.facilities || []);
-    if (data.homepageInfra && data.homepageInfra.length > 0) setHomepageInfra(data.homepageInfra);
-    else setHomepageInfra(initialHomepageInfra);
-    if (data.homepageStats && data.homepageStats.length > 0) setHomepageStats(data.homepageStats);
-    else setHomepageStats(initialHomepageStats);
+    setHomepageInfra(data.homepageInfra || initialHomepageInfra);
+    setHomepageStats(data.homepageStats || initialHomepageStats);
     setGradingProcess(data.gradingProcess || initialGradingProcess);
     setGradingScheme(data.gradingScheme || initialGradingScheme);
     setDepartments(data.departments || initialDepartments);
@@ -1341,13 +1343,29 @@ export const AppProvider = ({ children }) => {
     return { success: true, id: newAdmission.id };
   };
 
-  const approveAdmission = (id) => {
-    const admission = admissions.find(a => a.id === id);
-    setAdmissions(prev => prev.map(a => a.id === id ? { ...a, status: 'Approved', approvedAt: new Date().toLocaleString() } : a));
+  const approveAdmission = (id, updatedData = null) => {
+    setAdmissions(prev => prev.map(a => {
+      if (a.id === id) {
+        return { ...a, ...(updatedData || {}), status: 'Approved', approvedAt: new Date().toLocaleString() };
+      }
+      return a;
+    }));
+
+    const baseAdmission = admissions.find(a => a.id === id);
+    const admission = updatedData ? { ...baseAdmission, ...updatedData } : baseAdmission;
+
     if (admission) {
-      const whatsappMsg = { id: `wa_${Date.now()}`, phone: admission.whatsappNumber || admission.parentPhone, message: `Dear ${admission.parentName}, your admission application for ${admission.studentName} to ${admission.grade} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`, sentAt: new Date().toLocaleString(), admissionId: id, studentName: admission.studentName };
+      const parentPhone = admission.whatsappNumber || admission.parentPhone || admission.phone || '';
+      const whatsappMsg = { 
+        id: `wa_${Date.now()}`, 
+        phone: parentPhone, 
+        message: `Dear ${admission.parentName}, your admission application for ${admission.studentName} to ${admission.grade || admission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`, 
+        sentAt: new Date().toLocaleString(), 
+        admissionId: id, 
+        studentName: admission.studentName 
+      };
       setWhatsappLogs(prev => [whatsappMsg, ...prev]);
-      addNotification('Admission Approved', `Admission approved for ${admission.studentName}. WhatsApp notification sent to ${whatsappMsg.phone}`, 'Admission');
+      addNotification('Admission Approved', `Admission approved for ${admission.studentName}. WhatsApp notification sent to ${parentPhone}`, 'Admission');
       addAuditLog(currentUser.name, currentUser.role, `Approved admission for ${admission.studentName} & sent WhatsApp notification`);
     }
   };
@@ -1413,6 +1431,8 @@ export const AppProvider = ({ children }) => {
 
   // ── Homepage Management ──
   const updateInfraItem = (id, u) => { setHomepageInfra(prev => prev.map(item => item.id === id ? { ...item, ...u } : item)); addAuditLog(currentUser.name, currentUser.role, `Updated homepage infra item: ${id}`); };
+  const addInfraItem = (item) => { const newItem = { id: `infra_${Date.now()}`, ...item }; setHomepageInfra(prev => [...prev, newItem]); addAuditLog(currentUser.name, currentUser.role, `Added homepage infra item: ${newItem.title}`); };
+  const deleteInfraItem = (id) => { setHomepageInfra(prev => prev.filter(item => item.id !== id)); addAuditLog(currentUser.name, currentUser.role, `Deleted homepage infra item: ${id}`); };
   const updateHomepageStat = (id, u) => { setHomepageStats(prev => prev.map(s => s.id === id ? { ...s, ...u } : s)); addAuditLog(currentUser.name, currentUser.role, `Updated homepage stat: ${id}`); };
 
   // ── Grading Management ──
@@ -1552,7 +1572,7 @@ export const AppProvider = ({ children }) => {
       updateAdmissionBanner: (updates) => setAdmissionBanner(prev => ({ ...prev, ...updates })),
       admissions, submitAdmission, approveAdmission, rejectAdmission,
       facilities, addFacility, editFacility, deleteFacility,
-      homepageInfra, updateInfraItem,
+      homepageInfra, updateInfraItem, addInfraItem, deleteInfraItem,
       homepageStats, updateHomepageStat,
       gradingProcess, updateGradingProcess,
       gradingScheme, updateGradingScheme,

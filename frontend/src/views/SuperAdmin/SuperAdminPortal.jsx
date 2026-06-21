@@ -119,7 +119,7 @@ export default function SuperAdminPortal() {
     admissionBanner, updateAdmissionBanner,
     admissions, submitAdmission, approveAdmission, rejectAdmission,
     facilities, addFacility, editFacility, deleteFacility,
-    homepageInfra, updateInfraItem,
+    homepageInfra, updateInfraItem, addInfraItem, deleteInfraItem,
     homepageStats, updateHomepageStat,
     gradingProcess, updateGradingProcess,
     gradingScheme, updateGradingScheme,
@@ -208,6 +208,8 @@ export default function SuperAdminPortal() {
   // Homepage manager states
   const [editingInfraId, setEditingInfraId] = useState(null);
   const [infraEditForm, setInfraEditForm] = useState({ title: '', description: '', image: '' });
+  const [showInfraAddForm, setShowInfraAddForm] = useState(false);
+  const [infraAddForm, setInfraAddForm] = useState({ title: '', description: '', image: '' });
   const [editingStatId, setEditingStatId] = useState(null);
   const [statEditForm, setStatEditForm] = useState({ label: '', value: '' });
 
@@ -654,7 +656,7 @@ export default function SuperAdminPortal() {
             <div className="fixed inset-0 z-30" onClick={() => setShowModuleMenu(false)} />
             
             <div className="absolute left-0 right-0 mt-2 p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-3xl shadow-2xl z-40 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 animate-fadeIn max-h-[380px] overflow-y-auto">
-              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','School Settings','Audit Logs'].map((tab) => {
+              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','School Settings','Committee Members','Audit Logs'].map((tab) => {
                 const hasPendingAdmissions = tab === 'Admissions' && admissions.filter(a => a.status === 'Pending').length > 0;
                 const hasNewEnquiries = tab === 'Enquiries' && enquiries.filter(e => e.status === 'New').length > 0;
                 return (
@@ -1117,6 +1119,43 @@ export default function SuperAdminPortal() {
                       />
                     </div>
 
+                    {/* Field WhatsApp Number */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          WhatsApp Number
+                          {editingAdmission.starredFields?.whatsappNumber && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'whatsappNumber');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                whatsappNumber: !prev.starredFields?.whatsappNumber
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.whatsappNumber 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={editingAdmission.whatsappNumber || ''}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        placeholder="e.g. 9876543210 (if blank, Parent Phone is used)"
+                      />
+                    </div>
+
                     {/* Field parentEmail */}
                     <div className="space-y-1">
                       <div className="flex justify-between items-center">
@@ -1201,15 +1240,17 @@ export default function SuperAdminPortal() {
                           <button
                             type="button"
                             onClick={() => {
-                              approveAdmission(selectedAdmission.id);
+                              // Save current form edits first, then approve using edited values
+                              updateAdmissionFields(editingAdmission.id, editingAdmission);
+                              approveAdmission(editingAdmission.id, editingAdmission);
                               setSelectedAdmission(null);
                               setEditingAdmission(null);
-                              setWhatsappToast(selectedAdmission.parentName);
+                              setWhatsappToast(editingAdmission.parentName);
                               setTimeout(() => setWhatsappToast(null), 3000);
 
-                              const parentPhone = selectedAdmission.whatsappNumber || selectedAdmission.parentPhone || selectedAdmission.phone || '';
+                              const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
                               const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
-                              const messageText = `Dear ${selectedAdmission.parentName}, your admission application for ${selectedAdmission.studentName} to ${selectedAdmission.grade || selectedAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
+                              const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
                               const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                               window.open(waUrl, '_blank');
                             }}
@@ -1224,7 +1265,7 @@ export default function SuperAdminPortal() {
                               setSelectedAdmission(null);
                               setEditingAdmission(null);
                             }}
-                            className="bg-red-500 hover:bg-red-650 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                            className="bg-red-500 hover:bg-red-655 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
                           >
                             Reject
                           </button>
@@ -3059,9 +3100,9 @@ export default function SuperAdminPortal() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
+          <div className="max-w-4xl mx-auto">
             {/* School General Info Form */}
-            <form onSubmit={handleSchoolInfoSubmit} className="lg:col-span-7 glassmorphism p-6 rounded-3xl border border-white/50 shadow-md space-y-4">
+            <form onSubmit={handleSchoolInfoSubmit} className="glassmorphism p-6 rounded-3xl border border-white/50 shadow-md space-y-4">
               <h4 className="font-bold text-sm text-indigo-950 dark:text-white uppercase">General Parameters</h4>
               <div className="w-12 h-0.5 bg-blue-600 rounded"></div>
 
@@ -3248,122 +3289,141 @@ export default function SuperAdminPortal() {
                 Save School Configuration
               </button>
             </form>
+          </div>
+        </div>
+      )}
 
-            {/* Management Committee List & CRUD */}
-            <div className="lg:col-span-5 space-y-6">
-              <div className="glassmorphism p-6 rounded-3xl border border-white/50 shadow-md space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-bold text-sm text-indigo-950 dark:text-white uppercase">Management Committee</h4>
+      {/* ───── COMMITTEE MEMBERS TAB ───── */}
+      {activeTab === 'Committee Members' && (
+        <div className="space-y-6 text-left max-w-4xl mx-auto animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200/55 dark:border-slate-800">
+            <div>
+              <h3 className="font-extrabold text-lg font-montserrat text-slate-900 dark:text-white">School Management Committee</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-light">
+                Add, update, and remove members of the School Management Committee displayed on the public About page.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowMemberForm(!showMemberForm);
+                setMemberEditId(null);
+                setMemberForm({ name: '', role: '', qual: '', photo: '' });
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow animate-pulse"
+            >
+              {showMemberForm ? 'Close form' : 'Add Committee Member'}
+            </button>
+          </div>
+
+          {showMemberForm && (
+            <form onSubmit={handleMemberSubmit} className="glassmorphism p-6 rounded-3xl border border-white/55 shadow-lg space-y-4 max-w-xl">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-450">
+                {memberEditId ? 'Edit Committee Member Details' : 'Register New Committee Member'}
+              </h4>
+              <div className="w-12 h-0.5 bg-blue-600 rounded"></div>
+              
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Name</label>
+                  <input
+                    type="text" required placeholder="Full Name"
+                    value={memberForm.name}
+                    onChange={(e) => setMemberForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-950 focus:ring-1 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Role / Designation</label>
+                  <input
+                    type="text" required placeholder="e.g. Chairman / Principal"
+                    value={memberForm.role}
+                    onChange={(e) => setMemberForm(prev => ({ ...prev, role: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-950 focus:ring-1 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Qualification</label>
+                  <input
+                    type="text" required placeholder="e.g. M.B.A / Ph.D"
+                    value={memberForm.qual}
+                    onChange={(e) => setMemberForm(prev => ({ ...prev, qual: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-950 focus:ring-1 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Photo URL</label>
+                  <input
+                    type="text" required placeholder="Paste image link URL"
+                    value={memberForm.photo}
+                    onChange={(e) => setMemberForm(prev => ({ ...prev, photo: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-950 focus:ring-1 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl">
+                    {memberEditId ? 'Save Changes' : 'Register Member'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setShowMemberForm(!showMemberForm);
+                      setShowMemberForm(false);
                       setMemberEditId(null);
-                      setMemberForm({ name: '', role: '', qual: '', photo: '' });
                     }}
-                    className="p-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-[10px] font-bold"
+                    className="bg-slate-200 dark:bg-slate-800 text-slate-750 dark:text-slate-300 font-bold text-xs px-4 py-2 rounded-xl"
                   >
-                    {showMemberForm ? 'Hide Form' : '➕ Add Member'}
+                    Cancel
                   </button>
                 </div>
-                <div className="w-12 h-0.5 bg-blue-600 rounded"></div>
+              </div>
+            </form>
+          )}
 
-                {showMemberForm && (
-                  <form onSubmit={handleMemberSubmit} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border space-y-3">
-                    <h5 className="font-bold text-[10px] text-slate-400 uppercase">
-                      {memberEditId ? 'Edit Committee Member' : 'Add Committee Member'}
-                    </h5>
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-0.5">Name</label>
-                      <input
-                        type="text" required placeholder="Name"
-                        value={memberForm.name}
-                        onChange={(e) => setMemberForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-2 py-1.5 border rounded-lg bg-white dark:bg-slate-950 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-0.5">Role / Designation</label>
-                      <input
-                        type="text" required placeholder="e.g. Chairman"
-                        value={memberForm.role}
-                        onChange={(e) => setMemberForm(prev => ({ ...prev, role: e.target.value }))}
-                        className="w-full px-2 py-1.5 border rounded-lg bg-white dark:bg-slate-950 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-0.5">Qualification</label>
-                      <input
-                        type="text" required placeholder="e.g. MBA"
-                        value={memberForm.qual}
-                        onChange={(e) => setMemberForm(prev => ({ ...prev, qual: e.target.value }))}
-                        className="w-full px-2 py-1.5 border rounded-lg bg-white dark:bg-slate-950 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-0.5">Photo URL</label>
-                      <input
-                        type="text" required placeholder="Photo Link URL"
-                        value={memberForm.photo}
-                        onChange={(e) => setMemberForm(prev => ({ ...prev, photo: e.target.value }))}
-                        className="w-full px-2 py-1.5 border rounded-lg bg-white dark:bg-slate-950 text-xs"
-                      />
-                    </div>
-                    <div className="flex gap-2 pt-1">
-                      <button type="submit" className="bg-blue-600 text-white font-bold text-[10px] px-3.5 py-1.5 rounded-lg">
-                        {memberEditId ? 'Save' : 'Register'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowMemberForm(false);
-                          setMemberEditId(null);
-                        }}
-                        className="bg-slate-200 dark:bg-slate-800 text-[10px] px-3.5 py-1.5 rounded-lg"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                <div className="divide-y divide-slate-150/40 dark:divide-slate-800 font-light text-xs">
-                  {managementCommittee && managementCommittee.map((member) => (
-                    <div key={member.id} className="py-2 flex justify-between items-center">
-                      <div className="flex gap-2 items-center">
-                        <img src={member.photo} alt={member.name} className="w-8 h-8 rounded-full object-cover border" />
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white">{member.name}</p>
-                          <p className="text-[10px] text-slate-450">{member.role} • {member.qual}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMemberEditId(member.id);
-                            setMemberForm({ ...member });
-                            setShowMemberForm(true);
-                          }}
-                          className="p-1 text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
-                          title="Edit Member"
-                        >
-                          <Edit size={12} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deleteCommitteeMember(member.id)}
-                          className="p-1 text-red-650 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
-                          title="Delete Member"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+          <div className="grid md:grid-cols-2 gap-6">
+            {managementCommittee && managementCommittee.map((member) => (
+              <div key={member.id} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-md flex justify-between items-center hover:scale-[1.01] transition-transform duration-200">
+                <div className="flex gap-3 items-center">
+                  <img src={member.photo} alt={member.name} className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/20 shadow-sm" />
+                  <div>
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">{member.name}</h4>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">{member.role}</p>
+                    <p className="text-[10px] text-slate-450 mt-1 font-light">{member.qual}</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5 shrink-0 ml-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMemberEditId(member.id);
+                      setMemberForm({ ...member });
+                      setShowMemberForm(true);
+                    }}
+                    className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded-lg border border-slate-200/40 dark:border-slate-800 transition"
+                    title="Edit Member"
+                  >
+                    <Edit size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`Are you sure you want to delete committee member "${member.name}"?`)) {
+                        deleteCommitteeMember(member.id);
+                        alert('Committee member deleted successfully.');
+                      }
+                    }}
+                    className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg border border-slate-200/40 dark:border-slate-800 transition"
+                    title="Delete Member"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
-            </div>
+            ))}
+            {(!managementCommittee || managementCommittee.length === 0) && (
+              <div className="col-span-2 p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border text-slate-400 text-xs italic font-light">
+                No committee members registered yet.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -3694,7 +3754,9 @@ export default function SuperAdminPortal() {
                 {fac.features && fac.features.length > 0 && (
                   <div className="flex flex-wrap gap-1 border-t pt-3">
                     {fac.features.map((feat, idx) => (
-                      <span key={idx} className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-[9px] px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-800">{feat}</span>
+                      <span key={idx} className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-[9px] px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-800">
+                        {feat}
+                      </span>
                     ))}
                   </div>
                 )}
@@ -3704,15 +3766,77 @@ export default function SuperAdminPortal() {
         </div>
       )}
 
-      {/* ───── HOMEPAGE TAB ───── */}
+      {/* ───── HOMEPAGE MANAGER TAB ───── */}
       {activeTab === 'Homepage' && (
-        <div className="space-y-8">
+        <div className="space-y-6 text-left max-w-4xl mx-auto animate-fade-in">
           {/* Infrastructure Cards section */}
           <div className="space-y-4">
-            <div>
-              <h3 className="font-extrabold text-lg font-montserrat">World Class Campus Infrastructure</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-light mt-0.5">Modify the 4 main infrastructure section highlights on the landing homepage.</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-lg font-montserrat">World Class Campus Infrastructure</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-light mt-0.5">Modify the main infrastructure section highlights on the landing homepage.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowInfraAddForm(!showInfraAddForm);
+                  setInfraAddForm({ title: '', description: '', image: '' });
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow"
+              >
+                {showInfraAddForm ? <X size={12} /> : <Plus size={12} />} {showInfraAddForm ? 'Close form' : 'Add Highlight'}
+              </button>
             </div>
+
+            {showInfraAddForm && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!infraAddForm.title || !infraAddForm.description) return;
+                  addInfraItem(infraAddForm);
+                  alert('Homepage infrastructure highlight added successfully.');
+                  setShowInfraAddForm(false);
+                  setInfraAddForm({ title: '', description: '', image: '' });
+                }}
+                className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-xl text-left"
+              >
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-450">Add New Infrastructure Highlight</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Title</label>
+                    <input
+                      type="text" required placeholder="e.g. Smart Digital Classrooms"
+                      value={infraAddForm.title}
+                      onChange={(e) => setInfraAddForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Image URL</label>
+                    <input
+                      type="text" required placeholder="Image link URL"
+                      value={infraAddForm.image}
+                      onChange={(e) => setInfraAddForm(prev => ({ ...prev, image: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Description</label>
+                    <textarea
+                      required placeholder="Interactive smart boards..."
+                      value={infraAddForm.description}
+                      onChange={(e) => setInfraAddForm(prev => ({ ...prev, description: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl">
+                    Add Highlight
+                  </button>
+                </div>
+              </form>
+            )}
+
             <div className="grid sm:grid-cols-2 gap-6">
               {(homepageInfra || []).map((infra) => (
                 <div key={infra.id} className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md space-y-4">
@@ -3770,15 +3894,30 @@ export default function SuperAdminPortal() {
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between items-start">
                           <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{infra.title}</h4>
-                          <button
-                            onClick={() => {
-                              setEditingInfraId(infra.id);
-                              setInfraEditForm({ title: infra.title, description: infra.description, image: infra.image });
-                            }}
-                            className="p-1 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded"
-                          >
-                            <Edit size={14} />
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingInfraId(infra.id);
+                                setInfraEditForm({ title: infra.title, description: infra.description, image: infra.image });
+                              }}
+                              className="p-1 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded"
+                              title="Edit Highlight"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete "${infra.title}"?`)) {
+                                  deleteInfraItem(infra.id);
+                                  alert('Highlight deleted successfully.');
+                                }
+                              }}
+                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded"
+                              title="Delete Highlight"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-light">{infra.description}</p>
                       </div>
