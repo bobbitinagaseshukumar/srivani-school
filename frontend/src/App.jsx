@@ -60,44 +60,22 @@ export default function App() {
     }
   };
 
-  const handleTogglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        videoRef.current.play().catch(err => console.log("Play failed", err));
-        setIsPlaying(true);
-      }
-    }
-  };
-
-  const handleToggleMute = (e) => {
-    if (e) e.stopPropagation();
-    if (videoRef.current) {
-      const nextMuted = !videoRef.current.muted;
-      videoRef.current.muted = nextMuted;
-      setIsMuted(nextMuted);
-      if (!nextMuted) {
-        videoRef.current.volume = 1.0;
-        if (videoRef.current.paused) {
-          videoRef.current.play().catch(err => console.log("Play failed on unmute:", err));
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Muted state synced imperatively inside user event handlers to prevent browser security blocking
+  // Imperatively sync video muted state to avoid React lag/diffing bugs with muted attribute
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   // Handle video playback and autoplay unmuted fallback on showIntro
   useEffect(() => {
     let interactionListener = null;
 
-    if (showIntro && videoRef.current) {
+    if (showIntro && isLoaded && videoRef.current) {
       // Safety fallback: auto-close splash screen after 20 seconds
       introTimeoutRef.current = setTimeout(() => {
         handleCloseIntro();
@@ -161,7 +139,7 @@ export default function App() {
         cleanupListeners();
       };
     }
-  }, [showIntro]);
+  }, [showIntro, isLoaded]);
 
   // Lock scrolling on document body and html while intro is active to prevent mobile layout scrolling
   useEffect(() => {
@@ -206,7 +184,7 @@ export default function App() {
       container.removeEventListener('click', handleNativeInteraction);
       container.removeEventListener('touchstart', handleNativeInteraction);
     };
-  }, [showIntro]);
+  }, [showIntro, isLoaded]);
 
   // Synchronize routing state with browser history / URL hash
   useEffect(() => {
@@ -370,7 +348,7 @@ export default function App() {
             autoPlay
             playsInline
             webkit-playsinline=""
-            defaultMuted={true}
+            muted={isMuted}
             preload="auto"
             onEnded={handleCloseIntro}
             onError={handleCloseIntro}
