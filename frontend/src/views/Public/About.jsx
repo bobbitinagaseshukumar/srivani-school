@@ -130,11 +130,15 @@ export default function About() {
                     key={teacher.id}
                     className="glassmorphism p-5 rounded-2xl text-center shadow-md border border-white/50 flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 card-3d"
                   >
-                    <img
-                      src={teacher.photo}
-                      alt={teacher.name}
-                      className="w-20 h-20 object-cover rounded-full border-2 border-blue-500/30 mb-3 shadow"
-                    />
+                    {teacher.photo ? (
+                      <img
+                        src={teacher.photo}
+                        alt={teacher.name}
+                        className="w-20 h-20 object-cover rounded-full border-2 border-blue-500/30 mb-3 shadow"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold border-2 border-blue-500/30 mb-3 shadow shrink-0">{teacher.name?.charAt(0)?.toUpperCase() || 'T'}</div>
+                    )}
                     {/* Teacher ID badge */}
                     <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded-full mb-1.5 flex items-center gap-1">
                       <BadgeCheck size={9} /> ID: {teacher.id}

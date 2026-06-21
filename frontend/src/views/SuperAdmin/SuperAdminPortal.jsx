@@ -7,6 +7,8 @@ import {
   Image, Video, Upload, ZoomIn, FolderOpen, Filter, MessageSquare, Home, Menu, ChevronDown, Eye, EyeOff
 } from 'lucide-react';
 
+const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+
 const presetTimings = [
   '09:30 AM - 10:15 AM',
   '10:30 AM - 11:15 AM',
@@ -117,7 +119,7 @@ export default function SuperAdminPortal() {
     enquiries, markEnquiryContacted, deleteEnquiry,
     subjects, addSubject, editSubject, deleteSubject,
     admissionBanner, updateAdmissionBanner,
-    admissions, submitAdmission, approveAdmission, rejectAdmission,
+    admissions, submitAdmission, approveAdmission, rejectAdmission, deleteAdmission,
     facilities, addFacility, editFacility, deleteFacility,
     homepageInfra, updateInfraItem, addInfraItem, deleteInfraItem,
     homepageStats, updateHomepageStat, addHomepageStat, deleteHomepageStat,
@@ -126,7 +128,7 @@ export default function SuperAdminPortal() {
     departments, addDepartment, editDepartment, deleteDepartment,
     galleryCategories, addGalleryCategory, editGalleryCategory, deleteGalleryCategory,
     complaints, updateComplaintStatus,
-    whatsappLogs,
+    whatsappLogs, deleteWhatsappLog, clearAllWhatsappLogs,
     requiredDocuments, updateRequiredDocuments,
     leaveRequests, updateLeaveStatus, starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar
   } = useContext(AppContext);
@@ -928,7 +930,7 @@ export default function SuperAdminPortal() {
                               'bg-amber-500/10 text-amber-600'
                             }`}>{adm.status}</span>
                           </td>
-                          <td className="p-4 text-right">
+                          <td className="p-4 text-right space-x-2">
                             <button
                               onClick={() => {
                                 setSelectedAdmission(adm);
@@ -937,6 +939,21 @@ export default function SuperAdminPortal() {
                               className="px-2.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/15 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold border border-blue-200/50 dark:border-blue-800/80 cursor-pointer"
                             >
                               Review &amp; Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm("Are you sure you want to delete this admission application?")) {
+                                  deleteAdmission(adm.id);
+                                  if (selectedAdmission?.id === adm.id) {
+                                    setSelectedAdmission(null);
+                                    setEditingAdmission(null);
+                                  }
+                                }
+                              }}
+                              className="px-2.5 py-1.5 bg-red-600/10 hover:bg-red-600/15 text-red-650 dark:text-red-400 rounded-lg text-[10px] font-bold border border-red-200/50 dark:border-red-800/80 cursor-pointer"
+                            >
+                              Delete
                             </button>
                           </td>
                         </tr>
@@ -1265,17 +1282,16 @@ export default function SuperAdminPortal() {
                       />
                     </div>
 
-                    <div className="pt-2 flex gap-2">
+                    <div className="pt-2 flex flex-wrap gap-2">
                       <button
                         type="submit"
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Save Changes
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          // Save current form edits first, then approve using edited values
                           updateAdmissionFields(editingAdmission.id, editingAdmission);
                           approveAdmission(editingAdmission.id, editingAdmission);
                           setSelectedAdmission(null);
@@ -1289,14 +1305,13 @@ export default function SuperAdminPortal() {
                           const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                           window.open(waUrl, '_blank');
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Approve
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          // Save current form edits first, then reject using edited values
                           updateAdmissionFields(editingAdmission.id, editingAdmission);
                           rejectAdmission(editingAdmission.id, editingAdmission);
                           setSelectedAdmission(null);
@@ -1309,9 +1324,22 @@ export default function SuperAdminPortal() {
                           const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                           window.open(waUrl, '_blank');
                         }}
-                        className="bg-red-500 hover:bg-red-655 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                        className="bg-red-500 hover:bg-red-650 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this admission application?")) {
+                            deleteAdmission(editingAdmission.id);
+                            setSelectedAdmission(null);
+                            setEditingAdmission(null);
+                          }
+                        }}
+                        className="bg-rose-700 hover:bg-rose-800 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                      >
+                        Delete
                       </button>
                     </div>
                   </form>
@@ -1326,19 +1354,47 @@ export default function SuperAdminPortal() {
 
           {/* WhatsApp Notification Logs */}
           <div className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">📱 WhatsApp Notification Logs</h4>
+            <div className="flex justify-between items-center">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">📱 WhatsApp Notification Logs</h4>
+              {(whatsappLogs || []).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to clear all WhatsApp notification logs?")) {
+                      clearAllWhatsappLogs();
+                    }
+                  }}
+                  className="text-[10px] bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 px-2 py-1 rounded-lg border border-rose-200/50 cursor-pointer transition font-bold"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {(whatsappLogs || []).length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No WhatsApp notifications sent yet.</p>
               ) : (
                 (whatsappLogs || []).map((log, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border text-xs">
+                  <div key={log.id || idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border text-xs">
                     <span className="text-emerald-500 text-lg">📱</span>
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-white">{log.studentName || log.recipientName || log.to}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 dark:text-white truncate">{log.studentName || log.recipientName || log.to}</p>
                       <p className="text-[10px] text-slate-400">{log.message}</p>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">{log.sentAt || log.timestamp || log.date}</span>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="text-[10px] text-slate-400 font-mono">{log.sentAt || log.timestamp || log.date}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this log entry?")) {
+                            deleteWhatsappLog(log.id);
+                          }
+                        }}
+                        className="text-[9px] text-rose-500 hover:text-rose-700 font-bold hover:underline cursor-pointer"
+                      >
+                        Delete Log
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -1669,7 +1725,11 @@ export default function SuperAdminPortal() {
                   {teachers.map((teach) => (
                     <tr key={teach.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <img src={teach.photo} alt="" className="w-7 h-7 rounded-full object-cover border" />
+                        {teach.photo ? (
+                          <img src={teach.photo} alt="" className="w-7 h-7 rounded-full object-cover border" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">{teach.name?.charAt(0)?.toUpperCase() || 'T'}</div>
+                        )}
                         <div>
                           <p className="font-bold">{teach.name}</p>
                           <p className="text-[9px] text-slate-400 font-mono">{teach.email}</p>
@@ -3454,7 +3514,11 @@ export default function SuperAdminPortal() {
             {managementCommittee && managementCommittee.map((member) => (
               <div key={member.id} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-md flex justify-between items-center hover:scale-[1.01] transition-transform duration-200">
                 <div className="flex gap-3 items-center">
-                  <img src={member.photo} alt={member.name} className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/20 shadow-sm" />
+                  {member.photo ? (
+                    <img src={member.photo} alt={member.name} className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/20 shadow-sm" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold border-2 border-blue-500/20 shadow-sm shrink-0">{member.name?.charAt(0)?.toUpperCase() || 'M'}</div>
+                  )}
                   <div>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">{member.name}</h4>
                     <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-0.5">{member.role}</p>
@@ -5363,26 +5427,26 @@ function SubjectsManagerPanel({ subjects, addSubject, editSubject, deleteSubject
               </div>
             </div>
           ))}
-          {cropImageSrc && (
-            <ImageCropperModal
-              src={cropImageSrc}
-              onCrop={(croppedData) => {
-                if (cropTarget === 'student') {
-                  setStudentForm(prev => ({ ...prev, photo: croppedData }));
-                } else if (cropTarget === 'teacher') {
-                  setTeacherForm(prev => ({ ...prev, photo: croppedData }));
-                }
-                setCropImageSrc(null);
-                setCropTarget(null);
-              }}
-              onCancel={() => {
-                setCropImageSrc(null);
-                setCropTarget(null);
-              }}
-            />
-          )}
         </div>
       </div>
+      {cropImageSrc && (
+        <ImageCropperModal
+          src={cropImageSrc}
+          onCrop={(croppedData) => {
+            if (cropTarget === 'student') {
+              setStudentForm(prev => ({ ...prev, photo: croppedData }));
+            } else if (cropTarget === 'teacher') {
+              setTeacherForm(prev => ({ ...prev, photo: croppedData }));
+            }
+            setCropImageSrc(null);
+            setCropTarget(null);
+          }}
+          onCancel={() => {
+            setCropImageSrc(null);
+            setCropTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1426,6 +1426,21 @@ export const AppProvider = ({ children }) => {
     addAuditLog(currentUser.name, currentUser.role, `Updated online form highlights settings`);
   };
 
+  const deleteAdmission = (id) => {
+    setAdmissions(prev => prev.filter(a => a.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted admission application ID: ${id}`);
+  };
+
+  const deleteWhatsappLog = (id) => {
+    setWhatsappLogs(prev => prev.filter(log => log.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted WhatsApp notification log ID: ${id}`);
+  };
+
+  const clearAllWhatsappLogs = () => {
+    setWhatsappLogs([]);
+    addAuditLog(currentUser.name, currentUser.role, `Cleared all WhatsApp notification logs`);
+  };
+
   // ── Student Leave Management ──
   const submitLeaveRequest = (studentId, studentName, studentClass, studentSection, data) => {
     const newRequest = {
@@ -1610,7 +1625,7 @@ export const AppProvider = ({ children }) => {
       departments, addDepartment, editDepartment, deleteDepartment,
       galleryCategories, addGalleryCategory, editGalleryCategory, deleteGalleryCategory,
       complaints, submitComplaint, updateComplaintStatus,
-      whatsappLogs,
+      whatsappLogs, deleteAdmission, deleteWhatsappLog, clearAllWhatsappLogs,
       requiredDocuments, updateRequiredDocuments,
       leaveRequests, submitLeaveRequest, updateLeaveStatus,
       starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,

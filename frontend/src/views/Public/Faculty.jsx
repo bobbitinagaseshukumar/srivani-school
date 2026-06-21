@@ -133,12 +133,16 @@ export default function Faculty() {
               <div 
                 className="bg-white dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group h-full justify-between"
               >
-                <div className="h-48 overflow-hidden relative">
-                  <img 
-                    src={teacher.photo} 
-                    alt={teacher.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                <div className="h-48 overflow-hidden relative bg-slate-100 dark:bg-slate-900/50 flex items-center justify-center">
+                  {teacher.photo ? (
+                    <img 
+                      src={teacher.photo} 
+                      alt={teacher.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">{teacher.name?.charAt(0)?.toUpperCase() || 'T'}</div>
+                  )}
                   <div className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-full shadow-md">
                     {teacher.designation}
                   </div>

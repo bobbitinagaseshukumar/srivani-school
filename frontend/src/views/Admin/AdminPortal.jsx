@@ -1479,10 +1479,10 @@ export default function AdminPortal() {
                         />
                       </div>
 
-                      <div className="pt-2 flex gap-2">
+                      <div className="pt-2 flex flex-wrap gap-2">
                         <button
                           type="submit"
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                         >
                           Save Changes
                         </button>
@@ -1502,7 +1502,7 @@ export default function AdminPortal() {
                                 const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                                 window.open(waUrl, '_blank');
                               }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                             >
                               Approve
                             </button>
@@ -1522,7 +1522,7 @@ export default function AdminPortal() {
                                 const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                                 window.open(waUrl, '_blank');
                               }}
-                              className="bg-red-500 hover:bg-red-650 text-white font-bold px-2 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-[10px]"
+                              className="bg-red-500 hover:bg-red-650 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                             >
                               Reject
                             </button>
