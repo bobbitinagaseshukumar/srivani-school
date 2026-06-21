@@ -86,11 +86,15 @@ export default function Home({ onNavigate }) {
             <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 text-blue-400 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
               <Compass size={13} /> Global Standard of Education
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-montserrat tracking-tight leading-tight">
-              Building <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Future Leaders</span> &amp; Innovators
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold font-montserrat tracking-tight leading-tight text-left">
+              {schoolInfo?.heroTitle ? (
+                <span>{schoolInfo.heroTitle}</span>
+              ) : (
+                <>Building <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Future Leaders</span> &amp; Innovators</>
+              )}
             </h1>
-            <p className="text-base sm:text-lg text-slate-300 max-w-xl font-light leading-relaxed">
-              Welcome to SRI VANI VIDYANIKETHAN EM SCHOOL — where academic rigour meets interactive learning. We nurture children from Playclass to Class 10.
+            <p className="text-base sm:text-lg text-slate-350 max-w-xl font-light leading-relaxed text-left">
+              {schoolInfo?.heroSubtitle || `Welcome to ${schoolInfo?.name || 'SRI VANI VIDYANIKETHAN'} ${schoolInfo?.tagline || 'EM SCHOOL'} — where academic rigour meets interactive learning. We nurture children from Playclass to Class 10.`}
             </p>
             <div className="flex flex-col xs:flex-row flex-wrap gap-3 pt-1">
               <button 
@@ -107,18 +111,18 @@ export default function Home({ onNavigate }) {
               </button>
             </div>
           </div>
-
+ 
           <div className="lg:col-span-5 relative mt-4 lg:mt-0">
             <div className="card-3d relative z-10 overflow-hidden rounded-2xl border border-slate-700/50 shadow-2xl bg-slate-800/50 p-2">
               <img 
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80" 
-                alt="Sri Vani Vidyanikethan Campus" 
+                src={schoolInfo?.campusPhoto || "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80"} 
+                alt={schoolInfo?.campusPhotoTitle || "Sri Vani Vidyanikethan Campus"} 
                 className="w-full h-56 sm:h-72 lg:h-80 object-cover rounded-xl"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-end p-5">
-                <div>
-                  <h3 className="font-bold text-base sm:text-lg">Modern Academic Block</h3>
-                  <p className="text-xs text-slate-300">Equipped with 3D models and digital learning systems.</p>
+                <div className="text-left">
+                  <h3 className="font-bold text-base sm:text-lg text-white">{schoolInfo?.campusPhotoTitle || "Modern Academic Block"}</h3>
+                  <p className="text-xs text-slate-300">{schoolInfo?.campusPhotoDesc || "Equipped with 3D models and digital learning systems."}</p>
                 </div>
               </div>
             </div>

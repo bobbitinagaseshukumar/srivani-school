@@ -1206,6 +1206,11 @@ export const AppProvider = ({ children }) => {
     addNotification('Official Announcement', `New Notice: ${newCirc.title}`, 'Circular');
   };
 
+  const deleteCircular = (id) => {
+    setCirculars(prev => prev.filter(c => c.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Circular ID ${id}`);
+  };
+
   const createLiveClass = (classData) => {
     const newClass = {
       id: `lc_${Date.now()}`,
@@ -1271,6 +1276,11 @@ export const AppProvider = ({ children }) => {
       }];
     });
     addAuditLog(currentUser.name, currentUser.role, `Updated Fees structure for ${className} (${yearName})`);
+  };
+
+  const deleteClassFee = (className, yearName) => {
+    setFees(prev => prev.filter(f => !(f.class === className && f.year === yearName)));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted Fees structure for ${className} (${yearName})`);
   };
 
   const addTickerItem = (item) => {
@@ -1465,6 +1475,7 @@ export const AppProvider = ({ children }) => {
       saveTimetable,
       fees,
       saveClassFee,
+      deleteClassFee,
       tickerItems,
       addTickerItem,
       editTickerItem,
@@ -1505,6 +1516,7 @@ export const AppProvider = ({ children }) => {
       evaluateHomework,
       createNotes,
       createCircular,
+      deleteCircular,
       createLiveClass,
       createSupportTicket,
       replySupportTicket,

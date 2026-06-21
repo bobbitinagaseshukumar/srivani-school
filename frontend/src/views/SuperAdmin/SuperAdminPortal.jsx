@@ -88,7 +88,8 @@ const getTeacherForSubject = (subjectName, teachersList) => {
 export default function SuperAdminPortal() {
   const { 
     schools, toggleSchoolStatus,
-    teachers, students, parents, admins, fees, saveClassFee,
+    teachers, students, parents, admins, fees, saveClassFee, deleteClassFee,
+    circulars, deleteCircular,
     tickerItems, addTickerItem, editTickerItem, deleteTickerItem,
     schoolInfo, updateSchoolInfo, managementCommittee, addCommitteeMember, editCommitteeMember, deleteCommitteeMember,
     auditLogs, supportTickets, timetables, saveTimetable,
@@ -2699,6 +2700,7 @@ export default function SuperAdminPortal() {
                         <th className="p-4">Bus Fee</th>
                         <th className="p-4">Books Fee</th>
                         <th className="p-4">Total Amount</th>
+                        <th className="p-4 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
@@ -2715,6 +2717,20 @@ export default function SuperAdminPortal() {
                             <td className="p-4 font-bold font-mono text-amber-600 dark:text-amber-400">₹{booksFVal}</td>
                             <td className="p-4 font-extrabold font-mono text-slate-900 dark:text-white">
                               ₹{f.tuitionFee + f.labFee + busFVal + booksFVal}
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to remove the fee structure for ${f.class} (${f.year})?`)) {
+                                    deleteClassFee(f.class, f.year);
+                                  }
+                                }}
+                                className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors"
+                                title="Remove Fee Structure"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </td>
                           </tr>
                         );
@@ -2868,6 +2884,53 @@ export default function SuperAdminPortal() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Official Notices / Circulars Board Section */}
+          <div className="space-y-4 border-t pt-6 text-left">
+            <div>
+              <h3 className="font-extrabold text-lg font-montserrat">Official Notice Board Circulars</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-light">
+                Review and delete circulars posted to the school notice board (e.g. notices for staff, students, parents, etc.)
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {circulars && circulars.map((circ) => (
+                <div key={circ.id} className="bg-white dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">Target: {circ.targetGroup}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-slate-400 font-mono">{circ.date}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete notice: "${circ.title}"?`)) {
+                              deleteCircular(circ.id);
+                            }
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors"
+                          title="Delete Notice"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                    <h4 className="font-extrabold text-xs text-slate-900 dark:text-white mt-2 leading-snug">{circ.title}</h4>
+                    <p className="text-[11px] text-slate-550 dark:text-slate-350 leading-relaxed font-light mt-1">{circ.content}</p>
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-slate-850 pt-2 text-[9px] text-slate-400 flex justify-between items-center">
+                    <span>By: <strong className="text-slate-500">{circ.postedBy}</strong></span>
+                  </div>
+                </div>
+              ))}
+              {(!circulars || circulars.length === 0) && (
+                <div className="col-span-2 p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border text-slate-400 text-xs italic">
+                  No active circulars on notice board.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3079,6 +3142,71 @@ export default function SuperAdminPortal() {
                     onChange={(e) => setEditSchoolForm(prev => ({ ...prev, mission: e.target.value }))}
                     className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                   />
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h5 className="font-bold text-xs uppercase tracking-wider text-slate-400">Homepage Hero & Campus Highlights Media</h5>
+                
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Hero Banner Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Building Future Leaders & Innovators"
+                      value={editSchoolForm.heroTitle || ''}
+                      onChange={(e) => setEditSchoolForm(prev => ({ ...prev, heroTitle: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Hero Banner Subtitle</label>
+                    <input
+                      type="text"
+                      placeholder="Welcome to Sri Vani Vidyanikethan..."
+                      value={editSchoolForm.heroSubtitle || ''}
+                      onChange={(e) => setEditSchoolForm(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold block mb-1">Campus/Student Highlight Photo URL</label>
+                  <input
+                    type="text"
+                    value={editSchoolForm.campusPhoto || ''}
+                    onChange={(e) => setEditSchoolForm(prev => ({ ...prev, campusPhoto: e.target.value }))}
+                    className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  />
+                  {editSchoolForm.campusPhoto && (
+                    <div className="mt-2 relative rounded-xl overflow-hidden border w-full max-w-sm h-36">
+                      <img src={editSchoolForm.campusPhoto} alt="Campus Highlights Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Campus Photo Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Modern Academic Block"
+                      value={editSchoolForm.campusPhotoTitle || ''}
+                      onChange={(e) => setEditSchoolForm(prev => ({ ...prev, campusPhotoTitle: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Campus Photo Description</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Equipped with 3D models..."
+                      value={editSchoolForm.campusPhotoDesc || ''}
+                      onChange={(e) => setEditSchoolForm(prev => ({ ...prev, campusPhotoDesc: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
 

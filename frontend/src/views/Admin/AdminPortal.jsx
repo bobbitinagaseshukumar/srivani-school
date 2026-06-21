@@ -11,7 +11,7 @@ export default function AdminPortal() {
     students,
     teachers,
     parents,
-    circulars, createCircular,
+    circulars, createCircular, deleteCircular,
     exams, createExam, deleteExam,
     classes, setClasses,
     sections, setSections,
@@ -1599,7 +1599,20 @@ export default function AdminPortal() {
                 <div key={circ.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
                   <div className="flex justify-between items-start">
                     <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded uppercase">Target: {circ.targetGroup}</span>
-                    <span className="text-[9px] text-slate-400 font-mono">{circ.date}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] text-slate-400 font-mono">{circ.date}</span>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete this notice: "${circ.title}"?`)) {
+                            deleteCircular(circ.id);
+                          }
+                        }}
+                        className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors"
+                        title="Delete Notice"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                   <h3 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">{circ.title}</h3>
                   <p className="text-xs text-slate-550 dark:text-slate-350 leading-relaxed font-light">{circ.content}</p>
