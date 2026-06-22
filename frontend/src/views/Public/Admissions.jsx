@@ -1,11 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { ArrowRight, FileText, CheckCircle2, DollarSign, HelpCircle } from 'lucide-react';
+import { ArrowRight, FileText, CheckCircle2, DollarSign, HelpCircle, AlertCircle } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
 
 export default function Admissions() {
   const { addNotification, addAuditLog, fees, submitAdmission, requiredDocuments, starredFormFields } = useContext(AppContext);
   const [submitted, setSubmitted] = useState(false);
+  const formTopRef = useRef(null);
   const [formData, setFormData] = useState({
     studentName: '',
     dob: '',
@@ -18,6 +19,10 @@ export default function Admissions() {
     prevSchool: '',
     whatsappNumber: ''
   });
+
+  // Validation error states
+  const [phoneError, setPhoneError] = useState('');
+  const [whatsappError, setWhatsappError] = useState('');
 
   const renderStar = (fieldName) => {
     if (starredFormFields && starredFormFields[fieldName]) {
@@ -42,19 +47,67 @@ export default function Admissions() {
     'Proof of Address (Utility bill/Rent agreement)'
   ];
 
+  // Allow only digits and enforce max 10
+  const handlePhoneChange = (value, field) => {
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+    setFormData(prev => ({ ...prev, [field]: digitsOnly }));
+
+    if (field === 'parentPhone') {
+      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
+        setPhoneError(`Phone number must be exactly 10 digits (currently ${digitsOnly.length})`);
+      } else {
+        setPhoneError('');
+      }
+    }
+    if (field === 'whatsappNumber') {
+      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
+        setWhatsappError(`WhatsApp number must be exactly 10 digits (currently ${digitsOnly.length})`);
+      } else {
+        setWhatsappError('');
+      }
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.studentName || !formData.parentEmail || !formData.parentPhone) {
       alert('Please fill in student name, email, and phone contact.');
       return;
     }
+
+    // Validate phone number is exactly 10 digits
+    const phoneDigits = formData.parentPhone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      setPhoneError('Phone number must be exactly 10 digits');
+      return;
+    }
+
+    // Validate WhatsApp number if provided
+    if (formData.whatsappNumber) {
+      const whatsappDigits = formData.whatsappNumber.replace(/\D/g, '');
+      if (whatsappDigits.length !== 10) {
+        setWhatsappError('WhatsApp number must be exactly 10 digits');
+        return;
+      }
+    }
+
     // Submit via context helper (handles notification, audit log, and storage)
     submitAdmission(formData);
     setSubmitted(true);
+    setPhoneError('');
+    setWhatsappError('');
+
+    // Scroll to top so user sees the success message instead of footer
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (formTopRef.current) {
+        formTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 space-y-16 text-slate-800 dark:text-slate-100 text-left">
+    <div className="max-w-7xl mx-auto px-6 py-12 space-y-16 text-slate-800 dark:text-slate-100 text-left" ref={formTopRef}>
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto space-y-2">
         <h1 className="text-4xl font-extrabold font-montserrat">Online Admissions</h1>
@@ -282,22 +335,46 @@ export default function Admissions() {
                     <input
                       type="tel"
                       required
+                      inputMode="numeric"
+                      maxLength={10}
                       value={formData.parentPhone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, parentPhone: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. 98765 43210"
+                      onChange={(e) => handlePhoneChange(e.target.value, 'parentPhone')}
+                      className={`w-full px-4 py-2.5 rounded-xl border bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 ${phoneError ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-200/60 dark:border-slate-800 focus:ring-blue-500'}`}
+                      placeholder="e.g. 9876543210"
                     />
+                    {phoneError && (
+                      <p className="flex items-center gap-1 mt-1.5 text-[11px] text-red-500 font-semibold">
+                        <AlertCircle size={12} /> {phoneError}
+                      </p>
+                    )}
+                    {formData.parentPhone && !phoneError && formData.parentPhone.length === 10 && (
+                      <p className="flex items-center gap-1 mt-1.5 text-[11px] text-emerald-500 font-semibold">
+                        <CheckCircle2 size={12} /> Valid 10-digit number ✓
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number{renderStar('whatsappNumber')}</label>
                     <input
                       type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
                       value={formData.whatsappNumber}
-                      onChange={(e) => setFormData(prev => ({ ...prev, whatsappNumber: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="WhatsApp number (optional)"
+                      onChange={(e) => handlePhoneChange(e.target.value, 'whatsappNumber')}
+                      className={`w-full px-4 py-2.5 rounded-xl border bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 ${whatsappError ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-200/60 dark:border-slate-800 focus:ring-blue-500'}`}
+                      placeholder="e.g. 9876543210"
                     />
+                    {whatsappError && (
+                      <p className="flex items-center gap-1 mt-1.5 text-[11px] text-red-500 font-semibold">
+                        <AlertCircle size={12} /> {whatsappError}
+                      </p>
+                    )}
+                    {formData.whatsappNumber && !whatsappError && formData.whatsappNumber.length === 10 && (
+                      <p className="flex items-center gap-1 mt-1.5 text-[11px] text-emerald-500 font-semibold">
+                        <CheckCircle2 size={12} /> Valid 10-digit number ✓
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
