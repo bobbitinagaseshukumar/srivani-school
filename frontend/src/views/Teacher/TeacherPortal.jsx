@@ -234,7 +234,17 @@ export default function TeacherPortal() {
 
   // Notes upload creator state
   const [showAddNotes, setShowAddNotes] = useState(false);
-  const [notesForm, setNotesForm] = useState({ title: '', description: '', subject: teacherSubject, class: 'Class 10', chapter: 'Chapter 5', type: 'PDF' });
+  const [notesForm, setNotesForm] = useState({ title: '', description: '', subject: teacherSubject, class: 'Class 10', section: 'A', chapter: 'Chapter 5', type: 'PDF' });
+  const [fileName, setFileName] = useState('');
+  const [fileData, setFileData] = useState('');
+  const [videoLink, setVideoLink] = useState('');
+  
+  // Attendance Sub-tab and Search states
+  const [attendanceSubTab, setAttendanceSubTab] = useState('mark');
+  const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
+  const [attendanceSearchSection, setAttendanceSearchSection] = useState('A');
+  const [attendanceSearchClass, setAttendanceSearchClass] = useState('Class 10');
+  const [selectedStudentAttendance, setSelectedStudentAttendance] = useState(null);
 
   // Class circular state
   const [showAddNotice, setShowAddNotice] = useState(false);
@@ -254,7 +264,7 @@ export default function TeacherPortal() {
   useEffect(() => {
     setSubjectSelected(teacherSubject);
     setHwForm(prev => ({ ...prev, subject: teacherSubject }));
-    setNotesForm(prev => ({ ...prev, subject: teacherSubject }));
+    setNotesForm(prev => ({ ...prev, subject: teacherSubject, section: 'A' }));
     setLiveForm(prev => ({ ...prev, subject: teacherSubject }));
   }, [teacherSubject]);
 
@@ -330,16 +340,82 @@ export default function TeacherPortal() {
     setHwForm({ title: '', description: '', subject: teacherSubject, class: 'Class 10', section: 'A', dueDate: '' });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File size exceeds 15MB limit.");
+      e.target.value = null;
+      return;
+    }
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFileData(reader.result);
+    };
+    reader.onerror = () => {
+      alert("Failed to read file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const openPDF = (fileData, fName) => {
+    if (!fileData) {
+      alert("No file data attached to this note.");
+      return;
+    }
+    try {
+      const parts = fileData.split(',');
+      const base64 = parts[1] || parts[0];
+      const mimeType = parts[0].match(/:(.*?);/)?.[1] || 'application/pdf';
+      const binaryStr = atob(base64);
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const newTab = window.open(blobUrl, '_blank');
+      if (!newTab) {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fName || 'document.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      console.error("Error opening file", err);
+      const newTab = window.open();
+      if (newTab) {
+        newTab.document.write(`<iframe src="${fileData}" style="width:100%; height:100%; border:none;"></iframe>`);
+      } else {
+        alert("Failed to open file. Please disable popup blockers.");
+      }
+    }
+  };
+
   const handleCreateNotes = (e) => {
     e.preventDefault();
     if (!notesForm.title || !notesForm.chapter) return;
-    createNotes({
+    const payload = {
       ...notesForm,
       teacherId: currentUser.id,
-      file: notesForm.type === 'Video' ? 'https://youtube.com/watch?v=mock' : 'study_material.' + notesForm.type.toLowerCase()
-    });
+    };
+    if (notesForm.type === 'Video') {
+      payload.file = videoLink || 'https://youtube.com/watch?v=mock';
+    } else {
+      payload.file = fileName || 'notes_material.pdf';
+      payload.fileData = fileData;
+    }
+    createNotes(payload);
     setShowAddNotes(false);
-    setNotesForm({ title: '', description: '', subject: teacherSubject, class: 'Class 10', chapter: 'Chapter 5', type: 'PDF' });
+    setNotesForm({ title: '', description: '', subject: teacherSubject, class: 'Class 10', section: 'A', chapter: 'Chapter 5', type: 'PDF' });
+    setFileName('');
+    setFileData('');
+    setVideoLink('');
   };
 
   const handleCreateLiveClass = (e) => {
@@ -475,128 +551,330 @@ export default function TeacherPortal() {
         {/* Attendance Module Tab */}
         {activeTab === 'Attendance' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-extrabold font-montserrat">Mark Student Attendance</h2>
-            
-            {/* Filter selectors */}
-            <div className="glassmorphism p-4 rounded-xl border border-white/40 shadow-md flex flex-wrap gap-4 items-center">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-2xl font-extrabold font-montserrat">Class Attendance Management</h2>
               <div className="flex gap-2">
-                <select 
-                  value={selectedClass} 
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                <button
+                  onClick={() => setAttendanceSubTab('mark')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    attendanceSubTab === 'mark'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:bg-slate-200'
+                  }`}
                 >
-                  <option value="Playclass">Playclass</option>
-                  <option value="LKG">LKG</option>
-                  <option value="UKG">UKG</option>
-                  <option value="Class 1">Class 1</option>
-                  <option value="Class 2">Class 2</option>
-                  <option value="Class 3">Class 3</option>
-                  <option value="Class 4">Class 4</option>
-                  <option value="Class 5">Class 5</option>
-                  <option value="Class 6">Class 6</option>
-                  <option value="Class 7">Class 7</option>
-                  <option value="Class 8">Class 8</option>
-                  <option value="Class 9">Class 9</option>
-                  <option value="Class 10">Class 10</option>
-                </select>
-                <select 
-                  value={selectedSection} 
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                  className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  Mark Attendance
+                </button>
+                <button
+                  onClick={() => {
+                    setAttendanceSubTab('history');
+                    setSelectedStudentAttendance(null);
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    attendanceSubTab === 'history'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:bg-slate-200'
+                  }`}
                 >
-                  <option value="A">Section A</option>
-                  <option value="B">Section B</option>
-                </select>
+                  Search & History
+                </button>
               </div>
-
-              <input 
-                type="date" 
-                value={attendanceDate}
-                onChange={(e) => setAttendanceDate(e.target.value)}
-                className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-              />
-
-              <select 
-                value={attendanceSession} 
-                onChange={(e) => setAttendanceSession(e.target.value)}
-                className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="Morning">Morning Session</option>
-                <option value="Afternoon">Afternoon Session</option>
-              </select>
-
-              <button
-                onClick={handleInitializeAttendance}
-                className="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg ml-auto"
-              >
-                Load Attendance Sheet
-              </button>
             </div>
 
-            {/* Attendance Sheet Grid */}
-            {Object.keys(attendanceSheet).length > 0 && (
-              <div className="space-y-4">
-                <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[500px] text-xs text-left">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                          <th className="p-4">Student Name</th>
-                          <th className="p-4 text-center">Present</th>
-                          <th className="p-4 text-center">Absent</th>
-                          <th className="p-4 text-center">Leave</th>
-                          <th className="p-4 text-center">Half Day</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-150/40 dark:divide-slate-850 font-light">
-                        {activeStudents.map((stud) => (
-                          <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                            <td className="p-4 font-bold text-slate-900 dark:text-white">{stud.name} ({stud.id})</td>
-                            <td className="p-4 text-center">
-                              <input 
-                                type="radio" name={`att_${stud.id}`} 
-                                checked={attendanceSheet[stud.id] === 'Present'}
-                                onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Present' }))}
-                                className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
-                              />
-                            </td>
-                            <td className="p-4 text-center">
-                              <input 
-                                type="radio" name={`att_${stud.id}`}
-                                checked={attendanceSheet[stud.id] === 'Absent'}
-                                onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Absent' }))}
-                                className="w-4 h-4 text-red-600 focus:ring-red-500"
-                              />
-                            </td>
-                            <td className="p-4 text-center">
-                              <input 
-                                type="radio" name={`att_${stud.id}`}
-                                checked={attendanceSheet[stud.id] === 'Leave'}
-                                onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Leave' }))}
-                                className="w-4 h-4 text-amber-600 focus:ring-amber-500"
-                              />
-                            </td>
-                            <td className="p-4 text-center">
-                              <input 
-                                type="radio" name={`att_${stud.id}`}
-                                checked={attendanceSheet[stud.id] === 'Half Day'}
-                                onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Half Day' }))}
-                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            {attendanceSubTab === 'mark' ? (
+              <div className="space-y-6">
+                {/* Filter selectors */}
+                <div className="glassmorphism p-4 rounded-xl border border-white/40 shadow-md flex flex-wrap gap-4 items-center">
+                  <div className="flex gap-2">
+                    <select 
+                      value={selectedClass} 
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="Playclass">Playclass</option>
+                      <option value="LKG">LKG</option>
+                      <option value="UKG">UKG</option>
+                      <option value="Class 1">Class 1</option>
+                      <option value="Class 2">Class 2</option>
+                      <option value="Class 3">Class 3</option>
+                      <option value="Class 4">Class 4</option>
+                      <option value="Class 5">Class 5</option>
+                      <option value="Class 6">Class 6</option>
+                      <option value="Class 7">Class 7</option>
+                      <option value="Class 8">Class 8</option>
+                      <option value="Class 9">Class 9</option>
+                      <option value="Class 10">Class 10</option>
+                    </select>
+                    <select 
+                      value={selectedSection} 
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                    </select>
                   </div>
+
+                  <input 
+                    type="date" 
+                    value={attendanceDate}
+                    onChange={(e) => setAttendanceDate(e.target.value)}
+                    className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  />
+
+                  <select 
+                    value={attendanceSession} 
+                    onChange={(e) => setAttendanceSession(e.target.value)}
+                    className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="Morning">Morning Session</option>
+                    <option value="Afternoon">Afternoon Session</option>
+                  </select>
+
+                  <button
+                    onClick={handleInitializeAttendance}
+                    className="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg ml-auto cursor-pointer"
+                  >
+                    Load Attendance Sheet
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleSaveAttendance}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow"
-                >
-                  Save Class Attendance Log
-                </button>
+                {/* Attendance Sheet Grid */}
+                {Object.keys(attendanceSheet).length > 0 && (
+                  <div className="space-y-4">
+                    <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left">
+                          <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                              <th className="p-4">Student Name</th>
+                              <th className="p-4">Roll/Reg No</th>
+                              <th className="p-4 text-center">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                            {activeStudents.map((stud) => (
+                              <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                                <td className="p-4 font-bold text-slate-900 dark:text-white">{stud.name}</td>
+                                <td className="p-4 font-mono">{stud.registerNo}</td>
+                                <td className="p-4 text-center">
+                                  <div className="flex justify-center gap-3">
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                      <input 
+                                        type="radio" 
+                                        name={`status-${stud.id}`}
+                                        checked={attendanceSheet[stud.id] === 'Present'}
+                                        onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Present' }))}
+                                        className="text-emerald-500 focus:ring-emerald-400 h-3 w-3"
+                                      />
+                                      <span className="text-[10px] font-bold text-emerald-600">Present</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                      <input 
+                                        type="radio" 
+                                        name={`status-${stud.id}`}
+                                        checked={attendanceSheet[stud.id] === 'Absent'}
+                                        onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Absent' }))}
+                                        className="text-red-500 focus:ring-red-400 h-3 w-3"
+                                      />
+                                      <span className="text-[10px] font-bold text-red-500">Absent</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                      <input 
+                                        type="radio" 
+                                        name={`status-${stud.id}`}
+                                        checked={attendanceSheet[stud.id] === 'Leave'}
+                                        onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Leave' }))}
+                                        className="text-amber-500 focus:ring-amber-400 h-3 w-3"
+                                      />
+                                      <span className="text-[10px] font-bold text-amber-600">Leave</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                      <input 
+                                        type="radio" 
+                                        name={`status-${stud.id}`}
+                                        checked={attendanceSheet[stud.id] === 'Half Day'}
+                                        onChange={() => setAttendanceSheet(prev => ({ ...prev, [stud.id]: 'Half Day' }))}
+                                        className="text-blue-500 focus:ring-blue-400 h-3 w-3"
+                                      />
+                                      <span className="text-[10px] font-bold text-blue-500">Half Day</span>
+                                    </label>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleSaveAttendance}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow cursor-pointer"
+                    >
+                      Save Class Attendance Log
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Search Attendance History</h3>
+                
+                {/* Search Bar / Filters */}
+                <div className="glassmorphism p-4 rounded-xl border border-white/40 shadow-md flex flex-wrap gap-4 items-center">
+                  <div className="flex gap-2">
+                    <select 
+                      value={attendanceSearchClass} 
+                      onChange={(e) => setAttendanceSearchClass(e.target.value)}
+                      className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                    >
+                      <option value="Playclass">Playclass</option>
+                      <option value="LKG">LKG</option>
+                      <option value="UKG">UKG</option>
+                      <option value="Class 1">Class 1</option>
+                      <option value="Class 2">Class 2</option>
+                      <option value="Class 3">Class 3</option>
+                      <option value="Class 4">Class 4</option>
+                      <option value="Class 5">Class 5</option>
+                      <option value="Class 6">Class 6</option>
+                      <option value="Class 7">Class 7</option>
+                      <option value="Class 8">Class 8</option>
+                      <option value="Class 9">Class 9</option>
+                      <option value="Class 10">Class 10</option>
+                    </select>
+                    <select 
+                      value={attendanceSearchSection} 
+                      onChange={(e) => setAttendanceSearchSection(e.target.value)}
+                      className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                    >
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                    </select>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    placeholder="Search by student name or register number..."
+                    value={attendanceSearchQuery}
+                    onChange={(e) => setAttendanceSearchQuery(e.target.value)}
+                    className="px-3.5 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 flex-1 min-w-[200px]"
+                  />
+                </div>
+
+                {selectedStudentAttendance ? (
+                  <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-lg space-y-4 text-left">
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <div>
+                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white">{selectedStudentAttendance.name}</h4>
+                        <p className="text-[10px] text-slate-400 font-light">Reg No: {selectedStudentAttendance.registerNo} | Class: {selectedStudentAttendance.class} - Sec {selectedStudentAttendance.section}</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedStudentAttendance(null)}
+                        className="bg-slate-200 dark:bg-slate-800 text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer"
+                      >
+                        Back to List
+                      </button>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="p-4 bg-blue-500/5 dark:bg-blue-950/10 rounded-xl border border-blue-500/10 text-center">
+                        <p className="text-[10px] text-slate-450 uppercase font-bold">Overall Percentage</p>
+                        <p className="text-3xl font-black text-blue-600 mt-1">{selectedStudentAttendance.attendancePct || 0}%</p>
+                      </div>
+                      <div className="p-4 bg-emerald-500/5 dark:bg-emerald-950/10 rounded-xl border border-emerald-500/10 text-center">
+                        <p className="text-[10px] text-slate-450 uppercase font-bold">Status</p>
+                        <p className="text-xl font-bold text-emerald-600 mt-2">
+                          {(selectedStudentAttendance.attendancePct || 0) >= 75 ? "Good Standing" : "Low Attendance Alert"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-400 mt-4">Session-by-Session Logs</h5>
+                    <div className="bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[300px] overflow-y-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-450 uppercase font-bold text-[9px]">
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Session</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                          {attendance.filter(a => a.studentId === selectedStudentAttendance.id).map(log => (
+                            <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                              <td className="p-3 font-semibold">{log.date}</td>
+                              <td className="p-3">{log.session}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  log.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600' :
+                                  log.status === 'Absent' ? 'bg-red-500/10 text-red-650' :
+                                  log.status === 'Half Day' ? 'bg-blue-500/10 text-blue-600' :
+                                  'bg-amber-500/10 text-amber-600'
+                                }`}>
+                                  {log.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                          {attendance.filter(a => a.studentId === selectedStudentAttendance.id).length === 0 && (
+                            <tr>
+                              <td colSpan="3" className="p-6 text-center text-slate-400 italic">No attendance records found for this student.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                            <th className="p-4">Student Name</th>
+                            <th className="p-4">Register Number</th>
+                            <th className="p-4">Class & Section</th>
+                            <th className="p-4">Average Attendance %</th>
+                            <th className="p-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                          {students.filter(s => 
+                            s.class === attendanceSearchClass && 
+                            s.section === attendanceSearchSection && 
+                            (s.name.toLowerCase().includes(attendanceSearchQuery.toLowerCase()) || 
+                             s.registerNo.toLowerCase().includes(attendanceSearchQuery.toLowerCase()))
+                          ).map((stud) => (
+                            <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                              <td className="p-4 font-bold text-slate-900 dark:text-white">{stud.name}</td>
+                              <td className="p-4 font-mono">{stud.registerNo}</td>
+                              <td className="p-4">{stud.class} - {stud.section}</td>
+                              <td className="p-4 font-bold text-blue-600 dark:text-blue-400">{stud.attendancePct || 0}%</td>
+                              <td className="p-4 text-right">
+                                <button
+                                  onClick={() => setSelectedStudentAttendance(stud)}
+                                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                                >
+                                  View Detailed Log
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {students.filter(s => 
+                            s.class === attendanceSearchClass && 
+                            s.section === attendanceSearchSection && 
+                            (s.name.toLowerCase().includes(attendanceSearchQuery.toLowerCase()) || 
+                             s.registerNo.toLowerCase().includes(attendanceSearchQuery.toLowerCase()))
+                          ).length === 0 && (
+                            <tr>
+                              <td colSpan="5" className="p-8 text-center text-slate-400 italic">No matching students found.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1035,7 +1313,19 @@ export default function TeacherPortal() {
                       <option value="Class 10">Class 10</option>
                     </select>
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-1">
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Section</label>
+                    <select
+                      value={notesForm.section || 'All'}
+                      onChange={(e) => setNotesForm(prev => ({ ...prev, section: e.target.value }))}
+                      className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="All">All Sections</option>
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-1">
                     <label className="text-[10px] text-slate-400 font-bold block mb-1">Material Type</label>
                     <select
                       value={notesForm.type}
@@ -1050,9 +1340,42 @@ export default function TeacherPortal() {
                     </select>
                   </div>
                 </div>
+                
+                <div className="space-y-1 mt-2">
+                  {notesForm.type !== 'Video' ? (
+                    <>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Select File (PDF/Doc/Image, Max 15MB)</label>
+                      <input 
+                        type="file" 
+                        required
+                        accept={
+                          notesForm.type === 'PDF' ? 'application/pdf' :
+                          notesForm.type === 'Image' ? 'image/*' :
+                          '*'
+                        }
+                        onChange={handleFileChange}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                      {fileName && <p className="text-[10px] text-emerald-600 font-semibold mt-1">✓ Selected: {fileName}</p>}
+                    </>
+                  ) : (
+                    <>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Video Link (e.g. YouTube URL)</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="https://youtube.com/watch?v=..."
+                        value={videoLink}
+                        onChange={(e) => setVideoLink(e.target.value)}
+                        className="w-full px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </>
+                  )}
+                </div>
+
                 <button 
                   type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow cursor-pointer"
                 >
                   Upload Material
                 </button>
@@ -1065,7 +1388,7 @@ export default function TeacherPortal() {
                 <div key={note.id} className="bg-white dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 rounded-2xl p-5 shadow-md flex flex-col justify-between space-y-4 font-poppins">
                   <div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded">{getSubjectName(note.subject)} • {note.class}</span>
+                      <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded">{getSubjectName(note.subject)} • {note.class} - Sec {note.section || 'All'}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded">{note.type}</span>
                         <button
@@ -1074,7 +1397,7 @@ export default function TeacherPortal() {
                               deleteNotes(note.id);
                             }
                           }}
-                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors"
+                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
                           title="Delete Study Notes"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1083,11 +1406,21 @@ export default function TeacherPortal() {
                     </div>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-3">{note.title}</h4>
                     <p className="text-[10px] text-slate-450 mt-1">{note.chapter}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-light mt-2">{note.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-355 leading-relaxed font-light mt-2">{note.description}</p>
                   </div>
                   <div className="border-t border-slate-100 dark:border-slate-850 pt-3 flex justify-between items-center text-[10px] text-slate-400">
                     <span>File: {note.file || 'notes_material.pdf'}</span>
-                    <span>Downloads: {note.downloads || 0}</span>
+                    <div className="flex items-center gap-2">
+                      {note.fileData && (
+                        <button
+                          onClick={() => openPDF(note.fileData, note.file)}
+                          className="bg-indigo-500/10 hover:bg-indigo-650 text-indigo-650 hover:text-white px-2 py-1 rounded transition-colors text-[9px] font-bold cursor-pointer"
+                        >
+                          Open PDF / View
+                        </button>
+                      )}
+                      <span>Downloads: {note.downloads || 0}</span>
+                    </div>
                   </div>
                 </div>
               ))}

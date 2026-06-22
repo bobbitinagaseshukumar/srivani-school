@@ -144,7 +144,8 @@ export default function AdminPortal() {
     addStudent, addParent,
     leaveRequests, updateLeaveStatus,
     admissions, updateAdmissionFields, starredFormFields, toggleAdmissionFieldStar, approveAdmission, rejectAdmission,
-    galleryItems
+    galleryItems,
+    attendance, gradingScheme, updateGradingScheme
   } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -155,6 +156,12 @@ export default function AdminPortal() {
   const [admissionFilter, setAdmissionFilter] = useState('Pending');
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [showEnrollPassword, setShowEnrollPassword] = useState(false);
+
+  // Attendance search states
+  const [adminAttendanceSearchClass, setAdminAttendanceSearchClass] = useState('Class 10');
+  const [adminAttendanceSearchSection, setAdminAttendanceSearchSection] = useState('A');
+  const [adminAttendanceSearchQuery, setAdminAttendanceSearchQuery] = useState('');
+  const [adminSelectedStudentAttendance, setAdminSelectedStudentAttendance] = useState(null);
 
   const contentRef = React.useRef(null);
 
@@ -406,7 +413,9 @@ export default function AdminPortal() {
               { id: 'Leaves', icon: ClipboardList, label: 'Leave Requests' },
               { id: 'Circulars', icon: FileText, label: 'Notice Board' },
               { id: 'Reports', icon: FileSpreadsheet, label: 'Generate Reports' },
-              { id: 'Helpdesk', icon: MessageSquare, label: 'Helpdesk Tickets' }
+              { id: 'Helpdesk', icon: MessageSquare, label: 'Helpdesk Tickets' },
+              { id: 'AttendanceLog', icon: CheckSquare, label: 'Attendance History' },
+              { id: 'GradingScheme', icon: Award, label: 'Grading Settings' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -1951,12 +1960,12 @@ export default function AdminPortal() {
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{ticket.subject}</h4>
                     <p className="text-[9px] text-slate-400 mt-0.5">Submitted by: {ticket.name} ({ticket.role}) | {ticket.date}</p>
                   </div>
-                  <p className="text-xs text-slate-550 dark:text-slate-350 leading-relaxed font-light">{ticket.description}</p>
+                  <p className="text-xs text-slate-550 dark:text-slate-355 leading-relaxed font-light">{ticket.description}</p>
                   
                   {ticket.response ? (
                     <div className="p-3 bg-slate-50 dark:bg-slate-900/55 rounded-xl border border-slate-200/50 dark:border-slate-800 text-xs">
                       <p className="font-bold text-emerald-600 dark:text-emerald-400">Response from Head Office:</p>
-                      <p className="text-slate-550 dark:text-slate-350 mt-1 font-light">{ticket.response}</p>
+                      <p className="text-slate-550 dark:text-slate-355 mt-1 font-light">{ticket.response}</p>
                     </div>
                   ) : (
                     <div className="pt-2 flex gap-2">
@@ -1976,6 +1985,258 @@ export default function AdminPortal() {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Attendance History tab */}
+        {activeTab === 'AttendanceLog' && (
+          <div className="space-y-6 text-left">
+            <h2 className="text-2xl font-extrabold font-montserrat">School Attendance Logs</h2>
+            <div className="w-12 h-1 bg-blue-600 rounded"></div>
+            
+            {/* Search Bar / Filters */}
+            <div className="glassmorphism p-4 rounded-xl border border-white/40 shadow-md flex flex-wrap gap-4 items-center">
+              <div className="flex gap-2">
+                <select 
+                  value={adminAttendanceSearchClass} 
+                  onChange={(e) => setAdminAttendanceSearchClass(e.target.value)}
+                  className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                >
+                  <option value="Playclass">Playclass</option>
+                  <option value="LKG">LKG</option>
+                  <option value="UKG">UKG</option>
+                  <option value="Class 1">Class 1</option>
+                  <option value="Class 2">Class 2</option>
+                  <option value="Class 3">Class 3</option>
+                  <option value="Class 4">Class 4</option>
+                  <option value="Class 5">Class 5</option>
+                  <option value="Class 6">Class 6</option>
+                  <option value="Class 7">Class 7</option>
+                  <option value="Class 8">Class 8</option>
+                  <option value="Class 9">Class 9</option>
+                  <option value="Class 10">Class 10</option>
+                </select>
+                <select 
+                  value={adminAttendanceSearchSection} 
+                  onChange={(e) => setAdminAttendanceSearchSection(e.target.value)}
+                  className="px-3 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 font-bold"
+                >
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                </select>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Search by student name or register number..."
+                value={adminAttendanceSearchQuery}
+                onChange={(e) => setAdminAttendanceSearchQuery(e.target.value)}
+                className="px-3.5 py-1.5 border rounded-lg bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 flex-1 min-w-[200px]"
+              />
+            </div>
+
+            {adminSelectedStudentAttendance ? (
+              <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-lg space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <div>
+                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">{adminSelectedStudentAttendance.name}</h4>
+                    <p className="text-[10px] text-slate-400 font-light">Reg No: {adminSelectedStudentAttendance.registerNo} | Class: {adminSelectedStudentAttendance.class} - Sec {adminSelectedStudentAttendance.section}</p>
+                  </div>
+                  <button
+                    onClick={() => setAdminSelectedStudentAttendance(null)}
+                    className="bg-slate-200 dark:bg-slate-850 text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer"
+                  >
+                    Back to List
+                  </button>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-blue-500/5 dark:bg-blue-950/10 rounded-xl border border-blue-500/10 text-center">
+                    <p className="text-[10px] text-slate-450 uppercase font-bold">Overall Percentage</p>
+                    <p className="text-3xl font-black text-blue-600 mt-1">{adminSelectedStudentAttendance.attendancePct || 0}%</p>
+                  </div>
+                  <div className="p-4 bg-emerald-500/5 dark:bg-emerald-950/10 rounded-xl border border-emerald-500/10 text-center">
+                    <p className="text-[10px] text-slate-450 uppercase font-bold">Status</p>
+                    <p className="text-xl font-bold text-emerald-600 mt-2">
+                      {(adminSelectedStudentAttendance.attendancePct || 0) >= 75 ? "Good Standing" : "Low Attendance Alert"}
+                    </p>
+                  </div>
+                </div>
+
+                <h5 className="font-bold text-xs uppercase tracking-wider text-slate-400 mt-4">Session-by-Session Logs</h5>
+                <div className="bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[300px] overflow-y-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-450 uppercase font-bold text-[9px]">
+                        <th className="p-3">Date</th>
+                        <th className="p-3">Session</th>
+                        <th className="p-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                      {attendance.filter(a => a.studentId === adminSelectedStudentAttendance.id).map(log => (
+                        <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="p-3 font-semibold">{log.date}</td>
+                          <td className="p-3">{log.session}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              log.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600' :
+                              log.status === 'Absent' ? 'bg-red-500/10 text-red-655' :
+                              log.status === 'Half Day' ? 'bg-blue-500/10 text-blue-600' :
+                              'bg-amber-500/10 text-amber-600'
+                            }`}>{log.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                      {attendance.filter(a => a.studentId === adminSelectedStudentAttendance.id).length === 0 && (
+                        <tr>
+                          <td colSpan="3" className="p-6 text-center text-slate-400 italic">No attendance records found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                        <th className="p-4">Student Name</th>
+                        <th className="p-4">Register Number</th>
+                        <th className="p-4">Class & Section</th>
+                        <th className="p-4">Average Attendance %</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                      {students.filter(s => 
+                        s.class === adminAttendanceSearchClass && 
+                        s.section === adminAttendanceSearchSection && 
+                        (s.name.toLowerCase().includes(adminAttendanceSearchQuery.toLowerCase()) || 
+                         s.registerNo.toLowerCase().includes(adminAttendanceSearchQuery.toLowerCase()))
+                      ).map((stud) => (
+                        <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                          <td className="p-4 font-bold text-slate-900 dark:text-white">{stud.name}</td>
+                          <td className="p-4 font-mono">{stud.registerNo}</td>
+                          <td className="p-4">{stud.class} - {stud.section}</td>
+                          <td className="p-4 font-bold text-blue-600 dark:text-blue-400">{stud.attendancePct || 0}%</td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => setAdminSelectedStudentAttendance(stud)}
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                            >
+                              View Detailed Log
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {students.filter(s => 
+                        s.class === adminAttendanceSearchClass && 
+                        s.section === adminAttendanceSearchSection && 
+                        (s.name.toLowerCase().includes(adminAttendanceSearchQuery.toLowerCase()) || 
+                         s.registerNo.toLowerCase().includes(adminAttendanceSearchQuery.toLowerCase()))
+                      ).length === 0 && (
+                        <tr>
+                          <td colSpan="5" className="p-8 text-center text-slate-400 italic">No matching students found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Grading Scheme tab */}
+        {activeTab === 'GradingScheme' && (
+          <div className="space-y-6 text-left">
+            <h2 className="text-2xl font-extrabold font-montserrat">Academic Grading Scheme Settings</h2>
+            <div className="w-12 h-1 bg-blue-600 rounded"></div>
+            
+            <div className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-md space-y-4">
+              <p className="text-xs text-slate-500 font-light">Customize grade letters, marks percentage ranges, and remarks. These mappings will be used globally for assignments, exams, and student report cards.</p>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="p-3">Grade Label</th>
+                      <th className="p-3">Percentage Range (e.g. 91-100)</th>
+                      <th className="p-3">Description / Remarks</th>
+                      <th className="p-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-light">
+                    {(gradingScheme || []).map((row, idx) => (
+                      <tr key={row.id || idx} className="hover:bg-slate-50/50">
+                        <td className="p-3">
+                          <input 
+                            type="text" 
+                            value={row.grade} 
+                            onChange={(e) => {
+                              const newScheme = [...gradingScheme];
+                              newScheme[idx].grade = e.target.value;
+                              updateGradingScheme(newScheme);
+                            }}
+                            className="px-2 py-1 w-20 border rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs"
+                          />
+                        </td>
+                        <td className="p-3">
+                          <input 
+                            type="text" 
+                            value={row.range} 
+                            onChange={(e) => {
+                              const newScheme = [...gradingScheme];
+                              newScheme[idx].range = e.target.value;
+                              updateGradingScheme(newScheme);
+                            }}
+                            className="px-2 py-1 w-28 border rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs font-semibold"
+                          />
+                        </td>
+                        <td className="p-3">
+                          <input 
+                            type="text" 
+                            value={row.description} 
+                            onChange={(e) => {
+                              const newScheme = [...gradingScheme];
+                              newScheme[idx].description = e.target.value;
+                              updateGradingScheme(newScheme);
+                            }}
+                            className="px-2 py-1 w-full border rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs font-light"
+                          />
+                        </td>
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => {
+                              const newScheme = gradingScheme.filter((_, i) => i !== idx);
+                              updateGradingScheme(newScheme);
+                            }}
+                            className="text-red-500 hover:text-red-750 font-bold text-xs cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    const newScheme = [...(gradingScheme || []), { id: Date.now().toString(), grade: 'New', range: '0-0', description: 'New Grade Description' }];
+                    updateGradingScheme(newScheme);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow cursor-pointer"
+                >
+                  + Add New Grade Level
+                </button>
+              </div>
             </div>
           </div>
         )}

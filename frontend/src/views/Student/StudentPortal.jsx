@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { BookOpen, Calendar, Clipboard, Download, GraduationCap, LayoutDashboard, Award, ShieldAlert, Sparkles, RefreshCw, MessageSquare, FileText } from 'lucide-react';
+import { BookOpen, Calendar, Clipboard, Download, GraduationCap, LayoutDashboard, Award, ShieldAlert, Sparkles, RefreshCw, MessageSquare, FileText, CheckSquare } from 'lucide-react';
 
 const parseSlot = (slot) => {
   if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
@@ -172,7 +172,7 @@ const getTeacherForSubject = (subjectName, teachersList) => {
 };
 
 export default function StudentPortal() {
-  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints, exams, leaveRequests, submitLeaveRequest } = useContext(AppContext);
+  const { currentUser, students, teachers, homework, submitHomework, notes, marks, circulars, liveClasses, timetables, logoutUser, subjects, submitComplaint, complaints, exams, leaveRequests, submitLeaveRequest, attendance } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [complaintSubject, setComplaintSubject] = useState('');
   const [complaintDescription, setComplaintDescription] = useState('');
@@ -207,11 +207,52 @@ export default function StudentPortal() {
     return <div className="p-8 text-center">Student record not found in system state.</div>;
   }
 
+  const openPDF = (fileData, fName) => {
+    if (!fileData) {
+      alert("No file data attached to this note.");
+      return;
+    }
+    try {
+      const parts = fileData.split(',');
+      const base64 = parts[1] || parts[0];
+      const mimeType = parts[0].match(/:(.*?);/)?.[1] || 'application/pdf';
+      const binaryStr = atob(base64);
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const newTab = window.open(blobUrl, '_blank');
+      if (!newTab) {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fName || 'document.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      console.error("Error opening file", err);
+      const newTab = window.open();
+      if (newTab) {
+        newTab.document.write(`<iframe src="${fileData}" style="width:100%; height:100%; border:none;"></iframe>`);
+      } else {
+        alert("Failed to open file. Please disable popup blockers.");
+      }
+    }
+  };
+
   // Filter homework assigned to student's class
   const classHw = homework.filter(h => h.class === studentObj.class);
   
-  // Filter notes assigned to student's class
-  const classNotes = notes.filter(n => n.class === studentObj.class);
+  // Filter notes assigned to student's class and section
+  const classNotes = notes.filter(n => 
+    n.class === studentObj.class && 
+    (!n.section || n.section === 'All' || n.section === studentObj.section)
+  );
 
   // Student grades
   const studentMarks = marks.filter(m => m.studentId === studentObj.id);
@@ -266,6 +307,7 @@ export default function StudentPortal() {
               { id: 'Homework', icon: Clipboard, label: 'Homework Desk' },
               { id: 'Notes', icon: Download, label: 'Study Resources' },
               { id: 'Timetable', icon: Calendar, label: 'Class Timetable' },
+              { id: 'Attendance', icon: CheckSquare, label: 'Attendance History' },
               { id: 'Leaves', icon: FileText, label: 'Leave Letters' },
               { id: 'Complaints', icon: MessageSquare, label: 'Complaint Box' }
             ].map((item) => (
@@ -489,7 +531,7 @@ export default function StudentPortal() {
 
         {/* Study Materials Tab */}
         {activeTab === 'Notes' && (
-          <div className="space-y-6">
+          <div className="space-y-6 text-left">
             <h2 className="text-2xl font-extrabold font-montserrat">Notes & Study Resources</h2>
             <p className="text-xs text-slate-400 font-light mt-1">Download chapters, test preparation papers, and reference documents.</p>
 
@@ -501,12 +543,22 @@ export default function StudentPortal() {
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{item.title}</h4>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-light leading-relaxed">{item.description}</p>
                   </div>
-                  <button
-                    onClick={() => alert(`Beginning download stream for local file: ${item.file}`)}
-                    className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shrink-0"
-                  >
-                    <Download size={18} />
-                  </button>
+                  {item.fileData ? (
+                    <button
+                      onClick={() => openPDF(item.fileData, item.file)}
+                      className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-650 flex items-center justify-center hover:bg-indigo-650 hover:text-white transition-all shrink-0 cursor-pointer"
+                      title="Open PDF / Document"
+                    >
+                      <Download size={18} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => alert(`Beginning download stream for local file: ${item.file}`)}
+                      className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shrink-0 cursor-pointer"
+                    >
+                      <Download size={18} />
+                    </button>
+                  )}
                 </div>
               ))}
               {classNotes.length === 0 && (
@@ -514,6 +566,68 @@ export default function StudentPortal() {
                   No study resources listed for your grade yet.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Attendance History Tab */}
+        {activeTab === 'Attendance' && (
+          <div className="space-y-6 text-left">
+            <h2 className="text-2xl font-extrabold font-montserrat">Your Attendance History</h2>
+            <p className="text-xs text-slate-400 font-light mt-1">Review your overall attendance stats and session-by-session records.</p>
+            
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Overall Attendance</p>
+                <h3 className="text-2xl font-extrabold mt-1">{studentObj.attendancePct || 0}%</h3>
+                <p className="text-[10px] text-blue-500 font-semibold mt-1">
+                  {(studentObj.attendancePct || 0) >= 75 ? "Good Standing Status" : "Low Attendance Warning"}
+                </p>
+              </div>
+              <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Recorded Sessions</p>
+                <h3 className="text-2xl font-extrabold mt-1">
+                  {attendance.filter(a => a.studentId === studentObj.id).length} Sessions
+                </h3>
+                <p className="text-[10px] text-indigo-500 font-semibold mt-1 font-light">Morning and Afternoon combined</p>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Session</th>
+                      <th className="p-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                    {attendance.filter(a => a.studentId === studentObj.id).map((log) => (
+                      <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{log.date}</td>
+                        <td className="p-4 font-semibold">{log.session}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 rounded text-[10px] font-bold ${
+                            log.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600' :
+                            log.status === 'Absent' ? 'bg-red-500/10 text-red-655' :
+                            log.status === 'Half Day' ? 'bg-blue-500/10 text-blue-600' :
+                            'bg-amber-500/10 text-amber-600'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {attendance.filter(a => a.studentId === studentObj.id).length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="p-8 text-center text-slate-400 italic">No attendance records found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

@@ -342,7 +342,8 @@ export default function SuperAdminPortal() {
     complaints, updateComplaintStatus,
     whatsappLogs, deleteWhatsappLog, clearAllWhatsappLogs,
     requiredDocuments, updateRequiredDocuments,
-    leaveRequests, updateLeaveStatus, starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar
+    leaveRequests, updateLeaveStatus, starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,
+    deleteLeaveRequest, deleteComplaint, attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance
   } = useContext(AppContext);
 
 
@@ -3497,6 +3498,63 @@ export default function SuperAdminPortal() {
             </div>
           </div>
 
+          {/* ── ATTENDANCE CONFIGURATION CONTROL ── */}
+          <div className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-md space-y-4">
+            <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+              📊 Attendance Calculation Settings
+            </h4>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-light">Configure how student attendance percentage is calculated across the school.</p>
+            
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 uppercase">Calculation Mode</label>
+                <select
+                  value={attendanceCalcConfig?.mode || 'session-based'}
+                  onChange={e => updateAttendanceCalcConfig({ ...attendanceCalcConfig, mode: e.target.value })}
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                >
+                  <option value="session-based">Session-based (Morning & Afternoon count separately)</option>
+                  <option value="day-based">Day-based (Averaged morning + afternoon for each day)</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 uppercase">Minimum Required (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={attendanceCalcConfig?.minRequired ?? 75}
+                  onChange={e => updateAttendanceCalcConfig({ ...attendanceCalcConfig, minRequired: parseInt(e.target.value) || 0 })}
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-550 dark:text-slate-400 uppercase">Excused Leaves Mode</label>
+                <select
+                  value={attendanceCalcConfig?.leaveExcused ? 'true' : 'false'}
+                  onChange={e => updateAttendanceCalcConfig({ ...attendanceCalcConfig, leaveExcused: e.target.value === 'true' })}
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                >
+                  <option value="true">Excused (Leaves do not count against percentage)</option>
+                  <option value="false">Unexcused (Leaves count as absent/half-day)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  recalculateAllAttendance(undefined, attendanceCalcConfig);
+                  alert("Attendance percentage recalculated for all students!");
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-4 py-2 rounded-xl shadow transition cursor-pointer"
+              >
+                Force Recalculate Attendance
+              </button>
+            </div>
+          </div>
+
           {/* ── ADMISSION BANNER CONTROL ── */}
           <div className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-md space-y-4">
             <div className="flex items-center justify-between gap-4">
@@ -4005,7 +4063,7 @@ export default function SuperAdminPortal() {
                     <th className="p-4">Dates</th>
                     <th className="p-4">Reason</th>
                     <th className="p-4">Admin message / Response</th>
-                    {leaveFilter === 'Pending' && <th className="p-4 text-right">Actions</th>}
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
@@ -4033,34 +4091,49 @@ export default function SuperAdminPortal() {
                           <p className="text-slate-650 dark:text-slate-300 italic font-mono">"{leave.adminMessage || 'No feedback message.'}"</p>
                         )}
                       </td>
-                      {leave.status === 'Pending' && (
-                        <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                          <button
-                            onClick={() => {
-                              const msg = adminFeedbackMsg[leave.id] || 'Approved.';
-                              updateLeaveStatus(leave.id, 'Approved', msg);
-                              alert('Leave application approved.');
-                            }}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold cursor-pointer"
-                          >
-                            ✓ Approve
-                          </button>
-                          <button
-                            onClick={() => {
-                              const msg = adminFeedbackMsg[leave.id] || 'Rejected.';
-                              updateLeaveStatus(leave.id, 'Rejected', msg);
-                              alert('Leave application rejected.');
-                            }}
-                            className="px-2.5 py-1 bg-red-500 hover:bg-red-650 text-white rounded text-[10px] font-bold cursor-pointer"
-                          >
-                            ✗ Reject
-                          </button>
-                        </td>
-                      )}
+                      <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                        {leave.status === 'Pending' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                const typed = adminFeedbackMsg[leave.id]?.trim();
+                                const msg = typed ? typed : `Dear ${leave.studentName}, your leave request has been approved.`;
+                                updateLeaveStatus(leave.id, 'Approved', msg);
+                                alert('Leave application approved.');
+                              }}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const typed = adminFeedbackMsg[leave.id]?.trim();
+                                const msg = typed ? typed : `Dear ${leave.studentName}, your leave request has been rejected.`;
+                                updateLeaveStatus(leave.id, 'Rejected', msg);
+                                alert('Leave application rejected.');
+                              }}
+                              className="px-2.5 py-1 bg-red-500 hover:bg-red-650 text-white rounded text-[10px] font-bold cursor-pointer"
+                            >
+                              ✗ Reject
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this leave request?")) {
+                              deleteLeaveRequest(leave.id);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-red-600 hover:bg-red-750 text-white rounded text-[10px] font-bold cursor-pointer"
+                          title="Delete Leave Request"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {leaveRequests.filter(l => l.status === leaveFilter).length === 0 && (
-                    <tr><td colSpan={leaveFilter === 'Pending' ? 7 : 6} className="p-8 text-center text-slate-400 italic">No leave applications found with status: {leaveFilter}</td></tr>
+                    <tr><td colSpan={7} className="p-8 text-center text-slate-400 italic">No leave applications found with status: {leaveFilter}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -4585,10 +4658,22 @@ export default function SuperAdminPortal() {
               <div key={comp.id} className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-lg space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                   <div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">Ticket #{comp.id}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">Ticket #{comp.id}</span>
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this complaint?")) {
+                            deleteComplaint(comp.id);
+                          }
+                        }}
+                        className="text-[10px] bg-red-650/10 hover:bg-red-650 hover:text-white text-red-500 font-bold px-2 py-0.5 rounded transition cursor-pointer"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
                     <h4 className="font-extrabold text-sm text-slate-900 dark:text-white mt-1.5">{comp.subject}</h4>
                     <p className="text-[10px] text-slate-450 mt-0.5">
-                      Submitted by: <strong>{comp.studentName}</strong> ({comp.class} - Sec {comp.section} | Reg No: {comp.studentRegisterNo}) | {comp.submittedAt}
+                      Submitted by: <strong>{comp.studentName}</strong> ({comp.studentClass} - Sec {comp.studentSection} | Reg No: {comp.registerNo}) | {comp.submittedAt}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

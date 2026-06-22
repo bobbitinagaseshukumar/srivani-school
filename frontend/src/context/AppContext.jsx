@@ -326,6 +326,11 @@ export const AppProvider = ({ children }) => {
 
   const [leaveRequests, setLeaveRequests] = useState(() => readStoredValue('school_leave_requests', initialLeaveRequests));
   const [starredFormFields, setStarredFormFields] = useState(() => readStoredValue('school_starred_form_fields', initialStarredFormFields));
+  const [attendanceCalcConfig, setAttendanceCalcConfig] = useState(() => readStoredValue('school_attendance_calc_config', {
+    mode: 'session-based',
+    minRequired: 75,
+    leaveExcused: true
+  }));
 
   const [notifications, setNotifications] = useState([]);
 
@@ -386,7 +391,8 @@ export const AppProvider = ({ children }) => {
     whatsappLogs: src.whatsappLogs || [],
     requiredDocuments: src.requiredDocuments || [],
     leaveRequests: src.leaveRequests || [],
-    starredFormFields: src.starredFormFields || {}
+    starredFormFields: src.starredFormFields || {},
+    attendanceCalcConfig: src.attendanceCalcConfig || { mode: 'session-based', minRequired: 75, leaveExcused: true }
   });
 
   // Helper: apply data from DB to all React state setters
@@ -436,6 +442,7 @@ export const AppProvider = ({ children }) => {
     setRequiredDocuments(data.requiredDocuments || []);
     setLeaveRequests(data.leaveRequests || []);
     setStarredFormFields(data.starredFormFields || initialStarredFormFields);
+    setAttendanceCalcConfig(data.attendanceCalcConfig || { mode: 'session-based', minRequired: 75, leaveExcused: true });
   };
 
   // ═══ SYNC 1: Load state from MongoDB on first mount ═══
@@ -528,7 +535,8 @@ export const AppProvider = ({ children }) => {
         whatsappLogs,
         requiredDocuments,
         leaveRequests,
-        starredFormFields
+        starredFormFields,
+        attendanceCalcConfig
       });
 
       const payloadStr = JSON.stringify(payload);
@@ -762,6 +770,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('school_transport_routes', JSON.stringify(transportRoutes));
   }, [transportRoutes]);
+
+  useEffect(() => {
+    localStorage.setItem('school_attendance_calc_config', JSON.stringify(attendanceCalcConfig));
+  }, [attendanceCalcConfig]);
 
   useEffect(() => {
     localStorage.setItem('school_timetables', JSON.stringify(timetables));
@@ -1122,14 +1134,93 @@ export const AppProvider = ({ children }) => {
     addAuditLog(currentUser.name, currentUser.role, `Deleted Exam ID ${id}`);
   };
 
+  const recalculateAllAttendance = (currentAttendance = attendance, config = attendanceCalcConfig) => {
+    setStudents(prevStudents => prevStudents.map(student => {
+      const studentHistory = currentAttendance.filter(h => h.studentId === student.id);
+      if (studentHistory.length === 0) {
+        return { ...student, attendancePct: 0 };
+      }
+      
+      let presentCount = 0;
+      let totalCount = 0;
+      
+      if (config.mode === 'session-based') {
+        studentHistory.forEach(h => {
+          if (h.status === 'Present') {
+            presentCount += 1;
+            totalCount += 1;
+          } else if (h.status === 'Half Day') {
+            presentCount += 0.5;
+            totalCount += 1;
+          } else if (h.status === 'Leave') {
+            if (config.leaveExcused) {
+              // Excused, not in denominator
+            } else {
+              totalCount += 1;
+            }
+          } else if (h.status === 'Absent') {
+            totalCount += 1;
+          }
+        });
+      } else {
+        // mode === 'day-based'
+        const dates = [...new Set(studentHistory.map(h => h.date))];
+        dates.forEach(date => {
+          const sessions = studentHistory.filter(h => h.date === date);
+          const morning = sessions.find(s => s.session === 'Morning');
+          const afternoon = sessions.find(s => s.session === 'Afternoon');
+          
+          let dayPoints = 0;
+          let dayExcused = false;
+          
+          const getStatusWeight = (sess) => {
+            if (!sess) return 1.0;
+            if (sess.status === 'Present') return 1.0;
+            if (sess.status === 'Half Day') return 0.5;
+            if (sess.status === 'Leave') return config.leaveExcused ? 'excused' : 0.0;
+            return 0.0;
+          };
+          
+          const wM = morning ? getStatusWeight(morning) : null;
+          const wA = afternoon ? getStatusWeight(afternoon) : null;
+          
+          if (wM === 'excused' && wA === 'excused') {
+            dayExcused = true;
+          } else if (wM === 'excused') {
+            dayPoints = wA !== null ? wA : 1.0;
+          } else if (wA === 'excused') {
+            dayPoints = wM !== null ? wM : 1.0;
+          } else {
+            const mVal = wM !== null ? wM : 1.0;
+            const aVal = wA !== null ? wA : 1.0;
+            dayPoints = (mVal + aVal) / 2;
+          }
+          
+          if (!dayExcused) {
+            presentCount += dayPoints;
+            totalCount += 1;
+          }
+        });
+      }
+      
+      const pct = totalCount > 0 ? (presentCount / totalCount) * 100 : 100;
+      const finalPct = Math.min(100, Math.max(0, pct));
+      return { ...student, attendancePct: parseFloat(finalPct.toFixed(1)) };
+    }));
+  };
+
+  const updateAttendanceCalcConfig = (newConfig) => {
+    setAttendanceCalcConfig(newConfig);
+    recalculateAllAttendance(attendance, newConfig);
+    addAuditLog(currentUser.name, currentUser.role, 'Updated attendance calculation settings');
+  };
+
   const markAttendance = (attendanceList) => {
-    // attendanceList is array of { studentId, date, status, class, section, session }
     const listWithSession = attendanceList.map(rec => ({
       ...rec,
       session: rec.session || 'Morning'
     }));
 
-    // Reconstruct next attendance array locally to compute correct stats
     const currentAttendance = attendance || [];
     const updatedPrev = currentAttendance.map(oldRec => {
       const matchingNew = listWithSession.find(
@@ -1153,17 +1244,14 @@ export const AppProvider = ({ children }) => {
 
     const finalAttendance = [...trulyNew, ...updatedPrev];
     setAttendance(finalAttendance);
+    
+    recalculateAllAttendance(finalAttendance, attendanceCalcConfig);
 
-    // Update students average attendance percentage
     listWithSession.forEach(rec => {
       const studentHistory = finalAttendance.filter(h => h.studentId === rec.studentId);
       const presents = studentHistory.filter(h => h.status === 'Present' || h.status === 'Half Day').length;
       const pct = studentHistory.length > 0 ? (presents / studentHistory.length) * 100 : 100;
-
-      setStudents(prev => prev.map(s => s.id === rec.studentId ? { ...s, attendancePct: parseFloat(pct.toFixed(1)) } : s));
-
-      // Trigger low attendance alert
-      if (pct < 90 && rec.status !== 'Present') {
+      if (pct < (attendanceCalcConfig?.minRequired || 90) && rec.status !== 'Present') {
         const student = students.find(s => s.id === rec.studentId);
         if (student) {
           addNotification('Low Attendance Alert', `${student.name} attendance dropped to ${pct.toFixed(1)}%. Parent notified.`, 'AttendanceAlert');
@@ -1523,6 +1611,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const deleteLeaveRequest = (id) => {
+    setLeaveRequests(prev => prev.filter(r => r.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted leave request ID ${id}`);
+  };
+
   // ── Facilities Management ──
   const addFacility = (f) => { const nf = { ...f, id: `fac_${Date.now()}` }; setFacilities(prev => [...prev, nf]); addAuditLog(currentUser.name, currentUser.role, `Added facility: ${nf.title}`); };
   const editFacility = (id, u) => { setFacilities(prev => prev.map(f => f.id === id ? { ...f, ...u } : f)); addAuditLog(currentUser.name, currentUser.role, `Edited facility ID: ${id}`); };
@@ -1565,6 +1658,11 @@ export const AppProvider = ({ children }) => {
     const complaint = complaints.find(c => c.id === id);
     addNotification('Complaint Updated', `Complaint from ${complaint?.studentName} marked as ${status}`, 'Complaint');
     addAuditLog(currentUser.name, currentUser.role, `Updated complaint ${id} status to ${status}`);
+  };
+
+  const deleteComplaint = (id) => {
+    setComplaints(prev => prev.filter(c => c.id !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Deleted complaint ID ${id}`);
   };
 
   // ── Required Documents Management ──
@@ -1682,11 +1780,12 @@ export const AppProvider = ({ children }) => {
       gradingScheme, updateGradingScheme,
       departments, addDepartment, editDepartment, deleteDepartment,
       galleryCategories, addGalleryCategory, editGalleryCategory, deleteGalleryCategory,
-      complaints, submitComplaint, updateComplaintStatus,
+      complaints, submitComplaint, updateComplaintStatus, deleteComplaint,
       whatsappLogs, deleteAdmission, deleteWhatsappLog, clearAllWhatsappLogs,
       requiredDocuments, updateRequiredDocuments,
-      leaveRequests, submitLeaveRequest, updateLeaveStatus,
+      leaveRequests, submitLeaveRequest, updateLeaveStatus, deleteLeaveRequest,
       starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,
+      attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance,
     }}>
 
       {children}
