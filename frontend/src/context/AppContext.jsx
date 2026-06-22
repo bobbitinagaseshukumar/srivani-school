@@ -1015,8 +1015,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteStudent = (id) => {
-    setStudents(prev => prev.filter(s => s.id !== id));
-    addAuditLog(currentUser.name, currentUser.role, `Deleted Student ID ${id}`);
+    // Soft delete: mark as deleted but keep in system for marks-only access
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, isDeleted: true, activeStatus: 'Deleted' } : s));
+    // Clear personal data (leaves, complaints, attendance) but keep marks
+    setLeaveRequests(prev => prev.filter(l => l.studentId !== id));
+    setComplaints(prev => prev.filter(c => c.studentId !== id));
+    setAttendance(prev => prev.filter(a => a.studentId !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Soft-deleted Student ID ${id} (marks preserved)`);
   };
 
   const addParent = (parentData) => {
@@ -1260,6 +1265,15 @@ export const AppProvider = ({ children }) => {
     });
 
     addAuditLog(currentUser.name, currentUser.role, `Recorded attendance for ${attendanceList.length} students (${listWithSession[0]?.session || 'Morning'})`);
+  };
+
+  const deleteAttendanceRecord = (recordId) => {
+    setAttendance(prev => {
+      const updated = prev.filter(a => a.id !== recordId);
+      recalculateAllAttendance(updated, attendanceCalcConfig);
+      return updated;
+    });
+    addAuditLog(currentUser.name, currentUser.role, `Deleted attendance record ${recordId}`);
   };
 
   const uploadMarks = (marksList) => {
@@ -1785,7 +1799,7 @@ export const AppProvider = ({ children }) => {
       requiredDocuments, updateRequiredDocuments,
       leaveRequests, submitLeaveRequest, updateLeaveStatus, deleteLeaveRequest,
       starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,
-      attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance,
+      attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance, deleteAttendanceRecord,
     }}>
 
       {children}

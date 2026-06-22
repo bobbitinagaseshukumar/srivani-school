@@ -343,7 +343,7 @@ export default function SuperAdminPortal() {
     whatsappLogs, deleteWhatsappLog, clearAllWhatsappLogs,
     requiredDocuments, updateRequiredDocuments,
     leaveRequests, updateLeaveStatus, starredFormFields, updateStarredFormFields, updateAdmissionFields, toggleAdmissionFieldStar,
-    deleteLeaveRequest, deleteComplaint, attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance
+    deleteLeaveRequest, deleteComplaint, attendanceCalcConfig, updateAttendanceCalcConfig, recalculateAllAttendance, attendance, deleteAttendanceRecord
   } = useContext(AppContext);
 
 
@@ -396,6 +396,13 @@ export default function SuperAdminPortal() {
   // Complaints tab states
   const [complaintReplyId, setComplaintReplyId] = useState(null);
   const [complaintReplyText, setComplaintReplyText] = useState('');
+
+  // Attendance Records tab states
+  const [attViewClass, setAttViewClass] = useState('Class 10');
+  const [attViewSection, setAttViewSection] = useState('A');
+  const [attViewDate, setAttViewDate] = useState('');
+  const [attCalendarMonth, setAttCalendarMonth] = useState(new Date().getMonth());
+  const [attCalendarYear, setAttCalendarYear] = useState(new Date().getFullYear());
 
   const [adminFeedbackMsg, setAdminFeedbackMsg] = useState({});
   const [leaveFilter, setLeaveFilter] = useState('Pending');
@@ -901,7 +908,7 @@ export default function SuperAdminPortal() {
             <div className="fixed inset-0 z-30" onClick={() => setShowModuleMenu(false)} />
             
             <div className="absolute left-0 right-0 mt-2 p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-3xl shadow-2xl z-40 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 animate-fadeIn max-h-[380px] overflow-y-auto">
-              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','School Settings','Committee Members','Audit Logs'].map((tab) => {
+              {['Schools','Admissions','Admins','Teachers','Students','Parents','Timetables','Fee Manager','News Ticker','Gallery Manager','Academics','Subjects','Enquiries','Testimonials','Facilities','Homepage','Leaves','Complaints','Attendance Records','School Settings','Committee Members','Audit Logs'].map((tab) => {
                 const hasPendingAdmissions = tab === 'Admissions' && admissions.filter(a => a.status === 'Pending').length > 0;
                 const hasNewEnquiries = tab === 'Enquiries' && enquiries.filter(e => e.status === 'New').length > 0;
                 const hasPendingLeaves = tab === 'Leaves' && leaveRequests.filter(l => l.status === 'Pending').length > 0;
@@ -2349,7 +2356,7 @@ export default function SuperAdminPortal() {
                     const matchesClass = studentClassFilter === 'All' ? true : s.class === studentClassFilter;
                     return matchesSearch && matchesClass;
                   }).map((stud) => (
-                    <tr key={stud.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                    <tr key={stud.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/10 ${stud.isDeleted ? 'opacity-50 bg-red-50/30 dark:bg-red-950/10' : ''}`}>
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                         {stud.photo ? (
                           <img src={stud.photo} alt="" className="w-7 h-7 rounded-full object-cover border" />
@@ -2357,6 +2364,7 @@ export default function SuperAdminPortal() {
                           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">{stud.name?.charAt(0)?.toUpperCase() || 'S'}</div>
                         )}
                         {stud.name}
+                        {stud.isDeleted && <span className="text-[8px] bg-red-500/10 text-red-500 font-black px-1.5 py-0.5 rounded ml-1">DEACTIVATED</span>}
                       </td>
                       <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">{stud.registerNo}</td>
                       <td className="p-4">{stud.phone}</td>
@@ -4767,7 +4775,135 @@ export default function SuperAdminPortal() {
           </div>
         </div>
       )}
-      
+
+      {activeTab === 'Attendance Records' && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-extrabold font-montserrat">📊 Attendance Records</h2>
+            <p className="text-xs text-slate-400 font-light mt-1">View, search, and manage attendance data across all classes.</p>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Class</label>
+              <select value={attViewClass} onChange={e => setAttViewClass(e.target.value)} className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs font-bold focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                {['Playclass','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10'].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Section</label>
+              <select value={attViewSection} onChange={e => setAttViewSection(e.target.value)} className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs font-bold focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                {['A','B','C','D'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Filter Date</label>
+              <input type="date" value={attViewDate} onChange={e => setAttViewDate(e.target.value)} className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs font-bold focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            {attViewDate && (
+              <button onClick={() => setAttViewDate('')} className="text-[10px] text-blue-600 hover:text-blue-800 font-bold underline">Clear Date</button>
+            )}
+          </div>
+
+          {/* Calendar View */}
+          <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-lg border border-slate-200/50 dark:border-slate-800">
+            <div className="flex justify-between items-center mb-4">
+              <button onClick={() => { if (attCalendarMonth === 0) { setAttCalendarMonth(11); setAttCalendarYear(y => y - 1); } else { setAttCalendarMonth(m => m - 1); }}} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold">◀</button>
+              <h4 className="font-extrabold text-sm">{new Date(attCalendarYear, attCalendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}</h4>
+              <button onClick={() => { if (attCalendarMonth === 11) { setAttCalendarMonth(0); setAttCalendarYear(y => y + 1); } else { setAttCalendarMonth(m => m + 1); }}} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold">▶</button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d} className="text-[9px] font-bold text-slate-400 uppercase py-1">{d}</div>)}
+              {(() => {
+                const firstDay = new Date(attCalendarYear, attCalendarMonth, 1).getDay();
+                const daysInMonth = new Date(attCalendarYear, attCalendarMonth + 1, 0).getDate();
+                const cells = [];
+                for (let i = 0; i < firstDay; i++) cells.push(<div key={`empty-${i}`} />);
+                for (let day = 1; day <= daysInMonth; day++) {
+                  const dateStr = `${attCalendarYear}-${String(attCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const dayRecords = (attendance || []).filter(a => a.date === dateStr && a.class === attViewClass && a.section === attViewSection);
+                  const hasData = dayRecords.length > 0;
+                  const absentCount = dayRecords.filter(a => a.status === 'Absent').length;
+                  const isSelected = attViewDate === dateStr;
+                  cells.push(
+                    <button
+                      key={day}
+                      onClick={() => setAttViewDate(dateStr)}
+                      className={`p-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                        isSelected ? 'bg-blue-600 text-white shadow-md' :
+                        hasData && absentCount > 0 ? 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800' :
+                        hasData ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' :
+                        'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      {day}
+                      {hasData && <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${absentCount > 0 ? 'bg-red-500' : 'bg-emerald-500'}`} />}
+                    </button>
+                  );
+                }
+                return cells;
+              })()}
+            </div>
+          </div>
+
+          {/* Records Table */}
+          <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/40 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                    <th className="p-4">Student</th>
+                    <th className="p-4">Register No</th>
+                    <th className="p-4">Date</th>
+                    <th className="p-4">Session</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
+                  {(attendance || []).filter(a => {
+                    const matchClass = a.class === attViewClass;
+                    const matchSection = a.section === attViewSection;
+                    const matchDate = attViewDate ? a.date === attViewDate : true;
+                    return matchClass && matchSection && matchDate;
+                  }).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 100).map(rec => {
+                    const student = students.find(s => s.id === rec.studentId);
+                    return (
+                      <tr key={rec.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white">{student?.name || rec.studentId}</td>
+                        <td className="p-4 font-mono text-emerald-600 dark:text-emerald-400">{student?.registerNo || '-'}</td>
+                        <td className="p-4 font-mono">{rec.date}</td>
+                        <td className="p-4 font-semibold">{rec.session || 'Morning'}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 rounded text-[10px] font-bold ${
+                            rec.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600' :
+                            rec.status === 'Absent' ? 'bg-red-500/10 text-red-500' :
+                            rec.status === 'Half Day' ? 'bg-blue-500/10 text-blue-600' :
+                            'bg-amber-500/10 text-amber-600'
+                          }`}>{rec.status}</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={() => { if (window.confirm('Delete this attendance record?')) deleteAttendanceRecord(rec.id); }}
+                            className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(attendance || []).filter(a => a.class === attViewClass && a.section === attViewSection && (attViewDate ? a.date === attViewDate : true)).length === 0 && (
+                    <tr><td colSpan="6" className="p-8 text-center text-slate-400 italic text-xs">No attendance records found for the selected filters.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Audit Logs tab */}
 
     </div>

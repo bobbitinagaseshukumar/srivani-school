@@ -201,6 +201,7 @@ export default function TeacherPortal() {
 
   // Attendance grid tracking state (studentId -> status)
   const [attendanceSheet, setAttendanceSheet] = useState({});
+  const [lastSavedAbsentList, setLastSavedAbsentList] = useState([]);
 
   // Extract all periods for this teacher across all classes and days from AppContext
   const teacherPeriods = [];
@@ -268,7 +269,7 @@ export default function TeacherPortal() {
     setLiveForm(prev => ({ ...prev, subject: teacherSubject }));
   }, [teacherSubject]);
 
-  const activeStudents = students.filter(s => s.class === selectedClass && s.section === selectedSection);
+  const activeStudents = students.filter(s => s.class === selectedClass && s.section === selectedSection && !s.isDeleted);
 
   const handleInitializeAttendance = () => {
     const sheet = {};
@@ -298,6 +299,15 @@ export default function TeacherPortal() {
       session: attendanceSession
     }));
     markAttendance(logs);
+    // Build absent list with parent phone numbers
+    const absentStudents = activeStudents.filter(s => attendanceSheet[s.id] === 'Absent').map(s => ({
+      id: s.id,
+      name: s.name,
+      registerNo: s.registerNo,
+      parentPhone: s.parentPhone || s.phone || s.emergencyContact || '',
+      parentName: s.parentName || ''
+    }));
+    setLastSavedAbsentList(absentStudents);
     alert(`Attendance marked for ${logs.length} students in ${selectedClass}-${selectedSection} for ${attendanceSession} session.`);
   };
 
@@ -713,6 +723,36 @@ export default function TeacherPortal() {
                     >
                       Save Class Attendance Log
                     </button>
+
+                {/* Absent Students Panel */}
+                {lastSavedAbsentList.length > 0 && (
+                  <div className="mt-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-5 shadow-md">
+                    <h4 className="font-extrabold text-sm text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
+                      <AlertCircle size={16} /> Absent Students — {attendanceDate} ({attendanceSession})
+                    </h4>
+                    <p className="text-[10px] text-red-500 dark:text-red-400 mb-3 font-light">Click on phone number to call parent directly</p>
+                    <div className="space-y-2">
+                      {lastSavedAbsentList.map(s => (
+                        <div key={s.id} className="flex items-center justify-between bg-white dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-red-100 dark:border-red-900/30">
+                          <div>
+                            <p className="font-bold text-xs text-slate-900 dark:text-white">{s.name}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">Reg: {s.registerNo} {s.parentName && `• Parent: ${s.parentName}`}</p>
+                          </div>
+                          {s.parentPhone ? (
+                            <a
+                              href={`tel:${s.parentPhone.replace(/\s/g, '')}`}
+                              className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all"
+                            >
+                              📞 {s.parentPhone}
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">No phone on record</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                   </div>
                 )}
               </div>

@@ -181,6 +181,7 @@ export default function StudentPortal() {
   const [leaveEndDate, setLeaveEndDate] = useState('');
   const [leaveType, setLeaveType] = useState('Sick Leave');
   const [leaveReason, setLeaveReason] = useState('');
+  const [selectedExamFilter, setSelectedExamFilter] = useState('All');
 
   const contentRef = useRef(null);
 
@@ -206,6 +207,15 @@ export default function StudentPortal() {
   if (!studentObj) {
     return <div className="p-8 text-center">Student record not found in system state.</div>;
   }
+
+  const isDeletedStudent = studentObj.isDeleted === true;
+
+  // If deleted student, force to Marks tab
+  useEffect(() => {
+    if (isDeletedStudent && activeTab !== 'Marks') {
+      setActiveTab('Marks');
+    }
+  }, [isDeletedStudent, activeTab]);
 
   const openPDF = (fileData, fName) => {
     if (!fileData) {
@@ -256,6 +266,8 @@ export default function StudentPortal() {
 
   // Student grades
   const studentMarks = marks.filter(m => m.studentId === studentObj.id);
+  const examNames = ['All', ...new Set(studentMarks.map(m => m.examType).filter(Boolean))];
+  const filteredMarks = selectedExamFilter === 'All' ? studentMarks : studentMarks.filter(m => m.examType === selectedExamFilter);
 
   // Filter exams assigned to student's class and section
   const studentExams = (exams || []).filter(ex => 
@@ -301,7 +313,9 @@ export default function StudentPortal() {
           </div>
 
           <nav className="flex flex-col gap-1.5 text-xs font-semibold">
-            {[
+            {(isDeletedStudent ? [
+              { id: 'Marks', icon: Award, label: 'Academic Grades' }
+            ] : [
               { id: 'Dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { id: 'Marks', icon: Award, label: 'Academic Grades' },
               { id: 'Homework', icon: Clipboard, label: 'Homework Desk' },
@@ -310,7 +324,7 @@ export default function StudentPortal() {
               { id: 'Attendance', icon: CheckSquare, label: 'Attendance History' },
               { id: 'Leaves', icon: FileText, label: 'Leave Letters' },
               { id: 'Complaints', icon: MessageSquare, label: 'Complaint Box' }
-            ].map((item) => (
+            ]).map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
@@ -425,22 +439,40 @@ export default function StudentPortal() {
         {/* Academic Grades Tab */}
         {activeTab === 'Marks' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-extrabold font-montserrat font-poppins">Your Examination Grades</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-extrabold font-montserrat">Your Examination Grades</h2>
+                {isDeletedStudent && (
+                  <div className="mt-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300 font-semibold">
+                    ⚠️ Your account has been deactivated. You can only view your marks.
+                  </div>
+                )}
+              </div>
+              <select
+                value={selectedExamFilter}
+                onChange={(e) => setSelectedExamFilter(e.target.value)}
+                className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs font-bold focus:ring-1 focus:ring-blue-500 focus:outline-none min-w-[180px]"
+              >
+                {examNames.map(name => (
+                  <option key={name} value={name}>{name === 'All' ? '📋 All Exams' : name}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Performance Graphs (SVG chart) */}
             <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-lg border border-slate-200/50 dark:border-slate-850">
-              <h4 className="font-extrabold text-sm mb-4">Subject-wise Score Analysis</h4>
+              <h4 className="font-extrabold text-sm mb-4">Subject-wise Score Analysis {selectedExamFilter !== 'All' && <span className="text-blue-500 font-normal">— {selectedExamFilter}</span>}</h4>
               <div className="h-40 w-full flex items-end justify-between px-6 pt-4">
-                {studentMarks.map((m, i) => (
+                {filteredMarks.map((m, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 w-20">
                     <div className="w-8 bg-gradient-to-t from-blue-600 to-indigo-500 rounded-t-md transition-all" style={{ height: `${m.marks * 1.2}px` }}></div>
                     <span className="text-[10px] text-slate-900 dark:text-white font-bold">{m.marks}%</span>
                     <span className="text-[9px] text-slate-400">{getSubjectName(m.subject)}</span>
                   </div>
                 ))}
-                {studentMarks.length === 0 && (
+                {filteredMarks.length === 0 && (
                   <div className="w-full text-center text-slate-450 text-xs font-light py-8">
-                    No grade reports uploaded for this academic term yet.
+                    {selectedExamFilter === 'All' ? 'No grade reports uploaded for this academic term yet.' : `No results found for "${selectedExamFilter}".`}
                   </div>
                 )}
               </div>
@@ -460,7 +492,7 @@ export default function StudentPortal() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
-                    {studentMarks.map((m) => (
+                    {filteredMarks.map((m) => (
                       <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                         <td className="p-4 font-bold text-slate-900 dark:text-white">{getSubjectName(m.subject)}</td>
                         <td className="p-4">{m.examType}</td>
