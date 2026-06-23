@@ -691,6 +691,44 @@ export const AppProvider = ({ children }) => {
     }
   }, [attendance, isLoaded]);
 
+  // Auto-logout after 24 hours (1 day)
+  useEffect(() => {
+    if (isLoaded && currentUser && currentUser.role !== 'Guest' && currentUser.loginTimestamp) {
+      const elapsed = Date.now() - currentUser.loginTimestamp;
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (elapsed > oneDay) {
+        console.log("Portal session has expired (exceeded 24 hours). Logging out.");
+        logoutUser();
+      }
+    }
+  }, [isLoaded, currentUser.loginTimestamp]);
+
+  // Live account deactivation / deletion check
+  useEffect(() => {
+    if (!isLoaded || currentUser.role === 'Guest') return;
+
+    let accountExists = true;
+
+    if (currentUser.role === 'Student') {
+      const match = students.find(s => s.id === currentUser.id);
+      if (!match) accountExists = false; // permanently deleted
+    } else if (currentUser.role === 'Teacher') {
+      const match = teachers.find(t => t.id === currentUser.id);
+      if (!match) accountExists = false; // deleted
+    } else if (currentUser.role === 'Parent') {
+      const match = parents.find(p => p.id === currentUser.id);
+      if (!match) accountExists = false; // deleted
+    } else if (currentUser.role === 'Admin') {
+      const match = admins.find(a => a.id === currentUser.id);
+      if (!match || match.status !== 'Active') accountExists = false; // deactivated or deleted
+    }
+
+    if (!accountExists) {
+      console.log("Account has been removed or deactivated by administrator. Logging out.");
+      logoutUser();
+    }
+  }, [students, teachers, parents, admins, currentUser.id, currentUser.role, isLoaded]);
+
   // Keep state synced to localStorage
   useEffect(() => {
     localStorage.setItem('school_current_user', JSON.stringify(currentUser));
@@ -959,7 +997,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const loginWithUser = (userObj) => {
-    setCurrentUser(userObj);
+    const sessionUser = { ...userObj, loginTimestamp: Date.now() };
+    setCurrentUser(sessionUser);
     addAuditLog(userObj.name, userObj.role, 'Successfully logged into portal');
     addNotification('Security Alert', `New login session established for ${userObj.name}`, 'Security');
     return { success: true };
