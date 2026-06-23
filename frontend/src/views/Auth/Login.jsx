@@ -464,14 +464,7 @@ export default function Login({ onLoginSuccess }) {
 
                   {recoveryStep === 'otp' && (
                     <form onSubmit={handleVerifyRecoveryOtp} className="space-y-6">
-                      {simulatedMode && (
-                        <div className="bg-amber-500/10 border border-amber-500/25 p-4 rounded-2xl space-y-1 text-xs text-amber-850 dark:text-amber-300">
-                          <p className="font-bold">⚠️ Resend API Key is missing (Simulated Recovery)</p>
-                          <p className="text-[11px] opacity-90 leading-relaxed">
-                            Simulated Recovery Code: <strong className="text-base text-amber-600 dark:text-amber-400 select-all">{generatedRecoveryOtp}</strong> (or use bypass code 123456)
-                          </p>
-                        </div>
-                      )}
+
 
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-slate-400 text-center">Enter 6-Digit Recovery Code</label>
@@ -617,14 +610,7 @@ export default function Login({ onLoginSuccess }) {
                         <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed">
                           We sent a 6-digit verification code to the registered email address associated with your profile.
                         </p>
-                        {simulatedMode && (
-                          <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-850 dark:text-amber-300">
-                            <p className="font-bold">⚠️ Resend API Key is missing (Simulated Delivery)</p>
-                            <p className="text-[11px] opacity-90 leading-relaxed mt-1">
-                              Your generated 2FA Login OTP: <strong className="text-base text-amber-600 dark:text-amber-400 select-all">{generatedOtp}</strong> (or use bypass code 123456)
-                            </p>
-                          </div>
-                        )}
+
                       </div>
 
                       <div>

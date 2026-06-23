@@ -1851,14 +1851,7 @@ export default function TeacherPortal() {
                 </form>
               ) : (
                 <form onSubmit={handleVerifyPasswordChangeOtp} className="space-y-4">
-                  {securitySimulated && (
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-850 dark:text-amber-300 text-xs">
-                      <p className="font-bold">⚠️ Simulated OTP Code Sent</p>
-                      <p className="text-[11px] opacity-90 mt-1">
-                        Use OTP: <strong className="text-base text-amber-600 dark:text-amber-400 select-all">{securityGeneratedOtp}</strong> (or bypass code 123456)
-                      </p>
-                    </div>
-                  )}
+
 
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-slate-400">Enter OTP Security Code</label>
