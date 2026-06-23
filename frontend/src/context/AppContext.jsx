@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
+import { sendEmail, buildAdmissionReceiptEmail, buildAdmissionApprovalEmail, wrapInBaseLayout } from '../lib/emailService';
 
 export const AppContext = createContext();
 
@@ -1738,6 +1739,20 @@ export const AppProvider = ({ children }) => {
     setAdmissions(prev => [newAdmission, ...prev]);
     addNotification('New Admission Application', `Online admission form received for ${data.studentName}`, 'Admission');
     addAuditLog('Public User', 'Guest', `Submitted admission form for ${data.studentName}`);
+
+    // Send acknowledgement email to parent
+    if (data.parentEmail) {
+      sendEmail(
+        data.parentEmail,
+        `Admission Application Received — ${data.studentName}`,
+        buildAdmissionReceiptEmail({
+          parentName: data.parentName,
+          studentName: data.studentName,
+          className: data.grade || data.gradeApplied || 'N/A'
+        })
+      ).catch(err => console.error('Error sending application confirmation email:', err));
+    }
+
     return { success: true, id: newAdmission.id };
   };
 
@@ -1765,6 +1780,29 @@ export const AppProvider = ({ children }) => {
       setWhatsappLogs(prev => [whatsappMsg, ...prev]);
       addNotification('Admission Approved', `Admission approved for ${admission.studentName}. WhatsApp notification sent to ${parentPhone}`, 'Admission');
       addAuditLog(currentUser.name, currentUser.role, `Approved admission for ${admission.studentName} & sent WhatsApp notification`);
+
+      // Dispatch Approval Email to Parent
+      if (admission.parentEmail) {
+        sendEmail(
+          admission.parentEmail,
+          `Admission Approved — ${admission.studentName}`,
+          buildAdmissionApprovalEmail({
+            studentName: admission.studentName,
+            className: admission.grade || admission.gradeApplied || 'Assigned Class'
+          })
+        ).catch(err => console.error('Error sending admission approval email to parent:', err));
+      }
+      // Dispatch Approval Email to Student
+      if (admission.studentEmail) {
+        sendEmail(
+          admission.studentEmail,
+          `Admission Approved — ${admission.studentName}`,
+          buildAdmissionApprovalEmail({
+            studentName: admission.studentName,
+            className: admission.grade || admission.gradeApplied || 'Assigned Class'
+          })
+        ).catch(err => console.error('Error sending admission approval email to student:', err));
+      }
     }
   };
 
@@ -1792,6 +1830,23 @@ export const AppProvider = ({ children }) => {
       setWhatsappLogs(prev => [whatsappMsg, ...prev]);
       addNotification('Admission Rejected', `Admission declined for ${admission.studentName}. WhatsApp notification sent to ${parentPhone}`, 'Admission');
       addAuditLog(currentUser.name, currentUser.role, `Rejected admission for ${admission.studentName} & sent WhatsApp notification`);
+
+      // Dispatch Rejection Email to Parent
+      if (admission.parentEmail) {
+        const rejectionHtml = `
+          <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0f172a;">Admission Status Update</h2>
+          <p>Dear <strong>${admission.parentName}</strong>,</p>
+          <p>Thank you for your interest in <strong>Sri Vani Vidyanikethan</strong>. We have completed the review of the admission application for <strong>${admission.studentName}</strong>.</p>
+          <p>Unfortunately, we are unable to approve the application at this time due to class capacity limits or eligibility criteria.</p>
+          <p>If you have any questions or require further assistance, please feel free to contact the school administration office.</p>
+          <p>Best regards,<br/><strong>Sri Vani Vidyanikethan Admissions Desk</strong></p>
+        `;
+        sendEmail(
+          admission.parentEmail,
+          `Admission Application Update — ${admission.studentName}`,
+          wrapInBaseLayout(rejectionHtml)
+        ).catch(err => console.error('Error sending admission rejection email:', err));
+      }
     }
   };
 

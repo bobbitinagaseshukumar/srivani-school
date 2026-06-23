@@ -48,7 +48,40 @@ export async function POST(req) {
     });
 
     if (result.error) {
-      console.error('❌ Resend API error:', result.error);
+      console.warn('❌ Resend primary send failed:', result.error);
+      
+      const adminEmail = 'nagaseshukumarbobbiti@gmail.com';
+      // If the email was not already to the admin, retry sending to the verified admin email
+      if (to.toLowerCase().trim() !== adminEmail.toLowerCase().trim()) {
+        console.log(`🔄 Retrying dispatch to verified admin sandbox email: ${adminEmail}`);
+        const fallbackHtml = `
+          <div style="padding: 12px 16px; background-color: #fff1f2; border: 1px solid #fecdd3; color: #be123c; font-size: 13px; margin-bottom: 24px; border-radius: 12px; font-family: sans-serif; line-height: 1.5;">
+            <strong>⚠️ Resend Sandbox Redirect Notice:</strong><br/>
+            This email was sent to you because the recipient address <strong>${to}</strong> is not verified in your Resend account.<br/>
+            <strong>Original Intended Recipient:</strong> ${to}
+          </div>
+          ${html}
+        `;
+        
+        const retryResult = await resend.emails.send({
+          from: 'Sri Vani School <onboarding@resend.dev>',
+          to: adminEmail,
+          subject: `[Sandbox Redirect] ${subject}`,
+          html: fallbackHtml,
+        });
+        
+        if (!retryResult.error) {
+          return NextResponse.json({ 
+            success: true, 
+            simulated: false,
+            redirected: true, 
+            data: { id: retryResult.data?.id, status: 'sent_fallback' } 
+          }, { headers: CORS_HEADERS });
+        } else {
+          console.error('❌ Resend fallback send failed:', retryResult.error);
+        }
+      }
+
       return NextResponse.json({ success: false, error: result.error.message || 'Resend API rejected the email.' }, { status: 422, headers: CORS_HEADERS });
     }
 

@@ -15,7 +15,7 @@ const BRAND_DARK = '#1e3a8a';
 
 // ─── Base Layout Wrapper ────────────────────────────────────────────────
 // Wraps any email body content in a responsive, branded HTML shell.
-function wrapInBaseLayout(bodyContent) {
+export function wrapInBaseLayout(bodyContent) {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -279,6 +279,28 @@ export function buildAdmissionApprovalEmail({ studentName, className, schoolName
     </ol>
     ${paragraph(`We look forward to welcoming <strong>${studentName}</strong> to our school community.`)}
     ${smallNote(`For any queries, please visit the school administration office or call our helpline.`)}
+  `;
+  return wrapInBaseLayout(body);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TEMPLATE 8: Admission Application Confirmation
+// ═══════════════════════════════════════════════════════════════════════
+export function buildAdmissionReceiptEmail({ parentName, studentName, className, schoolName }) {
+  const school = schoolName || SCHOOL_NAME;
+  const body = `
+    ${sectionHeading('Admission Application Received')}
+    ${paragraph(`Dear <strong>${parentName || 'Parent / Guardian'}</strong>,`)}
+    ${paragraph(`Thank you for submitting an online admission application for your child, <strong>${studentName}</strong>.`)}
+    ${paragraph(`We have successfully received your registration details for <strong>${className || 'Assigned Class'}</strong>. Our administration desk is currently reviewing the application and credentials.`)}
+    ${infoBox([
+      { label: 'Candidate Name', value: studentName },
+      { label: 'Grade Applied', value: className || 'N/A' },
+      { label: 'Application Status', value: 'Pending Review' }
+    ])}
+    ${paragraph(`We will contact you via email or phone once the review process is complete.`)}
+    ${paragraph(`Thank you for your interest in <strong>${school}</strong>.`)}
+    ${smallNote(`This email serves as an acknowledgement of receipt of your online application.`)}
   `;
   return wrapInBaseLayout(body);
 }
