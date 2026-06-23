@@ -1,3 +1,4 @@
+import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
 const CORS_HEADERS = {
@@ -23,42 +24,36 @@ export async function POST(req) {
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.log('--------------------------------------------------');
-      console.log('⚠️ SIMULATED EMAIL DELIVERED (RESEND_API_KEY missing)');
+      console.log('==================================================');
+      console.log('🏫 SRI VANI PORTAL SIMULATED EMAIL DELIVERED');
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log(`HTML: ${html}`);
-      console.log('--------------------------------------------------');
+      console.log('-------------------------');
+      console.log(html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
+      console.log('==================================================');
       
       return NextResponse.json({
         success: true,
         simulated: true,
-        message: 'Resend API key missing. Email simulated successfully.'
+        message: 'Resend API key missing. Simulated successfully.'
       }, { headers: CORS_HEADERS });
     }
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Sri Vani School <onboarding@resend.dev>',
-        to,
-        subject,
-        html,
-      }),
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from: 'Sri Vani School <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
     });
 
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(json.message || 'Failed to send email via Resend');
+    if (error) {
+      throw new Error(error.message || 'Failed to send email via Resend library');
     }
 
-    return NextResponse.json({ success: true, data: json }, { headers: CORS_HEADERS });
+    return NextResponse.json({ success: true, data }, { headers: CORS_HEADERS });
   } catch (error) {
-    console.error('❌ Failed to send email:', error.message);
+    console.error('❌ Resend send error:', error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
