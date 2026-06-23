@@ -483,6 +483,14 @@ export default function SuperAdminPortal() {
   const [parentSearch, setParentSearch] = useState('');
   const [parentClassFilter, setParentClassFilter] = useState('All');
 
+  // Validation Shake / Error states
+  const [teacherError, setTeacherError] = useState('');
+  const [teacherShakeKey, setTeacherShakeKey] = useState(0);
+  const [studentError, setStudentError] = useState('');
+  const [studentShakeKey, setStudentShakeKey] = useState(0);
+  const [parentError, setParentError] = useState('');
+  const [parentShakeKey, setParentShakeKey] = useState(0);
+
   // Timetables states
   const [timetableClass, setTimetableClass] = useState('Class 10');
   const [timetableSection, setTimetableSection] = useState('A');
@@ -692,10 +700,20 @@ export default function SuperAdminPortal() {
   };
 
   // Teacher submit
-  const handleTeacherSubmit = (e) => {
+  const handleTeacherSubmit = async (e) => {
     e.preventDefault();
+    setTeacherError('');
+
     if (!teacherForm.name || !teacherForm.id || !teacherForm.email || !teacherForm.password) {
-      alert('Please fill out all required fields.');
+      setTeacherError('Please fill out all required fields.');
+      setTeacherShakeKey(prev => prev + 1);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (teacherForm.email && !emailRegex.test(teacherForm.email)) {
+      setTeacherError('Teacher Email format is invalid.');
+      setTeacherShakeKey(prev => prev + 1);
       return;
     }
 
@@ -705,10 +723,43 @@ export default function SuperAdminPortal() {
     } else {
       const res = addTeacher(teacherForm);
       if (res && res.success === false) {
-        alert(res.message);
+        setTeacherError(res.message);
+        setTeacherShakeKey(prev => prev + 1);
         return;
       }
-      alert('Teacher created successfully.');
+
+      // Send Welcome / OTP Email to Teacher
+      const teacherOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: teacherForm.email,
+          subject: 'Sri Vani Portal - Faculty Account Credentials',
+          html: `
+            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p>Welcome <strong>${teacherForm.name}</strong>,</p>
+                <p>Your faculty profile has been registered in our portal. Here are your account credentials:</p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
+                  <p style="margin: 5px 0;"><strong>Employee ID (Login ID):</strong> ${teacherForm.id}</p>
+                  <p style="margin: 5px 0;"><strong>Password:</strong> ${teacherForm.password}</p>
+                </div>
+                <p>Please use this 6-digit Security Verification OTP code during your first login attempt to authorize your account:</p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${teacherOtp}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      }).catch(err => console.error("Error sending welcome email to teacher:", err));
+
+      alert('Teacher created and credentials welcome OTP sent successfully.');
     }
     setTeacherForm({ id: '', name: '', subject: 'PHYSICS', qualification: '', phone: '', email: '', password: '', department: 'Science', experience: '5 Years', designation: 'Senior Teacher', salary: 5000, photo: '' });
     setTeacherEditId(null);
@@ -718,9 +769,19 @@ export default function SuperAdminPortal() {
   // Student submit
   const handleStudentSubmit = (e) => {
     e.preventDefault();
+    setStudentError('');
     setDuplicateError('');
+
     if (!studentForm.name || !studentForm.registerNo || !studentForm.phone || !studentForm.password) {
-      alert('Please fill out all required fields.');
+      setStudentError('Please fill out all required fields.');
+      setStudentShakeKey(prev => prev + 1);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (studentForm.email && !emailRegex.test(studentForm.email)) {
+      setStudentError('Student Email format is invalid.');
+      setStudentShakeKey(prev => prev + 1);
       return;
     }
 
@@ -732,10 +793,45 @@ export default function SuperAdminPortal() {
     } else {
       const res = addStudent(studentForm);
       if (res.success) {
-        alert('Student registered successfully.');
+        // Send welcome email/OTP to student
+        const studentOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        if (studentForm.email) {
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: studentForm.email,
+              subject: 'Sri Vani Portal - Welcome & Account Verification OTP',
+              html: `
+                <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+                  <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                    <p>Welcome <strong>${studentForm.name}</strong>,</p>
+                    <p>Your student profile has been registered in our portal. Here are your account credentials:</p>
+                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
+                      <p style="margin: 5px 0;"><strong>Register Number (Login ID):</strong> ${studentForm.registerNo}</p>
+                      <p style="margin: 5px 0;"><strong>Password:</strong> ${studentForm.password}</p>
+                    </div>
+                    <p>Please use this 6-digit Security Verification OTP code during your first login attempt to authorize your device:</p>
+                    <div style="text-align: center; margin: 25px 0;">
+                      <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${studentOtp}</span>
+                    </div>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+                  </div>
+                </div>
+              `
+            })
+          }).catch(err => console.error("Error sending welcome email to student:", err));
+        }
+
+        alert('Student registered and welcome OTP sent successfully.');
         setStudentForm({ name: '', registerNo: '', phone: '', address: '', class: 'Class 10', section: 'A', email: '', password: '', dob: '2010-01-01', gender: 'Male', bloodGroup: 'O+', aadhaarNo: '1234-5678-9012', parentName: '', parentPhone: '', emergencyContact: '', photo: '' });
         setShowStudentForm(false);
       } else {
+        setStudentError(res.message);
+        setStudentShakeKey(prev => prev + 1);
         setDuplicateError(res.message);
       }
     }
@@ -801,8 +897,18 @@ export default function SuperAdminPortal() {
   // Parent submit
   const handleParentSubmit = (e) => {
     e.preventDefault();
+    setParentError('');
+
     if (!parentForm.name || !parentForm.email || !parentForm.password || parentForm.childrenIds.length === 0) {
-      alert('Please fill out all required fields and select at least one linked child student.');
+      setParentError('Please fill out all required fields and select at least one linked child student.');
+      setParentShakeKey(prev => prev + 1);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (parentForm.email && !emailRegex.test(parentForm.email)) {
+      setParentError('Parent Email format is invalid.');
+      setParentShakeKey(prev => prev + 1);
       return;
     }
 
@@ -812,10 +918,43 @@ export default function SuperAdminPortal() {
     } else {
       const res = addParent(parentForm);
       if (res && res.success === false) {
-        alert(res.message);
+        setParentError(res.message);
+        setParentShakeKey(prev => prev + 1);
         return;
       }
-      alert('Parent registered successfully.');
+
+      // Send Welcome / OTP Email to Parent
+      const parentOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: parentForm.email,
+          subject: 'Sri Vani Portal - Parent Account Credentials',
+          html: `
+            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p>Welcome <strong>${parentForm.name}</strong>,</p>
+                <p>Your parent portal account has been created. Here are your portal access details:</p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
+                  <p style="margin: 5px 0;"><strong>Username / Login Email:</strong> ${parentForm.email}</p>
+                  <p style="margin: 5px 0;"><strong>Password:</strong> ${parentForm.password}</p>
+                </div>
+                <p>Please use this 6-digit portal verification OTP code to authenticate during your next login:</p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${parentOtp}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      }).catch(err => console.error("Error sending welcome email to parent:", err));
+
+      alert('Parent registered and credentials welcome OTP sent successfully.');
     }
 
     setParentForm({ name: '', phone: '', email: '', password: '', childrenIds: [] });
@@ -1895,6 +2034,12 @@ export default function SuperAdminPortal() {
 
           {showTeacherForm && (
             <form onSubmit={handleTeacherSubmit} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-2xl">
+              {teacherError && (
+                <div key={teacherShakeKey} className="bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 p-3.5 rounded-xl text-xs font-semibold animate-shake">
+                  {teacherError}
+                </div>
+              )}
+
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <UserCheck size={12} /> {teacherEditId ? 'Edit Faculty Account' : 'New Teacher Account Registry'}
               </h4>
@@ -1950,10 +2095,14 @@ export default function SuperAdminPortal() {
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input 
+                 <input 
                   type="email" required placeholder="Email Address" value={teacherForm.email}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  className={`px-3 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                    teacherForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(teacherForm.email)
+                      ? 'border-red-500/70 focus:ring-red-500/30 text-red-655 dark:text-red-400' 
+                      : 'border-slate-200 focus:ring-blue-500 dark:border-slate-800'
+                  }`}
                 />
                 <div className="relative flex items-center w-full">
                   <input 
@@ -2202,6 +2351,11 @@ export default function SuperAdminPortal() {
           {/* Manual registration form */}
           {showStudentForm && (
             <form onSubmit={handleStudentSubmit} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-2xl">
+              {studentError && (
+                <div key={studentShakeKey} className="bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 p-3.5 rounded-xl text-xs font-semibold animate-shake">
+                  {studentError}
+                </div>
+              )}
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Sparkles size={12} className="text-blue-500" /> {studentEditId ? 'Edit Student Profile' : 'New Student Enrollment Entry'}
               </h4>
@@ -2244,7 +2398,11 @@ export default function SuperAdminPortal() {
                 <input 
                   type="email" required placeholder="Student Email Address" value={studentForm.email}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  className={`px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                    studentForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentForm.email)
+                      ? 'border-red-500/70 focus:ring-red-500/30 text-red-655 dark:text-red-400' 
+                      : 'border-slate-200 focus:ring-blue-500 dark:border-slate-800'
+                  }`}
                 />
                 <div className="relative flex items-center w-full">
                   <input 
@@ -2507,6 +2665,11 @@ export default function SuperAdminPortal() {
 
           {showParentForm && (
             <form onSubmit={handleParentSubmit} className="glassmorphism p-5 rounded-2xl border border-white/50 shadow-lg space-y-4 max-w-2xl">
+              {parentError && (
+                <div key={parentShakeKey} className="bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 p-3.5 rounded-xl text-xs font-semibold animate-shake">
+                  {parentError}
+                </div>
+              )}
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Sparkles size={12} className="text-blue-500" /> {parentEditId ? 'Edit Parent Profile' : 'New Parent Login Registration'}
               </h4>
@@ -2526,7 +2689,11 @@ export default function SuperAdminPortal() {
                 <input 
                   type="email" required placeholder="Email Address" value={parentForm.email}
                   onChange={(e) => setParentForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                  className={`px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                    parentForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
+                      ? 'border-red-500/70 focus:ring-red-500/30 text-red-655 dark:text-red-400' 
+                      : 'border-slate-200 focus:ring-blue-500 dark:border-slate-800'
+                  }`}
                 />
                 <div className="relative flex items-center w-full">
                   <input 

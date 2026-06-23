@@ -40,18 +40,16 @@ export async function POST(req) {
     }
 
     const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
+    resend.emails.send({
       from: 'Sri Vani School <onboarding@resend.dev>',
       to,
       subject,
       html,
+    }).catch(err => {
+      console.error('❌ Background Resend dispatch error:', err.message);
     });
 
-    if (error) {
-      throw new Error(error.message || 'Failed to send email via Resend library');
-    }
-
-    return NextResponse.json({ success: true, data }, { headers: CORS_HEADERS });
+    return NextResponse.json({ success: true, data: { status: 'dispatched' } }, { headers: CORS_HEADERS });
   } catch (error) {
     console.error('❌ Resend send error:', error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS_HEADERS });

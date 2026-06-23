@@ -193,6 +193,12 @@ export default function StudentPortal() {
   const [securitySimulated, setSecuritySimulated] = useState(false);
   const [securityError, setSecurityError] = useState('');
   const [securitySuccess, setSecuritySuccess] = useState('');
+  const [securityShakeKey, setSecurityShakeKey] = useState(0);
+
+  const triggerSecurityError = (msg) => {
+    setSecurityError(msg);
+    setSecurityShakeKey(prev => prev + 1);
+  };
 
   const contentRef = useRef(null);
 
@@ -219,7 +225,7 @@ export default function StudentPortal() {
     setSecuritySuccess('');
 
     if (!securityNewPassword || securityNewPassword.length < 5) {
-      setSecurityError('New password must be at least 5 characters long.');
+      triggerSecurityError('New password must be at least 5 characters long.');
       return;
     }
 
@@ -282,10 +288,10 @@ export default function StudentPortal() {
         setSecurityEnteredOtp('');
         setSecurityOtpSent(false);
       } else {
-        setSecurityError('Failed to update password. Please try again.');
+        triggerSecurityError('Failed to update password. Please try again.');
       }
     } else {
-      setSecurityError('Invalid verification code. Please check your email or enter 123456.');
+      triggerSecurityError('Invalid verification code. Please check your email or enter 123456.');
     }
   };
 
@@ -1032,7 +1038,7 @@ export default function StudentPortal() {
               <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Update Password</h3>
               
               {securityError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3 rounded-xl text-xs font-medium animate-shake">
+                <div key={securityShakeKey} className="bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3 rounded-xl text-xs font-medium animate-shake">
                   {securityError}
                 </div>
               )}

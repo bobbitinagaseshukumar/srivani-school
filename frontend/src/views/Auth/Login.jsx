@@ -13,6 +13,12 @@ export default function Login({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [shakeKey, setShakeKey] = useState(0);
+
+  const triggerError = (msg) => {
+    setError(msg);
+    setShakeKey(prev => prev + 1);
+  };
   
   // OTP Verification flow state
   const [otpFlow, setOtpFlow] = useState(false);
@@ -98,7 +104,14 @@ export default function Login({ onLoginSuccess }) {
     setSuccessMsg('');
 
     if (!emailOrId || !password) {
-      setError('Please fill in both fields.');
+      triggerError('Please fill in both fields.');
+      return;
+    }
+
+    const isEmailInput = emailOrId.includes('@');
+    const isEmailInvalid = isEmailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrId);
+    if (isEmailInvalid) {
+      triggerError('Please enter a valid email address.');
       return;
     }
 
@@ -118,7 +131,7 @@ export default function Login({ onLoginSuccess }) {
         setOtpFlow(true);
       }
     } else {
-      setError(res.message || 'Invalid login coordinates.');
+      triggerError(res.message || 'Invalid login coordinates.');
     }
   };
 
@@ -130,7 +143,7 @@ export default function Login({ onLoginSuccess }) {
       loginWithUser(validatedUser);
       onLoginSuccess();
     } else {
-      setError('Invalid OTP code. Please enter the correct verification code.');
+      triggerError('Invalid OTP code. Please enter the correct verification code.');
     }
   };
 
@@ -141,12 +154,12 @@ export default function Login({ onLoginSuccess }) {
     setSuccessMsg('');
 
     if (!recoveryEmail) {
-      setError('Please enter your email address.');
+      triggerError('Please enter your email address.');
       return;
     }
 
     if (recoveryEmail.trim().toLowerCase() !== 'nagaseshukumarbobbiti@gmail.com') {
-      setError('Only the registered Super Admin email can initiate password recovery.');
+      triggerError('Only the registered Super Admin email can initiate password recovery.');
       return;
     }
 
@@ -173,7 +186,7 @@ export default function Login({ onLoginSuccess }) {
       setError('');
       setSuccessMsg('');
     } else {
-      setError('Invalid verification code. Please check your email or enter 123456.');
+      triggerError('Invalid verification code. Please check your email or enter 123456.');
     }
   };
 
@@ -182,7 +195,7 @@ export default function Login({ onLoginSuccess }) {
     setError('');
 
     if (!newPassword || newPassword.length < 5) {
-      setError('Password must be at least 5 characters long.');
+      triggerError('Password must be at least 5 characters long.');
       return;
     }
 
@@ -193,7 +206,7 @@ export default function Login({ onLoginSuccess }) {
       setPassword(newPassword); // Pre-fill with the new password
       setSuccessMsg('Password has been successfully updated. You may now login.');
     } else {
-      setError('Failed to update password. Please try again.');
+      triggerError('Failed to update password. Please try again.');
     }
   };
 
@@ -412,7 +425,7 @@ export default function Login({ onLoginSuccess }) {
               )}
 
               {error && (
-                <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3 rounded-xl text-xs font-medium animate-shake">
+                <div key={shakeKey} className="mb-4 bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3 rounded-xl text-xs font-medium animate-shake">
                   {error}
                 </div>
               )}
@@ -541,12 +554,16 @@ export default function Login({ onLoginSuccess }) {
                            role === 'Teacher' ? 'Faculty Employee ID' : 
                            role === 'Student' ? 'Student Register Number' : 'Parent Registration ID'}
                         </label>
-                        <input
+                         <input
                           type="text"
                           required
                           value={emailOrId}
                           onChange={(e) => setEmailOrId(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className={`w-full px-4 py-2.5 rounded-xl border bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                            (error || (emailOrId.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrId))) 
+                              ? 'border-red-500/50 focus:ring-red-500/30 dark:border-red-500/30 text-red-600 dark:text-red-400' 
+                              : 'border-slate-200 dark:border-slate-800 focus:ring-blue-500'
+                          }`}
                           placeholder={`Enter your ${role === 'Admin' || role === 'SuperAdmin' ? 'email' : 'portal ID'}`}
                         />
                       </div>
@@ -560,7 +577,11 @@ export default function Login({ onLoginSuccess }) {
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full pl-4 pr-10 py-2.5 rounded-xl border bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                              error 
+                                ? 'border-red-500/50 focus:ring-red-500/30 dark:border-red-500/30' 
+                                : 'border-slate-200 dark:border-slate-800 focus:ring-blue-500'
+                            }`}
                             placeholder="••••••••"
                           />
                           <button
@@ -608,7 +629,7 @@ export default function Login({ onLoginSuccess }) {
                       <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl space-y-1 text-xs">
                         <p className="font-bold text-blue-800 dark:text-blue-300">2-Factor Authentication Code Dispatched</p>
                         <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed">
-                          We sent a 6-digit verification code to the registered email address associated with your profile.
+                          We sent a 6-digit verification code to the registered email address: <strong className="text-blue-600 dark:text-blue-400 font-semibold">{validatedUser?.email || 'nagaseshukumarbobbiti@gmail.com'}</strong>
                         </p>
 
                       </div>

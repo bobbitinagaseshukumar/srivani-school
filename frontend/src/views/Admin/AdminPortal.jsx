@@ -156,6 +156,8 @@ export default function AdminPortal() {
   const [admissionFilter, setAdmissionFilter] = useState('Pending');
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [showEnrollPassword, setShowEnrollPassword] = useState(false);
+  const [enrollShakeKey, setEnrollShakeKey] = useState(0);
+  const [enrollError, setEnrollError] = useState('');
 
   // Attendance search states
   const [adminAttendanceSearchClass, setAdminAttendanceSearchClass] = useState('Class 10');
@@ -316,12 +318,29 @@ export default function AdminPortal() {
     alert("Response dispatched to support ticket.");
   };
 
-  const handleEnrollStudent = (e) => {
+  const handleEnrollStudent = async (e) => {
     e.preventDefault();
+    setEnrollError('');
+
     if (!enrollForm.name || !enrollForm.registerNo || !enrollForm.password) {
-      alert('Please fill Student Name, Register Number, and Password.');
+      setEnrollError('Please fill in Student Name, Register Number, and Password.');
+      setEnrollShakeKey(prev => prev + 1);
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (enrollForm.email && !emailRegex.test(enrollForm.email)) {
+      setEnrollError('Student Email format is invalid.');
+      setEnrollShakeKey(prev => prev + 1);
+      return;
+    }
+
+    if (enrollForm.parentEmail && !emailRegex.test(enrollForm.parentEmail)) {
+      setEnrollError('Parent Email format is invalid.');
+      setEnrollShakeKey(prev => prev + 1);
+      return;
+    }
+
     // Create student account - registerNo is used as Login ID
     const studentResult = addStudent({
       registerNo: enrollForm.registerNo,
@@ -342,10 +361,13 @@ export default function AdminPortal() {
       photo: enrollForm.photo || '',
       password: enrollForm.password
     });
+
     if (!studentResult.success) {
-      alert(studentResult.message);
+      setEnrollError(studentResult.message);
+      setEnrollShakeKey(prev => prev + 1);
       return;
     }
+
     // Auto-create parent portal account with SAME password (no photo upload required)
     const newStudentId = studentResult.id;
     addParent({
@@ -355,14 +377,83 @@ export default function AdminPortal() {
       childrenIds: [newStudentId],
       password: enrollForm.password
     });
+
+    // Send Welcome / OTP Email to Student and Parent
+    const studentOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const parentOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    if (enrollForm.email) {
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: enrollForm.email,
+          subject: 'Sri Vani Portal - Welcome & Account Verification OTP',
+          html: `
+            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p>Welcome <strong>${enrollForm.name}</strong>,</p>
+                <p>Your student profile has been registered in our portal. Here are your account credentials:</p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
+                  <p style="margin: 5px 0;"><strong>Register Number (Login ID):</strong> ${enrollForm.registerNo}</p>
+                  <p style="margin: 5px 0;"><strong>Password:</strong> ${enrollForm.password}</p>
+                </div>
+                <p>Please use this 6-digit Security Verification OTP code during your first login attempt to authorize your device:</p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${studentOtp}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">If you need help accessing your profile, please reach out to the class teacher.</p>
+                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      }).catch(err => console.error("Error sending welcome email to student:", err));
+    }
+
+    if (enrollForm.parentEmail) {
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: enrollForm.parentEmail,
+          subject: 'Sri Vani Portal - Parent Account Credentials',
+          html: `
+            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p>Welcome <strong>${enrollForm.parentName}</strong>,</p>
+                <p>Your parent portal account has been created for tracking the academic progress of <strong>${enrollForm.name}</strong>. Here are your portal credentials:</p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
+                  <p style="margin: 5px 0;"><strong>Username / Login Email:</strong> ${enrollForm.parentEmail}</p>
+                  <p style="margin: 5px 0;"><strong>Password:</strong> ${enrollForm.password}</p>
+                </div>
+                <p>Your portal security verification OTP is:</p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${parentOtp}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      }).catch(err => console.error("Error sending welcome email to parent:", err));
+    }
+
     setEnrollForm({
       name: '', registerNo: '', class: 'Class 10', section: 'A', password: '',
       phone: '', email: '', address: '',
       parentName: '', parentPhone: '', parentEmail: '',
       photo: ''
     });
+
     setShowEnrollStudent(false);
-    alert('Student enrolled and parent portal account created successfully!');
+    alert('Student enrolled, parent portal account created, and credentials OTP sent successfully!');
   };
 
   const handleAddFacility = (e) => {
@@ -540,6 +631,12 @@ export default function AdminPortal() {
             </div>
 
             <form onSubmit={handleEnrollStudent} className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-lg space-y-5 max-w-2xl">
+              {enrollError && (
+                <div key={enrollShakeKey} className="bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3.5 rounded-xl text-xs font-semibold animate-shake">
+                  {enrollError}
+                </div>
+              )}
+
               <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Student Information</h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 <input type="text" required placeholder="Student Full Name" value={enrollForm.name} onChange={(e) => setEnrollForm(prev => ({ ...prev, name: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
@@ -572,7 +669,17 @@ export default function AdminPortal() {
               </div>
               <div className="grid sm:grid-cols-3 gap-4">
                 <input type="text" placeholder="Mobile" value={enrollForm.phone} onChange={(e) => setEnrollForm(prev => ({ ...prev, phone: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-                <input type="email" placeholder="Email" value={enrollForm.email} onChange={(e) => setEnrollForm(prev => ({ ...prev, email: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                <input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={enrollForm.email} 
+                  onChange={(e) => setEnrollForm(prev => ({ ...prev, email: e.target.value }))} 
+                  className={`px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                    enrollForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enrollForm.email)
+                      ? 'border-red-500/70 focus:ring-red-500/30 text-red-655 dark:text-red-400' 
+                      : 'border-slate-200 focus:ring-blue-500 dark:border-slate-800'
+                  }`} 
+                />
                 <input type="text" placeholder="Address" value={enrollForm.address} onChange={(e) => setEnrollForm(prev => ({ ...prev, address: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
               </div>
               <div className="space-y-2">
@@ -649,7 +756,17 @@ export default function AdminPortal() {
               <div className="grid sm:grid-cols-3 gap-4">
                 <input type="text" placeholder="Parent Name" value={enrollForm.parentName} onChange={(e) => setEnrollForm(prev => ({ ...prev, parentName: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
                 <input type="text" placeholder="Parent Mobile" value={enrollForm.parentPhone} onChange={(e) => setEnrollForm(prev => ({ ...prev, parentPhone: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-                <input type="email" placeholder="Parent Email" value={enrollForm.parentEmail} onChange={(e) => setEnrollForm(prev => ({ ...prev, parentEmail: e.target.value }))} className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+                <input 
+                  type="email" 
+                  placeholder="Parent Email" 
+                  value={enrollForm.parentEmail} 
+                  onChange={(e) => setEnrollForm(prev => ({ ...prev, parentEmail: e.target.value }))} 
+                  className={`px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-2 transition-all ${
+                    enrollForm.parentEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enrollForm.parentEmail)
+                      ? 'border-red-500/70 focus:ring-red-500/30 text-red-655 dark:text-red-400' 
+                      : 'border-slate-200 focus:ring-blue-500 dark:border-slate-800'
+                  }`} 
+                />
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-200/50 dark:border-blue-900/50 text-[10px] text-blue-700 dark:text-blue-300 font-medium">
