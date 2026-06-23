@@ -17,7 +17,8 @@ export default function Admissions() {
     parentPhone: '',
     address: '',
     prevSchool: '',
-    whatsappNumber: ''
+    whatsappNumber: '',
+    studentEmail: ''
   });
 
   // Validation error states
@@ -68,18 +69,42 @@ export default function Admissions() {
     }
   };
 
+  const fieldLabels = {
+    studentName: 'Student Full Name',
+    dob: 'Date of Birth',
+    gender: 'Gender',
+    grade: 'Target Admission Grade',
+    parentName: 'Parent / Guardian Name',
+    parentPhone: 'Parent Phone Number',
+    parentEmail: 'Parent Email Address',
+    studentEmail: 'Student Email Address',
+    whatsappNumber: 'WhatsApp Number',
+    address: 'Residential Address',
+    prevSchool: 'Previous School Name'
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.studentName || !formData.parentEmail || !formData.parentPhone) {
-      alert('Please fill in student name, email, and phone contact.');
-      return;
+
+    // Dynamic validation based on starred fields (Super Admin configuration)
+    for (const field of Object.keys(starredFormFields || {})) {
+      if (starredFormFields[field]) {
+        const val = formData[field];
+        if (!val || (typeof val === 'string' && val.trim() === '')) {
+          const label = fieldLabels[field] || field;
+          alert(`Please fill in the required field: ${label}`);
+          return;
+        }
+      }
     }
 
-    // Validate phone number is exactly 10 digits
-    const phoneDigits = formData.parentPhone.replace(/\D/g, '');
-    if (phoneDigits.length !== 10) {
-      setPhoneError('Phone number must be exactly 10 digits');
-      return;
+    // Validate phone number is exactly 10 digits if it is filled
+    if (formData.parentPhone) {
+      const phoneDigits = formData.parentPhone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        setPhoneError('Phone number must be exactly 10 digits');
+        return;
+      }
     }
 
     // Validate WhatsApp number if provided
@@ -211,7 +236,7 @@ export default function Admissions() {
               <button
                 onClick={() => {
                   setSubmitted(false);
-                  setFormData({ studentName: '', dob: '', gender: '', grade: 'Playclass', parentName: '', parentEmail: '', parentPhone: '', address: '', prevSchool: '', whatsappNumber: '' });
+                  setFormData({ studentName: '', dob: '', gender: '', grade: 'Playclass', parentName: '', parentEmail: '', parentPhone: '', address: '', prevSchool: '', whatsappNumber: '', studentEmail: '' });
                 }}
                 className="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-md"
               >
@@ -232,7 +257,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Full Name{renderStar('studentName')}</label>
                     <input
                       type="text"
-                      required
+                      required={starredFormFields && starredFormFields.studentName}
                       value={formData.studentName}
                       onChange={(e) => setFormData(prev => ({ ...prev, studentName: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -244,7 +269,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Date of Birth{renderStar('dob')}</label>
                     <input
                       type="date"
-                      required
+                      required={starredFormFields && starredFormFields.dob}
                       value={formData.dob}
                       onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -254,7 +279,7 @@ export default function Admissions() {
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Gender{renderStar('gender')}</label>
                     <select
-                      required
+                      required={starredFormFields && starredFormFields.gender}
                       value={formData.gender}
                       onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -269,6 +294,7 @@ export default function Admissions() {
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Target Admission Grade{renderStar('grade')}</label>
                     <select
+                      required={starredFormFields && starredFormFields.grade}
                       value={formData.grade}
                       onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -289,10 +315,23 @@ export default function Admissions() {
                     </select>
                   </div>
 
-                  <div className="md:col-span-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Student Email Address{renderStar('studentEmail')}</label>
+                    <input
+                      type="email"
+                      required={starredFormFields && starredFormFields.studentEmail}
+                      value={formData.studentEmail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, studentEmail: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. student@example.com"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Previous School Name (If any){renderStar('prevSchool')}</label>
                     <input
                       type="text"
+                      required={starredFormFields && starredFormFields.prevSchool}
                       value={formData.prevSchool}
                       onChange={(e) => setFormData(prev => ({ ...prev, prevSchool: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -310,7 +349,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent / Guardian Name{renderStar('parentName')}</label>
                     <input
                       type="text"
-                      required
+                      required={starredFormFields && starredFormFields.parentName}
                       value={formData.parentName}
                       onChange={(e) => setFormData(prev => ({ ...prev, parentName: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -322,7 +361,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Email Address{renderStar('parentEmail')}</label>
                     <input
                       type="email"
-                      required
+                      required={starredFormFields && starredFormFields.parentEmail}
                       value={formData.parentEmail}
                       onChange={(e) => setFormData(prev => ({ ...prev, parentEmail: e.target.value }))}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -334,7 +373,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Parent Phone Number{renderStar('parentPhone')}</label>
                     <input
                       type="tel"
-                      required
+                      required={starredFormFields && starredFormFields.parentPhone}
                       inputMode="numeric"
                       maxLength={10}
                       value={formData.parentPhone}
@@ -358,6 +397,7 @@ export default function Admissions() {
                     <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">WhatsApp Number{renderStar('whatsappNumber')}</label>
                     <input
                       type="tel"
+                      required={starredFormFields && starredFormFields.whatsappNumber}
                       inputMode="numeric"
                       maxLength={10}
                       value={formData.whatsappNumber}
@@ -383,6 +423,7 @@ export default function Admissions() {
                 <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500">Residential Address{renderStar('address')}</label>
                 <textarea
                   rows={3}
+                  required={starredFormFields && starredFormFields.address}
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

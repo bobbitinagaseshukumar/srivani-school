@@ -127,8 +127,10 @@ const initialStarredFormFields = {
   parentName: true,
   parentPhone: true,
   parentEmail: false,
+  studentEmail: false,
   whatsappNumber: false,
-  address: false
+  address: false,
+  prevSchool: false
 };
 
 const initialWhatsappLogs = [];
@@ -1053,6 +1055,14 @@ export const AppProvider = ({ children }) => {
     setAuditLogs(prev => [newLog, ...prev]);
   };
 
+  const deleteAuditLog = (id) => {
+    setAuditLogs(prev => prev.filter(log => log.id !== id));
+  };
+
+  const clearAllAuditLogs = () => {
+    setAuditLogs([]);
+  };
+
   const addNotification = (title, message, type) => {
     const newNtf = {
       id: `ntf_${Date.now()}`,
@@ -1870,6 +1880,8 @@ export const AppProvider = ({ children }) => {
       replySupportTicket,
       toggleSchoolStatus,
       addAuditLog,
+      deleteAuditLog,
+      clearAllAuditLogs,
       addNotification,
       galleryItems,
       addGalleryItem: (item) => setGalleryItems(prev => [{ ...item, id: 'g' + Date.now() }, ...prev]),

@@ -319,7 +319,7 @@ export default function SuperAdminPortal() {
     circulars, deleteCircular,
     tickerItems, addTickerItem, editTickerItem, deleteTickerItem,
     schoolInfo, updateSchoolInfo, managementCommittee, addCommitteeMember, editCommitteeMember, deleteCommitteeMember,
-    auditLogs, supportTickets, timetables, saveTimetable,
+    auditLogs, deleteAuditLog, clearAllAuditLogs, supportTickets, timetables, saveTimetable,
     addTeacher, editTeacher, deleteTeacher,
     addAdmin, editAdmin, deleteAdmin,
     addStudent, editStudent, deleteStudent, permanentlyDeleteStudent,
@@ -1235,6 +1235,7 @@ export default function SuperAdminPortal() {
                               {Object.values(adm.starredFields || {}).some(Boolean) && <span className="text-amber-500 font-bold">★</span>}
                             </p>
                             <p className="text-[10px] text-slate-400 font-mono">DOB: {adm.dob}</p>
+                            {adm.studentEmail && <p className="text-[10px] text-slate-400">📧 {adm.studentEmail}</p>}
                           </td>
                           <td className="p-4 font-semibold">{adm.grade || adm.gradeApplied}</td>
                           <td className="p-4 font-medium">{adm.parentName}</td>
@@ -1436,6 +1437,78 @@ export default function SuperAdminPortal() {
                       </select>
                     </div>
 
+                    {/* Field studentEmail */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Student Email
+                          {editingAdmission.starredFields?.studentEmail && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'studentEmail');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                studentEmail: !prev.starredFields?.studentEmail
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.studentEmail 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="email"
+                        value={editingAdmission.studentEmail || ''}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, studentEmail: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Field prevSchool */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                          Previous School
+                          {editingAdmission.starredFields?.prevSchool && <span className="text-amber-500 font-bold">★</span>}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAdmissionFieldStar(editingAdmission.id, 'prevSchool');
+                            setEditingAdmission(prev => ({
+                              ...prev,
+                              starredFields: {
+                                ...(prev.starredFields || {}),
+                                prevSchool: !prev.starredFields?.prevSchool
+                              }
+                            }));
+                          }}
+                          className={`p-1 rounded text-[9px] ${
+                            editingAdmission.starredFields?.prevSchool 
+                              ? 'text-amber-500 bg-amber-500/10' 
+                              : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                          }`}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={editingAdmission.prevSchool || ''}
+                        onChange={(e) => setEditingAdmission(prev => ({ ...prev, prevSchool: e.target.value }))}
+                        className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
                     {/* Field parentName */}
                     <div className="space-y-1">
                       <div className="flex justify-between items-center">
@@ -1617,10 +1690,10 @@ export default function SuperAdminPortal() {
                       />
                     </div>
 
-                    <div className="pt-2 flex flex-wrap gap-2">
+                    <div className="pt-2 flex flex-col sm:flex-row gap-2">
                       <button
                         type="submit"
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                        className="flex-1 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Save Changes
                       </button>
@@ -1640,7 +1713,7 @@ export default function SuperAdminPortal() {
                           const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                           window.open(waUrl, '_blank');
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                        className="flex-1 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Approve
                       </button>
@@ -1659,7 +1732,7 @@ export default function SuperAdminPortal() {
                           const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
                           window.open(waUrl, '_blank');
                         }}
-                        className="bg-red-500 hover:bg-red-650 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                        className="flex-1 w-full bg-red-500 hover:bg-red-650 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                       >
                         Reject
                       </button>
@@ -4346,7 +4419,21 @@ export default function SuperAdminPortal() {
       {/* Audit Logs tab */}
       {activeTab === 'Audit Logs' && (
         <div className="space-y-6">
-          <h3 className="font-extrabold text-lg font-montserrat">Global System Audit Logs</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="font-extrabold text-lg font-montserrat">Global System Audit Logs</h3>
+            {auditLogs.length > 0 && (
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete ALL system audit logs? This cannot be undone.")) {
+                    clearAllAuditLogs();
+                  }
+                }}
+                className="bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 shadow-sm"
+              >
+                <Trash2 size={13} /> Clear All Logs
+              </button>
+            )}
+          </div>
           <div className="bg-white dark:bg-slate-800/60 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] text-xs text-left">
@@ -4355,7 +4442,8 @@ export default function SuperAdminPortal() {
                     <th className="p-4">User Initiator</th>
                     <th className="p-4">Authorization Role</th>
                     <th className="p-4">Action Event</th>
-                    <th className="p-4 text-right">Timestamp</th>
+                    <th className="p-4">Timestamp</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-light">
@@ -4373,7 +4461,20 @@ export default function SuperAdminPortal() {
                         </span>
                       </td>
                       <td className="p-4 text-slate-600 dark:text-slate-350">{log.action}</td>
-                      <td className="p-4 text-right text-slate-400 font-mono text-[10px]">{log.timestamp}</td>
+                      <td className="p-4 text-slate-400 font-mono text-[10px]">{log.timestamp}</td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this audit log?")) {
+                              deleteAuditLog(log.id);
+                            }
+                          }}
+                          className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-500 hover:text-red-650 transition flex items-center justify-center ml-auto cursor-pointer"
+                          title="Delete Audit Log"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

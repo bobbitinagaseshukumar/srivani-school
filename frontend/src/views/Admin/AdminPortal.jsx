@@ -1342,6 +1342,7 @@ export default function AdminPortal() {
                               {Object.values(adm.starredFields || {}).some(Boolean) && <span className="text-amber-500 font-bold">★</span>}
                             </p>
                             <p className="text-[10px] text-slate-400">DOB: {adm.dob}</p>
+                            {adm.studentEmail && <p className="text-[10px] text-slate-400">📧 {adm.studentEmail}</p>}
                           </td>
                           <td className="p-4 font-semibold">{adm.grade || adm.gradeApplied}</td>
                           <td className="p-4 font-medium">{adm.parentName}</td>
@@ -1528,6 +1529,78 @@ export default function AdminPortal() {
                         </select>
                       </div>
 
+                      {/* Field studentEmail */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Student Email
+                            {editingAdmission.starredFields?.studentEmail && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'studentEmail');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  studentEmail: !prev.starredFields?.studentEmail
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.studentEmail 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="email"
+                          value={editingAdmission.studentEmail || ''}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, studentEmail: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* Field prevSchool */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="font-bold text-slate-500 uppercase text-[9px] flex items-center gap-1">
+                            Previous School
+                            {editingAdmission.starredFields?.prevSchool && <span className="text-amber-500 font-bold">★</span>}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toggleAdmissionFieldStar(editingAdmission.id, 'prevSchool');
+                              setEditingAdmission(prev => ({
+                                ...prev,
+                                starredFields: {
+                                  ...(prev.starredFields || {}),
+                                  prevSchool: !prev.starredFields?.prevSchool
+                                }
+                              }));
+                            }}
+                            className={`p-1 rounded transition text-[10px] ${
+                              editingAdmission.starredFields?.prevSchool 
+                                ? 'text-amber-500 bg-amber-500/10' 
+                                : 'text-slate-400 hover:text-amber-500 bg-slate-100 dark:bg-slate-900/50'
+                            }`}
+                          >
+                            ★
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={editingAdmission.prevSchool || ''}
+                          onChange={(e) => setEditingAdmission(prev => ({ ...prev, prevSchool: e.target.value }))}
+                          className="w-full px-3 py-1.5 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
                       {/* Field Parent Name */}
                       <div className="space-y-1">
                         <div className="flex justify-between items-center">
@@ -1709,53 +1782,53 @@ export default function AdminPortal() {
                         />
                       </div>
 
-                      <div className="pt-2 flex flex-wrap gap-2">
+                      <div className="pt-2 flex flex-col sm:flex-row gap-2">
                         <button
                           type="submit"
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                          className="flex-1 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
                         >
                           Save Changes
                         </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Save current form edits first, then approve using edited values
-                                updateAdmissionFields(editingAdmission.id, editingAdmission);
-                                approveAdmission(editingAdmission.id, editingAdmission);
-                                setSelectedAdmission(null);
-                                setEditingAdmission(null);
-                                alert('Admission application APPROVED!');
-                                
-                                const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
-                                const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
-                                const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
-                                const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
-                                window.open(waUrl, '_blank');
-                              }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Save current form edits first, then reject using edited values
-                                updateAdmissionFields(editingAdmission.id, editingAdmission);
-                                rejectAdmission(editingAdmission.id, editingAdmission);
-                                setSelectedAdmission(null);
-                                setEditingAdmission(null);
-                                alert('Admission application REJECTED.');
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Save current form edits first, then approve using edited values
+                            updateAdmissionFields(editingAdmission.id, editingAdmission);
+                            approveAdmission(editingAdmission.id, editingAdmission);
+                            setSelectedAdmission(null);
+                            setEditingAdmission(null);
+                            alert('Admission application APPROVED!');
+                            
+                            const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
+                            const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
+                            const messageText = `Dear ${editingAdmission.parentName}, your admission application for ${editingAdmission.studentName} to ${editingAdmission.grade || editingAdmission.gradeApplied} at Sri Vani Vidyanikethan has been APPROVED! Please visit the school with required documents to complete the enrollment. Welcome to our school family!`;
+                            const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
+                            window.open(waUrl, '_blank');
+                          }}
+                          className="flex-1 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Save current form edits first, then reject using edited values
+                            updateAdmissionFields(editingAdmission.id, editingAdmission);
+                            rejectAdmission(editingAdmission.id, editingAdmission);
+                            setSelectedAdmission(null);
+                            setEditingAdmission(null);
+                            alert('Admission application REJECTED.');
 
-                                const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
-                                const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
-                                const messageText = `Dear ${editingAdmission.parentName}, thank you for your interest in Sri Vani Vidyanikethan. We regret to inform you that your admission application for ${editingAdmission.studentName} has been declined. For any further queries, please contact the school administration office.`;
-                                const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
-                                window.open(waUrl, '_blank');
-                              }}
-                              className="bg-red-500 hover:bg-red-650 text-white font-bold px-4 py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
-                            >
-                              Reject
-                            </button>
+                            const parentPhone = editingAdmission.whatsappNumber || editingAdmission.parentPhone || editingAdmission.phone || '';
+                            const cleanedPhone = cleanPhoneForWhatsapp(parentPhone);
+                            const messageText = `Dear ${editingAdmission.parentName}, thank you for your interest in Sri Vani Vidyanikethan. We regret to inform you that your admission application for ${editingAdmission.studentName} has been declined. For any further queries, please contact the school administration office.`;
+                            const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(messageText)}`;
+                            window.open(waUrl, '_blank');
+                          }}
+                          className="flex-1 w-full bg-red-500 hover:bg-red-650 text-white font-bold py-2 rounded-xl text-center shadow-md cursor-pointer transition text-xs whitespace-nowrap"
+                        >
+                          Reject
+                        </button>
                       </div>
                     </form>
                   </div>
