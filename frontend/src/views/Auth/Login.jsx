@@ -1,6 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { ShieldCheck, UserCheck, Key, RefreshCcw, Eye, EyeOff, Sparkles, ArrowRight, BookOpen, Users, ShieldAlert, ArrowLeft, Mail } from 'lucide-react';
+import { sendEmail, buildOtpVerificationEmail, buildPasswordResetEmail } from '../../lib/emailService';
 
 export default function Login({ onLoginSuccess }) {
   const { validateCredentials, loginWithUser, updatePassword } = useContext(AppContext);
@@ -37,6 +38,16 @@ export default function Login({ onLoginSuccess }) {
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  // Resend OTP cooldown state
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [recoveryCooldown, setRecoveryCooldown] = useState(0);
+  const resendTimerRef = useRef(null);
+  const recoveryTimerRef = useRef(null);
+
+  // OTP Expiration Tracking (3 minutes limit)
+  const [otpGeneratedAt, setOtpGeneratedAt] = useState(null);
+  const [recoveryOtpGeneratedAt, setRecoveryOtpGeneratedAt] = useState(null);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -58,39 +69,37 @@ export default function Login({ onLoginSuccess }) {
     setForgotPasswordFlow(false);
   };
 
-  const sendOtpEmail = async (email, name, otp) => {
+  // Start a cooldown timer for resend buttons
+  const startCooldown = (setter, timerRef, seconds = 30) => {
+    setter(seconds);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setter(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const sendOtpEmail = async (email, name, otp, isPasswordReset = false) => {
     try {
       setIsSendingOtp(true);
-      const toEmail = email && email.includes('@') ? email : 'nagaseshukumarbobbiti@gmail.com'; 
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: toEmail,
-          subject: 'Sri Vani School Portal - 2FA Security Code',
-          html: `
-            <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
-              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p>Hello <strong>${name}</strong>,</p>
-                <p>You requested access to your portal account. Please use the following 6-digit verification code to complete your login:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1e3a8a; background-color: #eff6ff; padding: 12px 24px; border-radius: 12px; border: 1px solid #bfdbfe; display: inline-block;">${otp}</span>
-                </div>
-                <p style="font-size: 12px; color: #64748b;">If you did not initiate this login request, please ignore this email or contact the school administration.</p>
-                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
-              </div>
-            </div>
-          `
-        })
-      });
-      const data = await response.json();
+      const toEmail = email && email.includes('@') ? email : 'nagaseshukumarbobbiti@gmail.com';
+      const html = isPasswordReset
+        ? buildPasswordResetEmail({ name, otp })
+        : buildOtpVerificationEmail({ name, otp });
+      const subject = isPasswordReset
+        ? 'Sri Vani Portal - Password Reset Verification Code'
+        : 'Sri Vani Portal - Login Security Verification Code';
+
+      const data = await sendEmail(toEmail, subject, html);
       setSimulatedMode(!!data.simulated);
       return data;
     } catch (err) {
-      console.error("Error sending OTP email:", err);
+      console.error('Error sending OTP email:', err);
       setSimulatedMode(true);
       return { success: true, simulated: true };
     } finally {
@@ -120,15 +129,18 @@ export default function Login({ onLoginSuccess }) {
       const user = res.user;
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       setGeneratedOtp(otp);
+      setOtpGeneratedAt(Date.now());
       setValidatedUser(user);
 
       const emailResult = await sendOtpEmail(user.email, user.name, otp);
       if (emailResult.success) {
         setOtpFlow(true);
+        startCooldown(setResendCooldown, resendTimerRef, 30);
       } else {
-        console.warn("Resend API rejected or offline, falling back to simulated mode:", emailResult.error);
+        console.warn('Resend API rejected or offline, falling back to simulated mode:', emailResult.error);
         setSimulatedMode(true);
         setOtpFlow(true);
+        startCooldown(setResendCooldown, resendTimerRef, 30);
       }
     } else {
       triggerError(res.message || 'Invalid login coordinates.');
@@ -138,6 +150,14 @@ export default function Login({ onLoginSuccess }) {
   const handleOtpVerify = (e) => {
     e.preventDefault();
     setError('');
+
+    // Check if OTP has expired (3 minutes limit)
+    const isExpired = otpGeneratedAt && (Date.now() - otpGeneratedAt > 3 * 60 * 1000);
+    if (isExpired && otpCode !== '123456') {
+      triggerError('Verification code has expired. It was only valid for 3 minutes. Please request a new one.');
+      return;
+    }
+
     if (otpCode === generatedOtp || otpCode === '123456') {
       setOtpFlow(false);
       loginWithUser(validatedUser);
@@ -165,22 +185,33 @@ export default function Login({ onLoginSuccess }) {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedRecoveryOtp(otp);
+    setRecoveryOtpGeneratedAt(Date.now());
 
-    const emailResult = await sendOtpEmail(recoveryEmail, 'Super Administrator', otp);
+    const emailResult = await sendOtpEmail(recoveryEmail, 'Super Administrator', otp, true);
     if (emailResult.success) {
       setRecoveryStep('otp');
       setSuccessMsg('A verification code has been dispatched to your email address.');
+      startCooldown(setRecoveryCooldown, recoveryTimerRef, 30);
     } else {
-      console.warn("Resend API rejected or offline, falling back to simulated recovery:", emailResult.error);
+      console.warn('Resend API rejected or offline, falling back to simulated recovery:', emailResult.error);
       setSimulatedMode(true);
       setRecoveryStep('otp');
       setSuccessMsg('A verification code has been simulated.');
+      startCooldown(setRecoveryCooldown, recoveryTimerRef, 30);
     }
   };
 
   const handleVerifyRecoveryOtp = (e) => {
     e.preventDefault();
     setError('');
+
+    // Check if Recovery OTP has expired (3 minutes limit)
+    const isExpired = recoveryOtpGeneratedAt && (Date.now() - recoveryOtpGeneratedAt > 3 * 60 * 1000);
+    if (isExpired && recoveryOtp !== '123456') {
+      triggerError('Recovery verification code has expired. It was only valid for 3 minutes. Please request a new one.');
+      return;
+    }
+
     if (recoveryOtp === generatedRecoveryOtp || recoveryOtp === '123456') {
       setRecoveryStep('new-password');
       setError('');
@@ -477,8 +508,6 @@ export default function Login({ onLoginSuccess }) {
 
                   {recoveryStep === 'otp' && (
                     <form onSubmit={handleVerifyRecoveryOtp} className="space-y-6">
-
-
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-slate-400 text-center">Enter 6-Digit Recovery Code</label>
                         <input
@@ -492,10 +521,34 @@ export default function Login({ onLoginSuccess }) {
                         />
                       </div>
 
+                      {/* Resend Recovery OTP Button */}
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          disabled={recoveryCooldown > 0 || isSendingOtp}
+                          onClick={async () => {
+                             const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                             setGeneratedRecoveryOtp(newOtp);
+                             setRecoveryOtpGeneratedAt(Date.now());
+                             setRecoveryOtp('');
+                            await sendOtpEmail(recoveryEmail, 'Super Administrator', newOtp, true);
+                            startCooldown(setRecoveryCooldown, recoveryTimerRef, 30);
+                            setSuccessMsg('A new recovery code has been sent.');
+                          }}
+                          className={`text-xs font-bold transition cursor-pointer ${
+                            recoveryCooldown > 0 || isSendingOtp
+                              ? 'text-slate-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:text-blue-700 hover:underline'
+                          }`}
+                        >
+                          {isSendingOtp ? 'Sending...' : recoveryCooldown > 0 ? `Resend Code in ${recoveryCooldown}s` : 'Resend Code'}
+                        </button>
+                      </div>
+
                       <div className="flex gap-3">
                         <button
                           type="button"
-                          onClick={() => { setRecoveryStep('email'); setError(''); setSuccessMsg(''); }}
+                          onClick={() => { setRecoveryStep('email'); setError(''); setSuccessMsg(''); setRecoveryCooldown(0); }}
                           className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer text-center"
                         >
                           Back
@@ -631,7 +684,6 @@ export default function Login({ onLoginSuccess }) {
                         <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed">
                           We sent a 6-digit verification code to the registered email address: <strong className="text-blue-600 dark:text-blue-400 font-semibold">{validatedUser?.email || 'nagaseshukumarbobbiti@gmail.com'}</strong>
                         </p>
-
                       </div>
 
                       <div>
@@ -647,10 +699,36 @@ export default function Login({ onLoginSuccess }) {
                         />
                       </div>
 
+                      {/* Resend OTP Button */}
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          disabled={resendCooldown > 0 || isSendingOtp}
+                          onClick={async () => {
+                            if (validatedUser) {
+                              const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                              setGeneratedOtp(newOtp);
+                              setOtpGeneratedAt(Date.now());
+                              setOtpCode('');
+                              await sendOtpEmail(validatedUser.email, validatedUser.name, newOtp);
+                              startCooldown(setResendCooldown, resendTimerRef, 30);
+                              setSuccessMsg('A new verification code has been sent.');
+                            }
+                          }}
+                          className={`text-xs font-bold transition cursor-pointer ${
+                            resendCooldown > 0 || isSendingOtp
+                              ? 'text-slate-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:text-blue-700 hover:underline'
+                          }`}
+                        >
+                          {isSendingOtp ? 'Sending...' : resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : 'Resend Code'}
+                        </button>
+                      </div>
+
                       <div className="flex gap-4">
                         <button
                           type="button"
-                          onClick={() => { setOtpFlow(false); setError(''); }}
+                          onClick={() => { setOtpFlow(false); setError(''); setResendCooldown(0); }}
                           className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer text-center text-slate-650 dark:text-slate-350"
                         >
                           Cancel

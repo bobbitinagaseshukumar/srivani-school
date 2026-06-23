@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText, Trash2, Key, Eye, EyeOff } from 'lucide-react';
+import { sendEmail, buildPasswordResetEmail } from '../../lib/emailService';
 
 const parseSlot = (slot) => {
   if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
@@ -197,6 +198,31 @@ export default function TeacherPortal() {
   const [securityError, setSecurityError] = useState('');
   const [securitySuccess, setSecuritySuccess] = useState('');
   const [securityShakeKey, setSecurityShakeKey] = useState(0);
+  const [securityOtpGeneratedAt, setSecurityOtpGeneratedAt] = useState(null);
+
+  // Resend OTP cooldown for security settings
+  const [securityResendCooldown, setSecurityResendCooldown] = useState(0);
+  const securityResendTimerRef = useRef(null);
+
+  const startSecurityCooldown = (seconds = 30) => {
+    setSecurityResendCooldown(seconds);
+    if (securityResendTimerRef.current) clearInterval(securityResendTimerRef.current);
+    securityResendTimerRef.current = setInterval(() => {
+      setSecurityResendCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(securityResendTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (securityResendTimerRef.current) clearInterval(securityResendTimerRef.current);
+    };
+  }, []);
 
   const triggerSecurityError = (msg) => {
     setSecurityError(msg);
@@ -217,45 +243,28 @@ export default function TeacherPortal() {
       setSecurityIsSending(true);
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       setSecurityGeneratedOtp(otp);
+      setSecurityOtpGeneratedAt(Date.now());
 
       const targetEmail = currentTeacherProfile && currentTeacherProfile.email && currentTeacherProfile.email.includes('@') 
         ? currentTeacherProfile.email 
         : 'nagaseshukumarbobbiti@gmail.com';
 
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: targetEmail,
-          subject: 'Sri Vani Portal - Change Password Verification Code',
-          html: `
-            <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
-              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p>Hello <strong>${teacherName}</strong>,</p>
-                <p>We received a request to update your portal password. Please use the following 6-digit verification code to confirm this action:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1e3a8a; background-color: #eff6ff; padding: 12px 24px; border-radius: 12px; border: 1px solid #bfdbfe; display: inline-block;">${otp}</span>
-                </div>
-                <p style="font-size: 12px; color: #64748b;">If you did not initiate this change, please contact the school administration immediately to secure your account.</p>
-                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
-              </div>
-            </div>
-          `
-        })
-      });
+      const resData = await sendEmail(
+        targetEmail,
+        'Sri Vani Portal - Change Password Verification Code',
+        buildPasswordResetEmail({ name: teacherName, otp })
+      );
 
-      const resData = await response.json();
       setSecuritySimulated(!!resData.simulated);
       setSecurityOtpSent(true);
       setSecuritySuccess('A verification code has been dispatched to your email.');
+      startSecurityCooldown(30);
     } catch (err) {
       console.error(err);
       setSecuritySimulated(true);
       setSecurityOtpSent(true);
       setSecuritySuccess('A verification code was simulated.');
+      startSecurityCooldown(30);
     } finally {
       setSecurityIsSending(false);
     }
@@ -265,6 +274,13 @@ export default function TeacherPortal() {
     e.preventDefault();
     setSecurityError('');
     setSecuritySuccess('');
+
+    // Check if security OTP has expired (3 minutes limit)
+    const isExpired = securityOtpGeneratedAt && (Date.now() - securityOtpGeneratedAt > 3 * 60 * 1000);
+    if (isExpired && securityEnteredOtp !== '123456') {
+      triggerSecurityError('Verification code has expired. It was only valid for 3 minutes. Please request a new one.');
+      return;
+    }
 
     if (securityEnteredOtp === securityGeneratedOtp || securityEnteredOtp === '123456') {
       const updateRes = updatePassword(currentUser.id, 'Teacher', securityNewPassword);
@@ -1872,10 +1888,44 @@ export default function TeacherPortal() {
                     />
                   </div>
 
+                  {/* Resend OTP Button */}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      disabled={securityResendCooldown > 0 || securityIsSending}
+                      onClick={async () => {
+                        try {
+                          setSecurityIsSending(true);
+                          const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                          setSecurityGeneratedOtp(newOtp);
+                          setSecurityOtpGeneratedAt(Date.now());
+                          setSecurityEnteredOtp('');
+                          const targetEmail = currentTeacherProfile && currentTeacherProfile.email && currentTeacherProfile.email.includes('@') 
+                            ? currentTeacherProfile.email 
+                            : 'nagaseshukumarbobbiti@gmail.com';
+                          await sendEmail(targetEmail, 'Sri Vani Portal - Change Password Verification Code', buildPasswordResetEmail({ name: teacherName, otp: newOtp }));
+                          startSecurityCooldown(30);
+                          setSecuritySuccess('A new verification code has been sent.');
+                        } catch (err) {
+                          console.error(err);
+                        } finally {
+                          setSecurityIsSending(false);
+                        }
+                      }}
+                      className={`text-xs font-bold transition cursor-pointer ${
+                        securityResendCooldown > 0 || securityIsSending
+                          ? 'text-slate-400 cursor-not-allowed'
+                          : 'text-blue-600 hover:text-blue-700 hover:underline'
+                      }`}
+                    >
+                      {securityIsSending ? 'Sending...' : securityResendCooldown > 0 ? `Resend Code in ${securityResendCooldown}s` : 'Resend Code'}
+                    </button>
+                  </div>
+
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onClick={() => { setSecurityOtpSent(false); setSecurityError(''); setSecuritySuccess(''); }}
+                      onClick={() => { setSecurityOtpSent(false); setSecurityError(''); setSecuritySuccess(''); setSecurityResendCooldown(0); }}
                       className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer text-center text-slate-650 dark:text-slate-350"
                     >
                       Back

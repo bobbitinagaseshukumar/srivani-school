@@ -40,16 +40,19 @@ export async function POST(req) {
     }
 
     const resend = new Resend(apiKey);
-    resend.emails.send({
+    const result = await resend.emails.send({
       from: 'Sri Vani School <onboarding@resend.dev>',
       to,
       subject,
       html,
-    }).catch(err => {
-      console.error('❌ Background Resend dispatch error:', err.message);
     });
 
-    return NextResponse.json({ success: true, data: { status: 'dispatched' } }, { headers: CORS_HEADERS });
+    if (result.error) {
+      console.error('❌ Resend API error:', result.error);
+      return NextResponse.json({ success: false, error: result.error.message || 'Resend API rejected the email.' }, { status: 422, headers: CORS_HEADERS });
+    }
+
+    return NextResponse.json({ success: true, data: { id: result.data?.id, status: 'sent' } }, { headers: CORS_HEADERS });
   } catch (error) {
     console.error('❌ Resend send error:', error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: CORS_HEADERS });

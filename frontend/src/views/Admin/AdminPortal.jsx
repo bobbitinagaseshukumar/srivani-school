@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { AppContext } from '../../context/AppContext';
+import { sendEmail, buildStudentEnrollmentEmail, buildParentEnrollmentEmail } from '../../lib/emailService';
 import { 
   Users, GraduationCap, Calendar, FileText, Settings, Plus, Trash2, 
   Search, Award, MessageSquare, AlertCircle, RefreshCw, Layers, BookOpen, Download, FileSpreadsheet,
@@ -383,66 +384,30 @@ export default function AdminPortal() {
     const parentOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     if (enrollForm.email) {
-      fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: enrollForm.email,
-          subject: 'Sri Vani Portal - Welcome & Account Verification OTP',
-          html: `
-            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
-              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p>Welcome <strong>${enrollForm.name}</strong>,</p>
-                <p>Your student profile has been registered in our portal. Here are your account credentials:</p>
-                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
-                  <p style="margin: 5px 0;"><strong>Register Number (Login ID):</strong> ${enrollForm.registerNo}</p>
-                  <p style="margin: 5px 0;"><strong>Password:</strong> ${enrollForm.password}</p>
-                </div>
-                <p>Please use this 6-digit Security Verification OTP code during your first login attempt to authorize your device:</p>
-                <div style="text-align: center; margin: 25px 0;">
-                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${studentOtp}</span>
-                </div>
-                <p style="font-size: 12px; color: #64748b;">If you need help accessing your profile, please reach out to the class teacher.</p>
-                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
-              </div>
-            </div>
-          `
+      sendEmail(
+        enrollForm.email,
+        `Welcome to Sri Vani Vidyanikethan — Enrollment Confirmation`,
+        buildStudentEnrollmentEmail({
+          studentName: enrollForm.name,
+          studentId: newStudentId,
+          registerNo: enrollForm.registerNo,
+          className: `${enrollForm.class} - ${enrollForm.section}`,
+          password: enrollForm.password
         })
-      }).catch(err => console.error("Error sending welcome email to student:", err));
+      ).catch(err => console.error('Error sending welcome email to student:', err));
     }
 
     if (enrollForm.parentEmail) {
-      fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: enrollForm.parentEmail,
-          subject: 'Sri Vani Portal - Parent Account Credentials',
-          html: `
-            <div style="font-family: sans-serif; max-width: 550px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
-              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <p>Welcome <strong>${enrollForm.parentName}</strong>,</p>
-                <p>Your parent portal account has been created for tracking the academic progress of <strong>${enrollForm.name}</strong>. Here are your portal credentials:</p>
-                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 15px 0;">
-                  <p style="margin: 5px 0;"><strong>Username / Login Email:</strong> ${enrollForm.parentEmail}</p>
-                  <p style="margin: 5px 0;"><strong>Password:</strong> ${enrollForm.password}</p>
-                </div>
-                <p>Your portal security verification OTP is:</p>
-                <div style="text-align: center; margin: 25px 0;">
-                  <span style="font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #1e3a8a; background-color: #eff6ff; padding: 10px 20px; border-radius: 10px; border: 1px solid #bfdbfe; display: inline-block;">${parentOtp}</span>
-                </div>
-                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
-              </div>
-            </div>
-          `
+      sendEmail(
+        enrollForm.parentEmail,
+        'Sri Vani Vidyanikethan — Parent Account Confirmation',
+        buildParentEnrollmentEmail({
+          parentName: enrollForm.parentName,
+          studentName: enrollForm.name,
+          parentEmail: enrollForm.parentEmail,
+          password: enrollForm.password
         })
-      }).catch(err => console.error("Error sending welcome email to parent:", err));
+      ).catch(err => console.error('Error sending welcome email to parent:', err));
     }
 
     setEnrollForm({
