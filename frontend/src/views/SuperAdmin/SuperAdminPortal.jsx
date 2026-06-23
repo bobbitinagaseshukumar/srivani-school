@@ -3827,6 +3827,116 @@ export default function SuperAdminPortal() {
                 Force Recalculate Attendance
               </button>
             </div>
+
+            {/* ── MATHEMATICAL REPRESENTATION ── */}
+            <div className="mt-4 border-t border-slate-200/50 dark:border-slate-800/80 pt-4 space-y-4">
+              <h5 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🧮</span> Attendance Math Formula Representation
+              </h5>
+              <div className="p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/60 shadow-inner space-y-4">
+                {attendanceCalcConfig?.mode === 'session-based' ? (
+                  <>
+                    <div className="flex flex-col md:flex-row items-center gap-6 justify-center py-4 px-2">
+                      <div className="flex items-center gap-2 font-montserrat font-bold text-slate-700 dark:text-slate-350">
+                        <span className="bg-indigo-550/10 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20 text-xs shadow-sm font-extrabold">
+                          Attendance %
+                        </span>
+                        <span className="text-lg text-slate-450">=</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center">
+                          {/* Numerator */}
+                          <div className="pb-2 text-center flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold text-slate-850 dark:text-slate-200">
+                            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-md border border-emerald-500/20 shadow-sm">Present Sessions</span>
+                            <span className="text-slate-400 font-light">+</span>
+                            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-md border border-amber-500/20 shadow-sm">0.5 × Half-Day Sessions</span>
+                          </div>
+                          {/* Fraction Line */}
+                          <div className="w-full h-[2.5px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full" />
+                          {/* Denominator */}
+                          <div className="pt-2 text-center flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold text-slate-850 dark:text-slate-200">
+                            <span className="bg-blue-500/10 text-blue-600 dark:text-blue-450 px-2 py-1 rounded-md border border-blue-500/20 shadow-sm">Total Sessions Marked</span>
+                            {attendanceCalcConfig?.leaveExcused && (
+                              <>
+                                <span className="text-slate-400 font-light">-</span>
+                                <span className="bg-red-500/10 text-red-650 dark:text-red-400 px-2 py-1 rounded-md border border-red-500/20 shadow-sm">Excused Leaves</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 font-montserrat font-bold text-slate-700 dark:text-slate-350">
+                          <span className="text-lg text-slate-400">×</span>
+                          <span className="bg-indigo-550/10 text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-md border border-indigo-500/20 text-xs shadow-sm font-extrabold">100</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed text-center font-light pt-1 border-t border-slate-100 dark:border-slate-800/40">
+                      {attendanceCalcConfig?.leaveExcused ? (
+                        <span className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span>💡</span> <strong>Excused Leaves Active:</strong> Approved student leaves are omitted from calculations (does not impact their attendance average).
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-1.5 text-rose-600 dark:text-rose-450 font-medium">
+                          <span>💡</span> <strong>Unexcused Leaves Active:</strong> Leaves are treated as Absent sessions (adds to denominator but 0 value in numerator).
+                        </span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-col md:flex-row items-center gap-6 justify-center py-4 px-2">
+                      <div className="flex items-center gap-2 font-montserrat font-bold text-slate-700 dark:text-slate-350">
+                        <span className="bg-indigo-550/10 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20 text-xs shadow-sm font-extrabold">
+                          Attendance %
+                        </span>
+                        <span className="text-lg text-slate-450">=</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center">
+                          {/* Numerator */}
+                          <div className="pb-2 text-center flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold text-slate-850 dark:text-slate-200">
+                            <span className="text-sm font-normal text-slate-400 dark:text-slate-550">∑</span>
+                            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 px-2.5 py-1 rounded-md border border-emerald-500/20 shadow-sm">Daily Attendance Score</span>
+                          </div>
+                          {/* Fraction Line */}
+                          <div className="w-full h-[2.5px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full" />
+                          {/* Denominator */}
+                          <div className="pt-2 text-center flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold text-slate-850 dark:text-slate-200">
+                            <span className="bg-blue-500/10 text-blue-600 dark:text-blue-450 px-2 py-1 rounded-md border border-blue-500/20 shadow-sm">Total Calendar Days</span>
+                            {attendanceCalcConfig?.leaveExcused && (
+                              <>
+                                <span className="text-slate-400 font-light">-</span>
+                                <span className="bg-red-500/10 text-red-650 dark:text-red-400 px-2 py-1 rounded-md border border-red-500/20 shadow-sm">Fully Excused Days</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 font-montserrat font-bold text-slate-700 dark:text-slate-350">
+                          <span className="text-lg text-slate-400">×</span>
+                          <span className="bg-indigo-550/10 text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-md border border-indigo-500/20 text-xs shadow-sm font-extrabold">100</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-light space-y-2 border-t border-slate-100 dark:border-slate-800/40 pt-3">
+                      <p className="font-bold text-[10px] text-slate-700 dark:text-slate-300">🔍 Daily Score Calculation Details:</p>
+                      <ul className="list-disc pl-4 space-y-1.5 text-slate-450 dark:text-slate-450">
+                        <li>Each day averages Morning and Afternoon sessions: <code className="bg-slate-200/50 dark:bg-slate-800/50 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 font-mono">Present = 1.0</code>, <code className="bg-slate-200/50 dark:bg-slate-800/50 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 font-mono">Half Day = 0.5</code>, <code className="bg-slate-200/50 dark:bg-slate-800/50 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 font-mono">Absent/Unexcused = 0.0</code>.</li>
+                        {attendanceCalcConfig?.leaveExcused ? (
+                          <>
+                            <li>If <strong>both sessions</strong> are approved leaves, the whole day is <span className="text-emerald-500 font-medium">Excluded</span> (omitted from denominator entirely).</li>
+                            <li>If <strong>only one session</strong> is an approved leave, the day's weight depends solely on the other session (e.g. if Morning is Leave & Afternoon is Present, the day score is <span className="text-emerald-500 font-medium">1.0</span> instead of being averaged to 0.5).</li>
+                          </>
+                        ) : (
+                          <li>Approved leaves are counted as <span className="text-rose-500 font-medium">0.0 score (Absent)</span> and averaged into the daily score normally.</li>
+                        )}
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* ── ADMISSION BANNER CONTROL ── */}

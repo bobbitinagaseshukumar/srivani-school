@@ -901,6 +901,121 @@ export const AppProvider = ({ children }) => {
     }
   }, [theme]);
 
+  // Listen for storage events from other tabs to sync states in real-time
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e.newValue || e.newValue === e.oldValue) return;
+      try {
+        const val = JSON.parse(e.newValue);
+        switch (e.key) {
+          case 'school_attendance':
+            setAttendance(val);
+            break;
+          case 'school_students':
+            setStudents(val);
+            break;
+          case 'school_attendance_calc_config':
+            setAttendanceCalcConfig(val);
+            break;
+          case 'school_teachers':
+            setTeachers(val);
+            break;
+          case 'school_parents':
+            setParents(val);
+            break;
+          case 'school_marks':
+            setMarks(val);
+            break;
+          case 'school_homework':
+            setHomework(val);
+            break;
+          case 'school_notes':
+            setNotes(val);
+            break;
+          case 'school_circulars':
+            setCirculars(val);
+            break;
+          case 'school_live_classes':
+            setLiveClasses(val);
+            break;
+          case 'school_library_books':
+            setLibraryBooks(val);
+            break;
+          case 'school_hostels':
+            setHostels(val);
+            break;
+          case 'school_transport_routes':
+            setTransportRoutes(val);
+            break;
+          case 'school_timetables':
+            setTimetables(val);
+            break;
+          case 'school_fees':
+            setFees(val);
+            break;
+          case 'school_ticker_items':
+            setTickerItems(val);
+            break;
+          case 'school_info':
+            setSchoolInfo(val);
+            break;
+          case 'school_admissions':
+            setAdmissions(val);
+            break;
+          case 'school_facilities':
+            setFacilities(val);
+            break;
+          case 'school_homepage_infra':
+            setHomepageInfra(val);
+            break;
+          case 'school_homepage_stats':
+            setHomepageStats(val);
+            break;
+          case 'school_grading_process':
+            setGradingProcess(val);
+            break;
+          case 'school_grading_scheme':
+            setGradingScheme(val);
+            break;
+          case 'school_departments':
+            setDepartments(val);
+            break;
+          case 'school_gallery_categories':
+            setGalleryCategories(val);
+            break;
+          case 'school_complaints':
+            setComplaints(val);
+            break;
+          case 'school_whatsapp_logs':
+            setWhatsappLogs(val);
+            break;
+          case 'school_required_documents':
+            setRequiredDocuments(val);
+            break;
+          case 'school_leave_requests':
+            setLeaveRequests(val);
+            break;
+          case 'school_starred_form_fields':
+            setStarredFormFields(val);
+            break;
+          case 'school_current_user':
+            setCurrentUser(val);
+            break;
+          case 'school_super_admin_password':
+            setSuperAdminPassword(val);
+            break;
+          default:
+            break;
+        }
+      } catch (err) {
+        console.warn('Failed to parse cross-tab storage update for key:', e.key, err);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Simulating coordinates updating slightly every 5 seconds to simulate a live bus moving on the route map
   useEffect(() => {
     const interval = setInterval(() => {
