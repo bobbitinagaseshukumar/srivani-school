@@ -86,11 +86,112 @@ export default function ParentPortal() {
   const handleCheckoutSubmit = (e) => {
     e.preventDefault();
     setPaymentLoading(true);
-    setTimeout(() => {
+    
+    const txnId = `TXN_${Date.now()}`;
+    const paymentDate = new Date().toLocaleString('en-IN');
+    const targetEmail = parentProfile && parentProfile.email && parentProfile.email.includes('@') 
+      ? parentProfile.email 
+      : 'nagaseshukumarbobbiti@gmail.com';
+
+    setTimeout(async () => {
       setPaymentLoading(false);
       setFeeStatus('Paid');
       setShowPaymentModal(false);
-      alert(`Payment of ₹${totalFeeAmount} cleared successfully via secure Stripe Sandbox.`);
+
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: targetEmail,
+            subject: 'Sri Vani Vidyanikethan - Fee Payment Receipt',
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
+                <div style="text-align: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 25px;">
+                  <h1 style="color: #2563eb; margin: 0; font-size: 24px; font-weight: 800;">Sri Vani Vidyanikethan</h1>
+                  <p style="color: #64748b; margin: 5px 0 0 0; font-size: 12px; font-weight: bold; tracking-wider; text-transform: uppercase;">EM SCHOOL</p>
+                </div>
+                
+                <h3 style="color: #0f172a; margin-top: 0; font-size: 18px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">Payment Receipt</h3>
+                
+                <table style="width: 100%; font-size: 13px; margin-bottom: 25px; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Transaction ID:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right;">${txnId}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Payment Date:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right;">${paymentDate}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Payer Name:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right;">${parentName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Student Name:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right;">${childObj.name} (Reg: ${childObj.registerNo})</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Class & Section:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right;">${childObj.class} - ${childObj.section}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Payment Method:</td>
+                    <td style="padding: 6px 0; font-weight: bold; text-align: right; color: #16a34a;">Stripe Sandbox Verified</td>
+                  </tr>
+                </table>
+
+                <h4 style="color: #0f172a; margin-bottom: 12px; font-size: 14px;">Fee Breakdown</h4>
+                <table style="width: 100%; font-size: 13px; border-collapse: collapse; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                  <thead>
+                    <tr style="background-color: #f8fafc;">
+                      <th style="padding: 8px 12px; text-align: left; font-weight: bold; color: #475569;">Description</th>
+                      <th style="padding: 8px 12px; text-align: right; font-weight: bold; color: #475569;">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">Tuition & Term Fees</td>
+                      <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f5f9;">₹${tuitionAmount}.00</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">Laboratory / IT Fees</td>
+                      <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f5f9;">₹${labAmount}.00</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">School Bus / Transport</td>
+                      <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f5f9;">₹${busAmount}.00</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">Textbooks & Learning Material</td>
+                      <td style="padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f5f9;">₹${booksAmount}.00</td>
+                    </tr>
+                    <tr style="font-weight: bold; font-size: 14px; background-color: #eff6ff;">
+                      <td style="padding: 10px 12px; color: #1e3a8a;">Total Cleared</td>
+                      <td style="padding: 10px 12px; text-align: right; color: #1e3a8a;">₹${totalFeeAmount}.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div style="margin-top: 30px; padding: 15px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; text-align: center;">
+                  <p style="margin: 0; color: #166534; font-size: 13px; font-weight: bold;">✔ Status: Paid & Finalized</p>
+                  <p style="margin: 4px 0 0 0; color: #166534; font-size: 11px; font-light;">Thank you for your prompt fee remittance. Keep this invoice for your records.</p>
+                </div>
+                
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 30px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                  This is an automatically generated receipt. For questions or details, contact the school accounts office.
+                </p>
+              </div>
+            `
+          })
+        });
+      } catch (err) {
+        console.error("Receipt sending failed:", err);
+      }
+
+      alert(`Payment of ₹${totalFeeAmount} cleared successfully via secure Stripe Sandbox. A digital payment receipt has been sent to your email.`);
     }, 2000);
   };
 

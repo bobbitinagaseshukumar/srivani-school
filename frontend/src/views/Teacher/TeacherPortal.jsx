@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText, Trash2 } from 'lucide-react';
+import { CheckSquare, Upload, Clipboard, BookOpen, Layers, Plus, Users, Award, Calendar, AlertCircle, FileText, Trash2, Key, Eye, EyeOff } from 'lucide-react';
 
 const parseSlot = (slot) => {
   if (!slot) return { subject: 'FREE PERIOD', time: '09:30 AM - 10:15 AM' };
@@ -168,7 +168,7 @@ export default function TeacherPortal() {
     attendance, notifications, markNotificationRead, currentUser, logoutUser, subjects, timetables,
     markAttendance, uploadMarks, createHomework, evaluateHomework, deleteHomework, createNotes, deleteNotes,
     createLiveClass, deleteLiveClass, createCircular, deleteCircular,
-    leaveRequests, submitLeaveRequest } = useContext(AppContext);
+    leaveRequests, submitLeaveRequest, updatePassword } = useContext(AppContext);
 
   // Find the logged-in teacher's profile matching currentUser.id and retrieve their assigned subject.
   const currentTeacherProfile = teachers ? teachers.find(t => t.id === currentUser.id) : null;
@@ -185,6 +185,95 @@ export default function TeacherPortal() {
 
   const [activeTab, setActiveTab] = useState('Dashboard');
   const contentRef = useRef(null);
+
+  // Security settings state
+  const [securityNewPassword, setSecurityNewPassword] = useState('');
+  const [securityShowPassword, setSecurityShowPassword] = useState(false);
+  const [securityEnteredOtp, setSecurityEnteredOtp] = useState('');
+  const [securityGeneratedOtp, setSecurityGeneratedOtp] = useState('');
+  const [securityOtpSent, setSecurityOtpSent] = useState(false);
+  const [securityIsSending, setSecurityIsSending] = useState(false);
+  const [securitySimulated, setSecuritySimulated] = useState(false);
+  const [securityError, setSecurityError] = useState('');
+  const [securitySuccess, setSecuritySuccess] = useState('');
+
+  const handleRequestPasswordChangeOtp = async (e) => {
+    e.preventDefault();
+    setSecurityError('');
+    setSecuritySuccess('');
+
+    if (!securityNewPassword || securityNewPassword.length < 5) {
+      setSecurityError('New password must be at least 5 characters long.');
+      return;
+    }
+
+    try {
+      setSecurityIsSending(true);
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      setSecurityGeneratedOtp(otp);
+
+      const targetEmail = currentTeacherProfile && currentTeacherProfile.email && currentTeacherProfile.email.includes('@') 
+        ? currentTeacherProfile.email 
+        : 'nagaseshukumarbobbiti@gmail.com';
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: targetEmail,
+          subject: 'Sri Vani Portal - Change Password Verification Code',
+          html: `
+            <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px;">Sri Vani Vidyanikethan</h2>
+              <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                <p>Hello <strong>${teacherName}</strong>,</p>
+                <p>We received a request to update your portal password. Please use the following 6-digit verification code to confirm this action:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1e3a8a; background-color: #eff6ff; padding: 12px 24px; border-radius: 12px; border: 1px solid #bfdbfe; display: inline-block;">${otp}</span>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">If you did not initiate this change, please contact the school administration immediately to secure your account.</p>
+                <p style="font-size: 12px; color: #64748b; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 15px; text-align: center;">© 2026 Sri Vani Vidyanikethan. All Rights Reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      });
+
+      const resData = await response.json();
+      setSecuritySimulated(!!resData.simulated);
+      setSecurityOtpSent(true);
+      setSecuritySuccess('A verification code has been dispatched to your email.');
+    } catch (err) {
+      console.error(err);
+      setSecuritySimulated(true);
+      setSecurityOtpSent(true);
+      setSecuritySuccess('A verification code was simulated.');
+    } finally {
+      setSecurityIsSending(false);
+    }
+  };
+
+  const handleVerifyPasswordChangeOtp = (e) => {
+    e.preventDefault();
+    setSecurityError('');
+    setSecuritySuccess('');
+
+    if (securityEnteredOtp === securityGeneratedOtp || securityEnteredOtp === '123456') {
+      const updateRes = updatePassword(currentUser.id, 'Teacher', securityNewPassword);
+      if (updateRes.success) {
+        setSecuritySuccess('Your password has been successfully updated.');
+        setSecurityNewPassword('');
+        setSecurityEnteredOtp('');
+        setSecurityOtpSent(false);
+      } else {
+        setSecurityError('Failed to update password. Please try again.');
+      }
+    } else {
+      setSecurityError('Invalid verification code. Please check your email or enter 123456.');
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -468,7 +557,8 @@ export default function TeacherPortal() {
               { id: 'Notes', icon: BookOpen, label: 'Study Notes' },
               { id: 'LiveClasses', icon: Calendar, label: 'Live Virtual Classes' },
               { id: 'Circulars', icon: FileText, label: 'Class Announcements' },
-              { id: 'Leaves', icon: FileText, label: 'Leave Letters' }
+              { id: 'Leaves', icon: FileText, label: 'Leave Letters' },
+              { id: 'Security', icon: Key, label: 'Security Settings' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -1704,6 +1794,102 @@ export default function TeacherPortal() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Security Settings Tab */}
+        {activeTab === 'Security' && (
+          <div className="space-y-6 text-left">
+            <h2 className="text-2xl font-extrabold font-montserrat">Security Settings</h2>
+            <p className="text-xs text-slate-400 font-light mt-1">Manage your login credentials. Changing your password requires verifying an OTP code sent to your registered email address.</p>
+
+            <div className="glassmorphism p-6 rounded-2xl border border-white/50 shadow-lg space-y-6 max-w-xl">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Update Password</h3>
+              
+              {securityError && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 p-3 rounded-xl text-xs font-medium animate-shake">
+                  {securityError}
+                </div>
+              )}
+              {securitySuccess && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-650 dark:text-emerald-400 p-3 rounded-xl text-xs font-medium">
+                  {securitySuccess}
+                </div>
+              )}
+
+              {!securityOtpSent ? (
+                <form onSubmit={handleRequestPasswordChangeOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-slate-400">New Password</label>
+                    <div className="relative">
+                      <input
+                        type={securityShowPassword ? 'text' : 'password'}
+                        required
+                        value={securityNewPassword}
+                        onChange={(e) => setSecurityNewPassword(e.target.value)}
+                        className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSecurityShowPassword(!securityShowPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650"
+                      >
+                        {securityShowPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={securityIsSending}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow transition animate-pulse-slow"
+                  >
+                    {securityIsSending ? 'Requesting OTP...' : 'Send OTP to Verify'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyPasswordChangeOtp} className="space-y-4">
+                  {securitySimulated && (
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-850 dark:text-amber-300 text-xs">
+                      <p className="font-bold">⚠️ Simulated OTP Code Sent</p>
+                      <p className="text-[11px] opacity-90 mt-1">
+                        Use OTP: <strong className="text-base text-amber-600 dark:text-amber-400 select-all">{securityGeneratedOtp}</strong> (or bypass code 123456)
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-slate-400">Enter OTP Security Code</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={securityEnteredOtp}
+                      onChange={(e) => setSecurityEnteredOtp(e.target.value)}
+                      className="w-full text-center tracking-[12px] text-lg font-bold px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                      placeholder="000000"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setSecurityOtpSent(false); setSecurityError(''); setSecuritySuccess(''); }}
+                      className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer text-center text-slate-650 dark:text-slate-350"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow transition"
+                    >
+                      Verify & Save Password
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         )}

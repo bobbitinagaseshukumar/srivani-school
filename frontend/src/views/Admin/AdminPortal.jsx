@@ -470,7 +470,7 @@ export default function AdminPortal() {
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Faculty</p>
                 <h3 className="text-3xl font-extrabold font-montserrat mt-1">{teachers.length}</h3>
-                <p className="text-[10px] text-blue-500 font-semibold mt-1">{subjects.length} Departments</p>
+                <p className="text-[10px] text-blue-500 font-semibold mt-1">{(subjects || []).length} Departments</p>
               </div>
               <div className="glassmorphism p-5 rounded-2xl border border-white/40 shadow-md">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Parents</p>
@@ -1025,7 +1025,7 @@ export default function AdminPortal() {
             <div className="space-y-2">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Academic Curriculum:</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 border rounded-xl max-h-60 overflow-y-auto">
-                {subjects.map(sub => (
+                {(subjects || []).map(sub => (
                   <div key={sub.id || sub.code} className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border text-xs font-bold flex flex-wrap items-center justify-between gap-1.5 shadow-sm overflow-hidden break-words whitespace-normal text-left">
                     <span className="break-all">{sub.name} ({sub.code})</span>
                     <span className="text-[8px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded shrink-0">{sub.department || 'General'}</span>
@@ -1092,7 +1092,7 @@ export default function AdminPortal() {
                     onChange={(e) => setExamForm(prev => ({ ...prev, subject: e.target.value }))}
                     className="px-3.5 py-2 border rounded-xl bg-white/70 dark:bg-slate-900/50 text-xs focus:ring-1 focus:ring-blue-500"
                   >
-                    {subjects.map(s => <option key={s.id || s.code} value={s.code}>{s.name}</option>)}
+                    {(subjects || []).map(s => <option key={s.id || s.code} value={s.code}>{s.name}</option>)}
                   </select>
                   <input 
                     type="date" required

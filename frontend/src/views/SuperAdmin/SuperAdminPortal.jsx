@@ -321,7 +321,7 @@ export default function SuperAdminPortal() {
     auditLogs, supportTickets, timetables, saveTimetable,
     addTeacher, editTeacher, deleteTeacher,
     addAdmin, editAdmin, deleteAdmin,
-    addStudent, editStudent, deleteStudent,
+    addStudent, editStudent, deleteStudent, permanentlyDeleteStudent,
     addParent, editParent, deleteParent,
     addAuditLog, logoutUser,
     galleryItems, addGalleryItem, editGalleryItem, deleteGalleryItem,
@@ -382,6 +382,30 @@ export default function SuperAdminPortal() {
     setRevealedPasswords(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const downloadStudentAttendance = (student) => {
+    const studentHistory = (attendance || []).filter(a => a.studentId === student.id);
+    const csvRows = [
+      ["Student Name", student.name],
+      ["Register Number", student.registerNo],
+      ["Class", `${student.class} - ${student.section}`],
+      ["Overall Attendance", `${student.attendancePct || 0}%`],
+      [],
+      ["Date", "Session", "Status"]
+    ];
+    studentHistory.forEach(h => {
+      csvRows.push([h.date, h.session || 'Morning', h.status]);
+    });
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + csvRows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${student.name.replace(/\s+/g, '_')}_attendance.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Admissions tab states
   const [whatsappToast, setWhatsappToast] = useState(null);
   const [newDocName, setNewDocName] = useState('');
@@ -396,6 +420,9 @@ export default function SuperAdminPortal() {
   // Complaints tab states
   const [complaintReplyId, setComplaintReplyId] = useState(null);
   const [complaintReplyText, setComplaintReplyText] = useState('');
+
+  // Student List tab state
+  const [studentListTab, setStudentListTab] = useState('active'); // 'active' or 'deactivated'
 
   // Attendance Records tab states
   const [attViewClass, setAttViewClass] = useState('Class 10');
@@ -2317,6 +2344,22 @@ export default function SuperAdminPortal() {
             </form>
           )}
 
+          {/* Student Status Sub-tabs */}
+          <div className="flex gap-2 border-b dark:border-slate-800 pb-1">
+            <button
+              onClick={() => setStudentListTab('active')}
+              className={`pb-2 px-4 text-xs font-bold transition-all border-b-2 ${studentListTab === 'active' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+            >
+              Active Directory ({students.filter(s => !s.isDeleted).length})
+            </button>
+            <button
+              onClick={() => setStudentListTab('deactivated')}
+              className={`pb-2 px-4 text-xs font-bold transition-all border-b-2 ${studentListTab === 'deactivated' ? 'border-red-500 text-red-500' : 'border-transparent text-slate-400'}`}
+            >
+              Deactivated Students ({students.filter(s => s.isDeleted).length})
+            </button>
+          </div>
+
           {/* Directory Search & Class Filter */}
           <div className="flex flex-wrap gap-3 items-center">
             <input 
@@ -2354,7 +2397,8 @@ export default function SuperAdminPortal() {
                   {students.filter(s => {
                     const matchesSearch = s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.registerNo.toLowerCase().includes(studentSearch.toLowerCase());
                     const matchesClass = studentClassFilter === 'All' ? true : s.class === studentClassFilter;
-                    return matchesSearch && matchesClass;
+                    const matchesTab = studentListTab === 'active' ? !s.isDeleted : s.isDeleted;
+                    return matchesSearch && matchesClass && matchesTab;
                   }).map((stud) => (
                     <tr key={stud.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/10 ${stud.isDeleted ? 'opacity-50 bg-red-50/30 dark:bg-red-950/10' : ''}`}>
                       <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -2385,22 +2429,56 @@ export default function SuperAdminPortal() {
                         </div>
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        <button 
-                          onClick={() => {
-                            setStudentEditId(stud.id);
-                            setStudentForm({ ...stud });
-                            setShowStudentForm(true);
-                          }}
-                          className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button 
-                          onClick={() => deleteStudent(stud.id)}
-                          className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded transition"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {studentListTab === 'active' ? (
+                          <>
+                            <button 
+                              onClick={() => downloadStudentAttendance(stud)}
+                              className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-700 rounded transition"
+                              title="Download Attendance CSV"
+                            >
+                              <FileSpreadsheet size={14} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setStudentEditId(stud.id);
+                                setStudentForm({ ...stud });
+                                setShowStudentForm(true);
+                              }}
+                              className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition"
+                              title="Edit Profile"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button 
+                              onClick={() => { if (window.confirm(`Deactivate student ${stud.name}?`)) deleteStudent(stud.id); }}
+                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded transition"
+                              title="Deactivate Student"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => downloadStudentAttendance(stud)}
+                              className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-700 rounded transition"
+                              title="Download Attendance CSV"
+                            >
+                              <FileSpreadsheet size={14} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`⚠️ WARNING: Permanently delete student ${stud.name}? This will erase all their grades/marks and records permanently from the system!`)) {
+                                  permanentlyDeleteStudent(stud.id);
+                                }
+                              }}
+                              className="p-1 text-red-650 hover:bg-red-100 dark:hover:bg-red-955/30 rounded transition font-bold"
+                              title="Permanently Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -4906,6 +4984,26 @@ export default function SuperAdminPortal() {
 
       {/* Audit Logs tab */}
 
+      {cropImageSrc && (
+        <ImageCropperModal
+          src={cropImageSrc}
+          onCrop={(croppedData) => {
+            if (cropTarget === 'student') {
+              setStudentForm(prev => ({ ...prev, photo: croppedData }));
+            } else if (cropTarget === 'teacher') {
+              setTeacherForm(prev => ({ ...prev, photo: croppedData }));
+            } else if (cropTarget === 'admin') {
+              setAdminForm(prev => ({ ...prev, photo: croppedData }));
+            }
+            setCropImageSrc(null);
+            setCropTarget(null);
+          }}
+          onCancel={() => {
+            setCropImageSrc(null);
+            setCropTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -6001,26 +6099,6 @@ function SubjectsManagerPanel({ subjects, addSubject, editSubject, deleteSubject
           ))}
         </div>
       </div>
-      {cropImageSrc && (
-        <ImageCropperModal
-          src={cropImageSrc}
-          onCrop={(croppedData) => {
-            if (cropTarget === 'student') {
-              setStudentForm(prev => ({ ...prev, photo: croppedData }));
-            } else if (cropTarget === 'teacher') {
-              setTeacherForm(prev => ({ ...prev, photo: croppedData }));
-            } else if (cropTarget === 'admin') {
-              setAdminForm(prev => ({ ...prev, photo: croppedData }));
-            }
-            setCropImageSrc(null);
-            setCropTarget(null);
-          }}
-          onCancel={() => {
-            setCropImageSrc(null);
-            setCropTarget(null);
-          }}
-        />
-      )}
     </div>
   );
 }

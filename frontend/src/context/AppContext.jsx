@@ -344,6 +344,10 @@ export const AppProvider = ({ children }) => {
   const isUpdatingFromDBRef = useRef(true); // Start TRUE to block write-back until initial load completes
   const initialLoadDoneRef = useRef(false);
 
+  const [superAdminPassword, setSuperAdminPassword] = useState(() => {
+    return readStoredValue('school_super_admin_password', 'seshu@2409');
+  });
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Helper: build a canonical payload object from data (used in load, save, and poll)
@@ -392,7 +396,8 @@ export const AppProvider = ({ children }) => {
     requiredDocuments: src.requiredDocuments || [],
     leaveRequests: src.leaveRequests || [],
     starredFormFields: src.starredFormFields || {},
-    attendanceCalcConfig: src.attendanceCalcConfig || { mode: 'session-based', minRequired: 75, leaveExcused: true }
+    attendanceCalcConfig: src.attendanceCalcConfig || { mode: 'session-based', minRequired: 75, leaveExcused: true },
+    superAdminPassword: src.superAdminPassword || 'seshu@2409'
   });
 
   // Helper: apply data from DB to all React state setters
@@ -443,6 +448,7 @@ export const AppProvider = ({ children }) => {
     setLeaveRequests(data.leaveRequests || []);
     setStarredFormFields(data.starredFormFields || initialStarredFormFields);
     setAttendanceCalcConfig(data.attendanceCalcConfig || { mode: 'session-based', minRequired: 75, leaveExcused: true });
+    setSuperAdminPassword(data.superAdminPassword || 'seshu@2409');
   };
 
   // ═══ SYNC 1: Load state from MongoDB on first mount ═══
@@ -536,7 +542,8 @@ export const AppProvider = ({ children }) => {
         requiredDocuments,
         leaveRequests,
         starredFormFields,
-        attendanceCalcConfig
+        attendanceCalcConfig,
+        superAdminPassword
       });
 
       const payloadStr = JSON.stringify(payload);
@@ -614,7 +621,9 @@ export const AppProvider = ({ children }) => {
     whatsappLogs,
     requiredDocuments,
     leaveRequests,
-    starredFormFields
+    starredFormFields,
+    attendanceCalcConfig,
+    superAdminPassword
   ]);
 
   // ═══ SYNC 3: Poll remote state updates from MongoDB Atlas every 6 seconds ═══
@@ -840,6 +849,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('school_required_documents', JSON.stringify(requiredDocuments)); }, [requiredDocuments]);
   useEffect(() => { localStorage.setItem('school_leave_requests', JSON.stringify(leaveRequests)); }, [leaveRequests]);
   useEffect(() => { localStorage.setItem('school_starred_form_fields', JSON.stringify(starredFormFields)); }, [starredFormFields]);
+  useEffect(() => { localStorage.setItem('school_super_admin_password', JSON.stringify(superAdminPassword)); }, [superAdminPassword]);
 
   useEffect(() => {
     localStorage.setItem('school_theme', theme);
@@ -871,25 +881,28 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const loginUser = (emailOrId, password, role) => {
+  const validateCredentials = (emailOrId, password, role) => {
     let name = '';
     let success = false;
     let userId = '';
     let resolvedRole = role;
+    let email = '';
 
     const normalizedInput = emailOrId ? emailOrId.trim().toLowerCase() : '';
 
     // Direct override for Super Admin credentials to authenticate from any portal selection
-    if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
+    if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === superAdminPassword) {
       name = 'Super Administrator';
       userId = 'SA001';
       success = true;
       resolvedRole = 'SuperAdmin';
+      email = 'nagaseshukumarbobbiti@gmail.com';
     } else if (role === 'SuperAdmin') {
-      if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === 'seshu@2409') {
+      if (normalizedInput === 'nagaseshukumarbobbiti@gmail.com' && password === superAdminPassword) {
         name = 'Super Administrator';
         userId = 'SA001';
         success = true;
+        email = 'nagaseshukumarbobbiti@gmail.com';
       }
     } else if (role === 'Admin') {
       const match = admins.find(a => a.email && a.email.trim().toLowerCase() === normalizedInput && a.status === 'Active');
@@ -898,6 +911,7 @@ export const AppProvider = ({ children }) => {
         name = match.name;
         userId = match.id;
         success = true;
+        email = match.email;
       }
     } else if (role === 'Teacher') {
       const match = teachers.find(t => 
@@ -909,6 +923,7 @@ export const AppProvider = ({ children }) => {
         name = match.name;
         userId = match.id;
         success = true;
+        email = match.email || '';
       }
     } else if (role === 'Student') {
       const match = students.find(s => 
@@ -921,6 +936,7 @@ export const AppProvider = ({ children }) => {
         name = match.name;
         userId = match.id;
         success = true;
+        email = match.email || '';
       }
     } else if (role === 'Parent') {
       const match = parents.find(p => 
@@ -932,17 +948,54 @@ export const AppProvider = ({ children }) => {
         name = match.name;
         userId = match.id;
         success = true;
+        email = match.email || '';
       }
     }
 
     if (success) {
-      const userObj = { role: resolvedRole, name, id: userId, emailOrId: normalizedInput };
-      setCurrentUser(userObj);
-      addAuditLog(name, resolvedRole, 'Successfully logged into portal');
-      addNotification('Security Alert', `New login session established for ${name}`, 'Security');
-      return { success: true };
+      return { success: true, user: { role: resolvedRole, name, id: userId, emailOrId: normalizedInput, email } };
     }
     return { success: false, message: 'Invalid credentials or matching record not found.' };
+  };
+
+  const loginWithUser = (userObj) => {
+    setCurrentUser(userObj);
+    addAuditLog(userObj.name, userObj.role, 'Successfully logged into portal');
+    addNotification('Security Alert', `New login session established for ${userObj.name}`, 'Security');
+    return { success: true };
+  };
+
+  const loginUser = (emailOrId, password, role) => {
+    const res = validateCredentials(emailOrId, password, role);
+    if (res.success) {
+      return loginWithUser(res.user);
+    }
+    return res;
+  };
+
+  const updatePassword = (userId, role, newPassword) => {
+    if (role === 'Student') {
+      setStudents(prev => prev.map(s => s.id === userId ? { ...s, password: newPassword } : s));
+      addAuditLog(currentUser.name || 'Student', 'Student', 'Updated login password');
+      return { success: true };
+    } else if (role === 'Teacher') {
+      setTeachers(prev => prev.map(t => t.id === userId ? { ...t, password: newPassword } : t));
+      addAuditLog(currentUser.name || 'Teacher', 'Teacher', 'Updated login password');
+      return { success: true };
+    } else if (role === 'Parent') {
+      setParents(prev => prev.map(p => p.id === userId ? { ...p, password: newPassword } : p));
+      addAuditLog(currentUser.name || 'Parent', 'Parent', 'Updated login password');
+      return { success: true };
+    } else if (role === 'Admin') {
+      setAdmins(prev => prev.map(a => a.id === userId ? { ...a, password: newPassword } : a));
+      addAuditLog(currentUser.name || 'Admin', 'Admin', 'Updated login password');
+      return { success: true };
+    } else if (role === 'SuperAdmin') {
+      setSuperAdminPassword(newPassword);
+      addAuditLog('Super Administrator', 'SuperAdmin', 'Updated Super Admin password');
+      return { success: true };
+    }
+    return { success: false, message: 'Invalid role for password update.' };
   };
 
   const logoutUser = () => {
@@ -983,19 +1036,22 @@ export const AppProvider = ({ children }) => {
     if (isDuplicate) {
       return { success: false, message: `Register Number "${studentData.registerNo}" already exists in database.` };
     }
-    const maxNum = students.reduce((max, s) => {
-      const match = s.id ? s.id.match(/^S(\d+)$/) : null;
-      if (match) {
-        const num = parseInt(match[1], 10);
-        return num > max ? num : max;
-      }
-      return max;
-    }, 1000);
+    // Generate a collision-proof unique ID
+    let nextNum = 1001;
+    while (
+      students.some(s => s.id === `S${nextNum}`) ||
+      (marks || []).some(m => m.studentId === `S${nextNum}`) ||
+      (leaveRequests || []).some(l => l.studentId === `S${nextNum}`) ||
+      (complaints || []).some(c => c.studentId === `S${nextNum}`) ||
+      (attendance || []).some(a => a.studentId === `S${nextNum}`)
+    ) {
+      nextNum++;
+    }
     const newStudent = {
       ...studentData,
       registerNo: cleanedReg,
       email: studentData.email ? studentData.email.trim().toLowerCase() : '',
-      id: `S${maxNum + 1}`,
+      id: `S${nextNum}`,
       attendancePct: 0,
       activeStatus: 'Active',
       schoolId: 'school-1'
@@ -1022,6 +1078,19 @@ export const AppProvider = ({ children }) => {
     setComplaints(prev => prev.filter(c => c.studentId !== id));
     setAttendance(prev => prev.filter(a => a.studentId !== id));
     addAuditLog(currentUser.name, currentUser.role, `Soft-deleted Student ID ${id} (marks preserved)`);
+  };
+
+  const permanentlyDeleteStudent = (id) => {
+    setStudents(prev => prev.filter(s => s.id !== id));
+    setLeaveRequests(prev => prev.filter(l => l.studentId !== id));
+    setComplaints(prev => prev.filter(c => c.studentId !== id));
+    setAttendance(prev => {
+      const updated = prev.filter(a => a.studentId !== id);
+      recalculateAllAttendance(updated, attendanceCalcConfig);
+      return updated;
+    });
+    setMarks(prev => prev.filter(m => m.studentId !== id));
+    addAuditLog(currentUser.name, currentUser.role, `Permanently Deleted Student ID ${id} and all associated records`);
   };
 
   const addParent = (parentData) => {
@@ -1687,7 +1756,10 @@ export const AppProvider = ({ children }) => {
       isLoaded,
       currentUser,
       loginUser,
+      validateCredentials,
+      loginWithUser,
       logoutUser,
+      updatePassword,
       schools,
       teachers,
       students,
@@ -1731,6 +1803,7 @@ export const AppProvider = ({ children }) => {
       addStudent,
       editStudent,
       deleteStudent,
+      permanentlyDeleteStudent,
       addTeacher,
       editTeacher,
       deleteTeacher,
